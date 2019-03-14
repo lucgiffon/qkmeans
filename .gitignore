@@ -1,0 +1,66 @@
+*.py[co]
+
+# Packages
+*.egg
+*.egg-info
+dist
+build
+eggs
+parts
+bin
+var
+sdist
+develop-eggs
+.installed.cfg
+
+# Installer logs
+pip-log.txt
+
+# Mac OS X cruft
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+### Django ###
+*.log
+*.pot
+*.pyc
+__pycache__/
+local_settings.py
+*.sqlite3
+*.sqlite
+
+# Sphinx stuff
+docs/generated/
+docs/_build/
+
+# jupyter notebook
+.ipynb_checkpoints
+
+.spyderproject
+
+# coverage
+htmlcov
+.coverage
+
+# pycharm files
+.idea
+
+# latex aux files
+*.bak
+*.sav
+*.aux
+*.log
+*.synctex.gz
+*.toc
+*.pytxcode
+
+# Cache
+.cache
+
+
+
