@@ -2,7 +2,7 @@
 \usepackage[utf8]{inputenc}
 
 \title{Document de travail QALM}
-\author{luc.giffon }
+\author{QARMA}
 \date{March 2019}
 
 \usepackage{natbib}
@@ -22,13 +22,14 @@
 
 $[\![K]\!]$ with $K \in \sN$ is the set of all i such as $i \in \sN$ and $i < K$ . $\rmX = \{\rvx_i \in \R^d\}_{i=1}^n$ is the considered dataset.
 
-\section{Preliminaries}
+\section{Background}
 
 \subsection{K-means}
 
 The K-means algorithm is used to partition a given set of observations $\rmX$ into a predefined amount of $K$ clusters. The algorithm starts with an initialized set of $K$ center-points ($\{\rmU_i \in \R\}_{i=1}^{K}$). Each update step is divided in two parts: (i) all observations $\rvx_i$ are assigned to their nearest cluster based on the center-points $\rmU_i$s (Equation \ref{eq:kmeans_assign_step}) in $O(ndK)$ operations. (ii) the new center-points are computed as the means of the assigned $\rvx_i$ (Equation \ref{eq:kmeans_compute_step}) for a total of $O(nd)$ operations.
 
 \begin{algorithm}
+\label{algo:kmeans}
 \caption{K-means algorithm}
 \begin{algorithmic}
 
@@ -55,8 +56,11 @@ t \leftarrow \argmin_{t \in [\![K]\!]^n} \sum_{i=1}^{n} {||\rvx_i - \rmU_{t(i)}|
 Once the cluster have been defined, for any $\rvx \in \R^d$ the cluster associated with this $\rvx$ is:
 
 \begin{equation}
-\argmin_{t \in [\![K]\!]^n} \sum_{i=1}^{n} {||\rvx - \rmU_{t(i)}||_2^2}
-\end{equation}
+\label{eq:assignation_problem_kmeans}
+\argmin_{k \in [\![K]\!]^n} ||\rvx - \rmU_{k}||_2^2 = \argmin_{k \in [\![K]\!]^n} ||U_k||_2^2 - 2 \rmU_{k}^T\rvx
+\end{equation}.
+
+We remark here that the computational bottleneck of this assignation lies in the computation of $\rmU_k^T\rvx$ for all $k$. This bottleneck is also encountered at each step in the Equation \ref{eq:kmeans_assign_step} of the Algorithm \ref{algo:kmeans}.
 
 
 \subsection{Learning Fast transforms as the product of sparse matrices}
@@ -67,38 +71,32 @@ A popular way for providing concise description of high-dimensional vectors $\rm
 \rmU^T \approx \rmD\rmGamma
 \end{equation}
 
-where $\rmD \in \R^{d \times d}$ is a dictionnary and $\rmGamma \in \R^{d \times K}$ has sparse columns. Historically, the dictionnary is chosen either to allows for (i) a fast reconstruction of the initial matrix in which case one would choose $\rmD$ so that we can use a known fast-transform algorithm such as the \textit{Fast Hadamard Transform} or (ii) a good reconstruction of the initial matrix in which case $\rmD$ is learned from the data itself.
+where $\rmD \in \R^{d \times d}$ is a dictionnary and $\rmGamma \in \R^{d \times K}$ has sparse columns. Historically, the dictionnary is either (i) analytic: $\rmD$ is chosen to give a fast reconstruction of the initial matrix by taking advantage of some fast-transform algorithm (the \textit{Fast Hadamard Transform} for instance) or (ii) learned: $\rmD$ is learned from the data itself to give a good reconstruction of the initial matrix.
 
-Building on the observation that a fast-transform associated with a "fast" dictionnary can be expressed as the product of sparse matrices, \cite{magoarou} proposes an algorithm to learn a dictionnary from the data with sparsity constraints such that this dictionnary would be both well-suited with the data and fast to use:
-
-\begin{equation}
-\rmD = \prod_{j=1}^{M}\rmS_j
-\end{equation}
-
-with $\rmS_j \in \mathcal{E}_j$, $\mathcal{E}_j = \lbrace \rmA \in \R^{a \times a+1}~\text{s.t.}~||\rmA||_0^0 \leq p_j \rbrace$ and $p_j$ being chosen suitably.
-
-Considering $\rmGamma$ being a sparse matrice too, it can be renamed as $\rmGamma = \rmS_{M+1}$ and the overall dictionnary learning problem can be simplified to finding the sparse matrix product approximation:
+Building on the observation that the fast-transform associated with an analytic dictionnary can be expressed as the product of sparse matrices, \cite{magoarou2014learning} proposes an algorithm to learn a dictionnary from the data with sparsity constraints such that this dictionnary would be both well-suited with the data and fast to use:
 
 \begin{equation}
-\rmU \approx \prod_{j=1}^{M+1}\rmS_j
+\rmD = \lambda \prod_{j=1}^{M}\rmS_j
 \end{equation}
 
-which lead to the following optimisation problem
+with $\rmS_j \in \mathcal{E}_j$, $\mathcal{E}_j = \lbrace \rmA \in \R^{a \times a+1}~\text{s.t.}~||\rmA||_0^0 \leq p_j, ||\rmA||_1 = 1 \rbrace$ and $p_j$ being chosen suitably. The $\lambda$ parameter has been added along with the normalization constraint in the $\mathcal{E}_j$ in order to remove scaling ambiguity in the learned $\rmS_j$.
+
+Considering $\rmGamma$ being a sparse matrice too, it can be renamed as $\rmGamma = \rmS_{M+1}$ and the overall dictionnary learning problem can be expressed as the following optimisation problem:
 
 \begin{equation}
 \min_{\{\rmS_1 \dots \rmS_P, \lambda\}} ||\rmU - \lambda \prod_{j=1}^{M+1}{\rmS_j}||_2^2 + \sum_{j=1}^{M+1} \delta_j(\rmS_j)
 \end{equation}
 
-with the $\delta_j(\rmS_j) = 0$ if $\rmS_j \in \mathcal{E}_j$ being some constraints to satisfy on the associated $\rmS_j$.
+with the $\delta_j(\rmS_j) = 0$ if $\rmS_j \in \mathcal{E}_j$ being the sparsity constraints to satisfy on the associated $\rmS_j$.
 
-This problem is highly non-convex but a good local minima can be found using the PALM algorithm.
+Although this probleme being highly non-convex, the authors finaly derive an algorithm from the PALM algorithm \cite{bolte2014proximal} to find a good local minima and give convergence guarantees to learn efficient dictionaries.
 
 
 \section{Contribution}
 
 \subsection{Q-means}
 
-We propose an extension of the K-means algorithm so that the output matrix of center-points $\rmU$ would be approximated by a product of $M+1$ sparse matrices $\rmS_j$. The factorization of $\rmU$ could then be used in ulterior algorithm that involve a matrix-vector multiplication with $\rmU$. Such applications of our proposed algorithm are discussed in Section \ref{sec:uses}.
+We propose an extension of the K-means algorithm in which the output matrix of center-points $\rmU$ are approximated by a product of $M+1$ sparse matrices $\rmS_j$. 
 
 \begin{algorithm}
 \caption{Q-means algorithm}
@@ -109,13 +107,11 @@ We propose an extension of the K-means algorithm so that the output matrix of ce
 \ENSURE $\{\rmS_1 \dots \rmS_{M+1}\}|\rmS_j \in \mathcal{E}_j$ such that $\prod_{j=1}^{M+1}\rmS_j \approx \rmU$ the K means of $n$ $d$-dimensional samples
 \REPEAT
 \STATE \begin{equation}
-\label{eq:kmeans_assign_step}
 t \leftarrow \argmin_{t \in [\![K]\!]^n} \sum_{i=1}^{n} {||\rvx_i - \rmU_{t(i)}||_2^2}
 \end{equation}
 \FORALL {$k \in [\![K]\!]^n$}
 \STATE $n_k \leftarrow |\{i: t_i=k\}|$
 \STATE \begin{equation}
-\label{eq:kmeans_compute_step}
 \rmU_k \leftarrow \frac{1}{n_k} \sum_{i: t_i = k} {\rvx_i}
 \end{equation}
 \STATE $\{\rmS_1 \dots \rmS_{M+1}\} \leftarrow \argmin_{\{\rmS_1 \dots \rmS_P, \lambda\}} ||\rmU - \lambda \prod_{j=1}^{M+1}{\rmS_j}||_2^2 + \sum_{j=1}^{M+1} \delta_j(\rmS_j)$
@@ -124,17 +120,38 @@ t \leftarrow \argmin_{t \in [\![K]\!]^n} \sum_{i=1}^{n} {||\rvx_i - \rmU_{t(i)}|
 \end{algorithmic}
 \end{algorithm}
 
+The factorization of $\rmU$ could then be used in ulterior algorithm that involve a matrix-vector multiplication with $\rmU$: typically any algorithm involving the assignation of some data points to one of the cluster (Equation \ref{eq:assignation_problem_kmeans}). Such applications of our proposed algorithm are discussed in Section \ref{sec:uses}.
 
-\section{Utilisation}
+\section{Applications}
 \label{sec:uses}
 
-\subsection{Nyström}
+\subsection{Nyström approximation}
 
-\subsubsection{Efficient Nyström}
+Standard kernel machines are often prohibited in large scale applications because of their associated Gram matrix which has $O(n^2)$ storage and $O(n^2d)$ computational complexity. A well-known strategy to overcome this problem is to use the Nyström method which compute a low-rank approximation of the Gram matrix on the basis of some pre-selected landmark points. 
 
-Explication du papier efficient Nyström
+\subsubsection{Efficient Nyström approximation}
 
-\subsubsection{Qalm in Nyström}
+A substantial amount of research has been conducted toward landmark point selection methods for improved approximation accuracy \cite{kumar2012sampling} \cite{musco2017recursive} but much less has been done for improved computation speed. In \cite{si2016computationally}, they propose an algorithm to learn the matrix of landmark points with some structure constraint so that its utilisation is fast, taking advantage of fast-transforms. This results in an efficient Nyström approximation that is faster to use both in the training and testing phase of some ulterior machine learning application.
+
+Remarking that the main computation cost of the Nyström approximation comes from the computation of the kernel function between the train/test samples and the landmark points, they aim at accelerating this step. In particular, they focus on a family of kernel functions that have the following form:
+
+\begin{equation}
+ K(\rvx_i, \rvx_j) = f(\rvx_i) f(\rvx_j) g(\rvx_i^T\rvx_j)
+\end{equation}
+
+where $f: \R^d \rightarrow \R$ and $g: \R \rightarrow \R$. They show that this family of functions contains some widely used kernel such as the Gaussian kernel or the Polynomial one. Given a set of $m$ landmark points $\rmU \in \R^{m \times d}$ and a sample $\rvx$, the computational time for computing the kernel between $\rvx$ and each row of $\rmU$ (necessary for the Nyström approximation) is bottlenecked by the computation of the product $\rmU\rvx$. They hence propose to write the $\rmU$ matrix as the concatenation of structured $s = m / d$ product of matrices:
+
+\begin{equation}
+ \rmU = \left[ \rmV_1 \rmH^T, \cdots, \rmV_s\rmH^T  \right]^T
+\end{equation}
+
+where the $\rmH$ is a $d \times d$ matrix associated with a fast transform such as the \textit{Haar} or \textit{Hadamard} matrix and the $\rmV_i$s are some $d \times d$ diagonal matrices to be either chosen with a standard landmark selection method or learned using an algorithm they provide.
+
+Depending on the $\rmH$ matrix they chose, they can improve the time complexity for the computation of $\rmU\rvx$ from $O(md)$ to $O(m \log{d})$ (\textit{Fast Hadamard transform}) or $O(m)$ (\textit{Fast Haar Transform}).
+
+\subsubsection{QALM in Nyström}
+
+We propose to use our QALM algorithm in order to learn directly the $\rmU$ matrix in the Nyström approximation so that the matrix-vector multiplaction $\rmU \rvx$ is cheap to compute.
 
 Construction remplacement d'une matrice de hadamard par une transformée apprise
 
@@ -142,6 +159,12 @@ Construction remplacement d'une matrice de hadamard par une transformée apprise
 
 Besoin d'éclaircir les liens avec RBF networks
 
+\subsection{nearest-neighbours}
+
+Besoin d'éclaircir les liens avec nearest neighbours
+
 %\bibliographystyle{plain}
 %\bibliography{references}
+\bibliographystyle{plain}
+\bibliography{biblio}
 \end{document}
