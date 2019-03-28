@@ -1,9 +1,60 @@
 \documentclass{article}
-\usepackage[utf8]{inputenc}
+
+% if you need to pass options to natbib, use, e.g.:
+%     \PassOptionsToPackage{numbers, compress}{natbib}
+% before loading neurips_2018
+
+% ready for submission
+% \usepackage{neurips_2018}
+
+% to compile a preprint version, e.g., for submission to arXiv, add add the
+% [preprint] option:
+%     \usepackage[preprint]{neurips_2018}
+
+% to compile a camera-ready version, add the [final] option, e.g.:
+     \usepackage[final]{nips_2018}
+
+% to avoid loading the natbib package, add option nonatbib:
+%     \usepackage[nonatbib]{neurips_2018}
+
+\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+\usepackage{hyperref}       % hyperlinks
+\usepackage{url}            % simple URL typesetting
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
 
 \title{Document de travail QALM}
-\author{QARMA}
-\date{March 2019}
+\author{%
+  David S.~Hippocampus \\
+  Department of Computer Science\\
+  Cranberry-Lemon University\\
+  Pittsburgh, PA 15213 \\
+  \texttt{hippo@cs.cranberry-lemon.edu} \\
+  % examples of more authors
+  % \And
+  % Coauthor \\
+  % Affiliation \\
+  % Address \\
+  % \texttt{email} \\
+  % \AND
+  % Coauthor \\
+  % Affiliation \\
+  % Address \\
+  % \texttt{email} \\
+  % \And
+  % Coauthor \\
+  % Affiliation \\
+  % Address \\
+  % \texttt{email} \\
+  % \And
+  % Coauthor \\
+  % Affiliation \\
+  % Address \\
+  % \texttt{email} \\
+}
 
 \usepackage{natbib}
 \usepackage{algorithm}
@@ -20,35 +71,44 @@
 
 \section{Notations}
 
-$[\![K]\!]$ with $K \in \sN$ is the set of all i such as $i \in \sN$ and $i < K$ . $\rmX = \{\rvx_i \in \R^d\}_{i=1}^n$ is the considered dataset.
+$[\![K]\!]$ with $K \in \sN$ is the set of all i such as $i \in \sN$ and $i < K$ . $\rmX \in \R^{n \times d}$ is the considered dataset. For a given matrix $\rmA$, the notation $\rmA_i$ refers to the $i^{th}$ row of the matrix $\rmA$.
 
 \section{Background}
 
 \subsection{K-means}
 
-The K-means algorithm is used to partition a given set of observations $\rmX$ into a predefined amount of $K$ clusters. The algorithm starts with an initialized set of $K$ center-points ($\{\rmU_i \in \R\}_{i=1}^{K}$). Each update step is divided in two parts: (i) all observations $\rvx_i$ are assigned to their nearest cluster based on the center-points $\rmU_i$s (Equation \ref{eq:kmeans_assign_step}) in $O(ndK)$ operations. (ii) the new center-points are computed as the means of the assigned $\rvx_i$ (Equation \ref{eq:kmeans_compute_step}) for a total of $O(nd)$ operations.
+The K-means algorithm is used to partition a given set of observations $\rmX$ into a predefined amount of $K$ clusters while minimizing the distance between the observation in each partition:
+
+\begin{equation}
+\label{eq:kmean_problem}
+    \argmin_{\rmU, \rvt} \sum_{k=1}^{K} \sum_{j: \rvt_j = k} ||\rmX_j -\rmU_k||^2 \\
+\end{equation}
+% autre écriture de l'objectif de k-means
+% = \argmin_{\rmU, \rvt} \sum_{k=1}^{K} c_k + \sum_{k=1}^{K} n_k||\hat{\rmU}_k - \rmU_k||^2
+where $\rmU \in \R^{K \times d}$ is the matrix of the clusters center-points and $\rvt \in  [\![K]\!]^n$ is the indicator vector.
+
+The algorithm (Algorithm \ref{algo:kmeans}) starts with an initialized set of $K$ center-points ($\{\rmU_i \in \R^d\}_{i=1}^{K}$). Each update step $\tau$ is divided into two parts: (i) all observations $\rmX_i$ are assigned to their nearest cluster based on the center-points $\rmU_i^{\tau-1}$s at this step (Line \ref{line:assignation_kmeans}) in $O(ndK)$ operations. (ii) the new center-points $\rmU_i^{\tau}$s are computed as the means of the assignated $\rmX_i$ (Line \ref{line:compute_means}) for a total of $O(nd)$ operations.
 
 \begin{algorithm}
-\label{algo:kmeans}
 \caption{K-means algorithm}
-\begin{algorithmic}
+\label{algo:kmeans}
+\begin{algorithmic}[1]
 
 
 \REQUIRE $\rmX \in \R^{n \times d}$, $K$, $\{\rmU_i \in \R^d\}_{i=1}^{K}$
 \ENSURE $\{\rmU_i\}_{i=1}^{K}$ the K means of $n$ $d$-dimensional samples
+\STATE $\tau \leftarrow 0$
 \REPEAT
-\STATE \begin{equation}
-\label{eq:kmeans_assign_step}
-t \leftarrow \argmin_{t \in [\![K]\!]^n} \sum_{i=1}^{n} {||\rvx_i - \rmU_{t(i)}||_2^2}
-\end{equation}
+\STATE $\tau \leftarrow \tau + 1$
+\STATE $\rvt^\tau \leftarrow \argmin_{\rvt \in [\![K]\!]^n} \sum_{i=1}^{n} {||\rvx_i - \rmU^{\tau-1}_{\rvt(i)}||_2^2}$
+\label{line:assignation_kmeans}
 \FORALL {$k \in [\![K]\!]^n$}
-\STATE $n_k \leftarrow |\{i: t_i=k\}|$
-\STATE \begin{equation}
-\label{eq:kmeans_compute_step}
-\rmU_k \leftarrow \frac{1}{n_k} \sum_{i: t_i = k} {\rvx_i}
-\end{equation}
+\STATE $n_k^\tau \leftarrow |\{i: \rvt^\tau_i=k\}|$
+\STATE $\rmU^\tau_k \leftarrow \frac{1}{n_k^\tau} \sum_{i: \rvt^\tau_i = k} {\rvx_i}$
+\label{line:compute_means}
 \ENDFOR
-\UNTIL{$i=0$}
+\UNTIL{stop criterion}
+\RETURN $\rmU^\tau$
 \end{algorithmic}
 \end{algorithm}
 
@@ -57,10 +117,11 @@ Once the cluster have been defined, for any $\rvx \in \R^d$ the cluster associat
 
 \begin{equation}
 \label{eq:assignation_problem_kmeans}
-\argmin_{k \in [\![K]\!]^n} ||\rvx - \rmU_{k}||_2^2 = \argmin_{k \in [\![K]\!]^n} ||U_k||_2^2 - 2 \rmU_{k}^T\rvx
+\argmin_{k \in [\![K]\!]} ||\rvx - \rmU_{k}||_2^2 = \argmin_{k \in [\![K]\!]} ||U_k||_2^2 - 2 \rmU_{k}^T\rvx
 \end{equation}.
 
-We remark here that the computational bottleneck of this assignation lies in the computation of $\rmU_k^T\rvx$ for all $k$. This bottleneck is also encountered at each step in the Equation \ref{eq:kmeans_assign_step} of the Algorithm \ref{algo:kmeans}.
+
+We remark here that the computational bottleneck of this assignation lies in the computation of $\rmU_k^T\rvx$ for all $k$. This computation is also encountered in the assignation step Line \ref{line:assignation_kmeans} of the Algorithm \ref{algo:kmeans}.
 
 
 \subsection{Learning Fast transforms as the product of sparse matrices}
@@ -81,41 +142,81 @@ Building on the observation that the fast-transform associated with an analytic 
 
 with $\rmS_j \in \mathcal{E}_j$, $\mathcal{E}_j = \lbrace \rmA \in \R^{a \times a+1}~\text{s.t.}~||\rmA||_0^0 \leq p_j, ||\rmA||_1 = 1 \rbrace$ and $p_j$ being chosen suitably. The $\lambda$ parameter has been added along with the normalization constraint in the $\mathcal{E}_j$ in order to remove scaling ambiguity in the learned $\rmS_j$.
 
-Considering $\rmGamma$ being a sparse matrice too, it can be renamed as $\rmGamma = \rmS_{M+1}$ and the overall dictionnary learning problem can be expressed as the following optimisation problem:
+Considering $\rmGamma$ being a sparse matrice too, it can be renamed as $\rmGamma = \rmS_{M+1}$. We set $Q = M+1$ and the overall dictionnary learning problem can be expressed as the following optimisation problem:
 
 \begin{equation}
-\min_{\{\rmS_1 \dots \rmS_P, \lambda\}} ||\rmU - \lambda \prod_{j=1}^{M+1}{\rmS_j}||_2^2 + \sum_{j=1}^{M+1} \delta_j(\rmS_j)
+\label{eq:problem_gribon}
+\min_{\{\rmS_1 \dots \rmS_P, \lambda\}} ||\rmU - \lambda \prod_{j=1}^{Q}{\rmS_j}||_2^2 + \sum_{j=1}^{Q} \delta_j(\rmS_j)
 \end{equation}
 
 with the $\delta_j(\rmS_j) = 0$ if $\rmS_j \in \mathcal{E}_j$ being the sparsity constraints to satisfy on the associated $\rmS_j$.
 
-Although this probleme being highly non-convex, the authors finaly derive an algorithm from the PALM algorithm \cite{bolte2014proximal} to find a good local minima and give convergence guarantees to learn efficient dictionaries.
+Although this probleme being highly non-convex, the authors derive an algorithm from the PALM algorithm \cite{bolte2014proximal}, which they call \textit{Hierarchical PALM4LED} to find a good local minima and give convergence guarantees to learn efficient dictionaries.
 
 
 \section{Contribution}
 
 \subsection{Q-means}
 
-We propose an extension of the K-means algorithm in which the output matrix of center-points $\rmU$ are approximated by a product of $M+1$ sparse matrices $\rmS_j$. 
+We propose an extension of the K-means algorithm in which the output matrix of center-points $\rmU$ is approximated by a product of sparse matrices $\rmS_j: j = 1 \ldots Q$. From Equation \ref{eq:kmean_problem} and Equation \ref{eq:problem_gribon} we can write a new K-means optimisation problem with sparse factorization constraint which we call \textit{Q-means}:
+
+\begin{equation}
+\begin{split}
+\label{eq:qmean_problem}
+    \argmin_{\{\rmS_1 \dots \rmS_P, \lambda\}, \rvt} & \sum_{k=1}^{K} \sum_{j: \rvt_j = k} ||\rmX_j -\rmU_k||^2 + \sum_{j=1}^{Q} \delta_j(\rmS_j) \\
+    & s.t. ~ \rmU = \lambda \prod_{j=1}^{Q}{\rmS_j}
+\end{split}
+\end{equation}.
+
+This problem can be solved using Algorithm \ref{algo:qmeans} which is a simple extension of the K-means algorithm (Algorithm \ref{algo:kmeans}) and is guaranteed to converge. Indeed, the K-means problem at a given time-step $\tau$ with fixed $\rvt$ can be re-written:
+
+\begin{equation}
+\label{eq:kmeans_problem_t_fixed}
+\begin{split}
+ \argmin_{\rmU} & \sum_{k=1}^{K} c_k^\tau + \sum_{k=1}^{K} n_k^\tau||\hat{\rmU}^\tau_k - \rmU_k||^2 \\
+ % & = \argmin_{\rmU} \sum_{k=1}^{K} n_k^\tau||\hat{\rmU}^\tau_k - \rmU_k||^2 \\
+ % s.t:~& c^\tau_k = \sum_{j: \rvt^\tau_j = k} {||\rmX_j - \hat{\rmU}^\tau_k||^2} \\
+ % & \hat{\rmU}^\tau_k = \frac{1}{n^\tau_k} \sum_{j: \rvt^\tau_j = k} {\rmX_j}
+\end{split}
+\end{equation} 
+
+where $c^\tau_k = \sum_{j: \rvt^\tau_j = k} {||\rmX_j - \hat{\rmU}^\tau_k||^2}$ is constant \textit{w.r.t.} $\rmU$ and $\hat{\rmU}^\tau_k = \frac{1}{n^\tau_k} \sum_{j: \rvt^\tau_j = k} {\rmX_j}$ is the actual K-means solution for $\rmU$ at this time step (Algorithm \ref{algo:kmeans}, Line \ref{line:compute_means}). Roughly speaking, this formulation summarizes to finding the $\rmU$ that minimizes its column-wise distance to the oracle $\rmU^\tau$ at this time-step.
+
+Pluging back this formulation (Equation \ref{eq:kmeans_problem_t_fixed}) into Equation \ref{eq:qmean_problem}, we have at a given time-step $\tau$ of Algorithm \ref{algo:qmeans} and for a fixed $\rvt$:
+
+\begin{equation}
+\label{eq:qmeans_problem_t_fixed}
+\begin{split}
+ \argmin_{\{\rmS_1 \dots \rmS_P, \lambda\}} & \sum_{k=1}^{K} ||\sqrt{n_k^\tau}\hat{\rmU}^{\tau}_k - \sqrt{n_k^\tau}\rmU_k||^2 + \sum_{j=1}^{Q} \delta_j(\rmS_j)\\
+ =\argmin_{\{\rmS_1 \dots \rmS_P, \lambda\}} & ||\sqrt{\rvn^\tau} \odot \hat{\rmU}^{\tau} - \sqrt{\rvn^\tau} \odot \rmU||^2 + \sum_{j=1}^{Q} \delta_j(\rmS_j)\\
+ %\argmin_{\{\rmS_1 \dots \rmS_P, \lambda\}} & \sum_{k=1}^{K} ||\sqrt{n_k^\tau}\hat{\rmU}^{\surd\tau}_k - \sqrt{n_k^\tau}\rmU^\surd_k||^2 + \sum_{j=1}^{Q} \delta_j(\rmS_j)\\
+ s.t. ~& \rmU = \lambda \prod_{j=1}^{Q}{\rmS_j} \\
+ %& \hat{\rmU}^{\surd\tau}_k = \sqrt{n_k^\tau}\hat{\rmU}^{\tau}_k \\
+ %& \rmU^{\surd}_k = \sqrt{n_k^\tau}\rmU_k \\
+\end{split}
+\end{equation}
+
+where $\rvn \in \R^K$ is the vector containing the number of elements of $\rmX$ in each cluster and $\rvv \odot \rmA$ refers to the broadcasted multiplication of the elements of $\rvv$ with the rows of $\rmA$. The analogy with Equation \ref{eq:problem_gribon} is now obvious: we can use the \textit{Hierarchical PALM4LED} algorithm \cite{magoarou2014learning} to solve the problem of Equation \ref{eq:qmeans_problem_t_fixed} where $\rvn^\tau$ and $\hat{\rmU}^{\tau}$ are the real K-means computed in Lines \ref{line:startkmeans} to \ref{line:endkmeans} (Algorithm \ref{algo:qmeans}).
 
 \begin{algorithm}
 \caption{Q-means algorithm}
-\begin{algorithmic}
+\label{algo:qmeans}
+\begin{algorithmic}[1]
 
 
-\REQUIRE $\rmX \in \R^{n \times d}$, $K$, $\{\rmU_i \in \R^d\}_{i=1}^{K}$, $\{\rmS_1 \dots \rmS_{M+1}\}|\rmS_j \in \mathcal{E}_j$
-\ENSURE $\{\rmS_1 \dots \rmS_{M+1}\}|\rmS_j \in \mathcal{E}_j$ such that $\prod_{j=1}^{M+1}\rmS_j \approx \rmU$ the K means of $n$ $d$-dimensional samples
+\REQUIRE $\rmX \in \R^{n \times d}$, $K$, $\{\rmS_1 \dots \rmS_{Q}\}|\rmS_j \in \mathcal{E}_j$
+\ENSURE $\{\rmS_1 \dots \rmS_{Q}\}|\rmS_j \in \mathcal{E}_j$ such that $\prod_{j=1}^{Q}\rmS_j \approx \rmU$ the K means of $n$ $d$-dimensional samples
+\STATE $\tau \leftarrow 0$
 \REPEAT
-\STATE \begin{equation}
-t \leftarrow \argmin_{t \in [\![K]\!]^n} \sum_{i=1}^{n} {||\rvx_i - \rmU_{t(i)}||_2^2}
-\end{equation}
-\FORALL {$k \in [\![K]\!]^n$}
-\STATE $n_k \leftarrow |\{i: t_i=k\}|$
-\STATE \begin{equation}
-\rmU_k \leftarrow \frac{1}{n_k} \sum_{i: t_i = k} {\rvx_i}
-\end{equation}
-\STATE $\{\rmS_1 \dots \rmS_{M+1}\} \leftarrow \argmin_{\{\rmS_1 \dots \rmS_P, \lambda\}} ||\rmU - \lambda \prod_{j=1}^{M+1}{\rmS_j}||_2^2 + \sum_{j=1}^{M+1} \delta_j(\rmS_j)$
+\STATE $\tau \leftarrow \tau + 1$
+\STATE $t^\tau \leftarrow \argmin_{t \in [\![K]\!]^n} \sum_{i=1}^{n} {||\rvx_i - \lambda \left[\prod_{j=1}^{Q}{\rmS_j^{\tau -1}}\right]_{t(i)}||_2^2}$
+\FORALL {$k \in [\![K]\!]$}
+\label{line:startkmeans}
+\STATE $n_k^\tau \leftarrow |\{i: t^\tau_i=k\}|$
+\STATE $\hat{\rmU}^\tau_k \leftarrow \frac{1}{n^\tau_k} \sum_{i: t^\tau_i = k} {\rvx_i}$
 \ENDFOR
+\label{line:endkmeans}
+\STATE $\{\rmS^\tau_1 \dots \rmS^\tau_{Q}\} \leftarrow \argmin_{\{\rmS_1 \dots \rmS_P, \lambda\}} ||\sqrt{\rvn^\tau} \odot \hat{\rmU}^\tau - \sqrt{\rvn^\tau} \odot \lambda \prod_{j=1}^{Q}{\rmS_j}||_2^2 + \sum_{j=1}^{Q} \delta_j(\rmS_j)$
 \UNTIL{$i=0$}
 \end{algorithmic}
 \end{algorithm}

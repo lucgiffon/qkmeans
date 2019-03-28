@@ -2,7 +2,13 @@
 *.synctex.gz
 *.aux
 *.log
+*.bbl
+*.blg
+*.dvi
+*.ps
 
+# luc files
+*_board_pictures
 
 *.py[co]
 
