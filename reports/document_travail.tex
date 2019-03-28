@@ -134,22 +134,22 @@ A popular way for providing concise description of high-dimensional vectors $\rm
 
 where $\rmD \in \R^{d \times d}$ is a dictionnary and $\rmGamma \in \R^{d \times K}$ has sparse columns. Historically, the dictionnary is either (i) analytic: $\rmD$ is chosen to give a fast reconstruction of the initial matrix by taking advantage of some fast-transform algorithm (the \textit{Fast Hadamard Transform} for instance) or (ii) learned: $\rmD$ is learned from the data itself to give a good reconstruction of the initial matrix.
 
-Building on the observation that the fast-transform associated with an analytic dictionnary can be expressed as the product of sparse matrices, \cite{magoarou2014learning} proposes an algorithm to learn a dictionnary from the data with sparsity constraints such that this dictionnary would be both well-suited with the data and fast to use:
+Building on the observation that the fast-transform associated with an analytic dictionnary can be expressed as the product of sparse matrices $\mathcal{S}_j$ from a set $\mathcal{S}$ of size $M$, \cite{magoarou2014learning} proposes an algorithm to learn a dictionnary from the data with sparsity constraints such that this dictionnary would be both well-suited with the data and fast to use:
 
 \begin{equation}
-\rmD = \lambda \prod_{j=1}^{M}\rmS_j
+\rmD = \lambda \prod_{j=1}^{M}\mathcal{S}_j
 \end{equation}
 
-with $\rmS_j \in \mathcal{E}_j$, $\mathcal{E}_j = \lbrace \rmA \in \R^{a \times a+1}~\text{s.t.}~||\rmA||_0^0 \leq p_j, ||\rmA||_1 = 1 \rbrace$ and $p_j$ being chosen suitably. The $\lambda$ parameter has been added along with the normalization constraint in the $\mathcal{E}_j$ in order to remove scaling ambiguity in the learned $\rmS_j$.
+with $\forall j \in \{1 \ldots M\}$, $\mathcal{S}_j \in \mathcal{E}_j$, $\mathcal{E}_j = \lbrace \rmA \in \R^{a \times a+1}~\text{s.t.}~||\rmA||_0^0 \leq p_j, ||\rmA||_1 = 1 \rbrace$ and $p_j$ being chosen suitably. The $\lambda$ parameter has been added along with the normalization constraint in the $\mathcal{E}_j$ in order to remove scaling ambiguity in the learned $\mathcal{S}_j$.
 
-Considering $\rmGamma$ being a sparse matrice too, it can be renamed as $\rmGamma = \rmS_{M+1}$. We set $Q = M+1$ and the overall dictionnary learning problem can be expressed as the following optimisation problem:
+Considering $\rmGamma$ being a sparse matrice too, it can be renamed as $\rmGamma = \mathcal{S}_{M+1}$. We set $Q = M+1$ and the overall dictionnary learning problem can be expressed as the following optimisation problem:
 
 \begin{equation}
 \label{eq:problem_gribon}
-\min_{\{\rmS_1 \dots \rmS_P, \lambda\}} ||\rmU - \lambda \prod_{j=1}^{Q}{\rmS_j}||_2^2 + \sum_{j=1}^{Q} \delta_j(\rmS_j)
+\min_{\{\mathcal{S}_1 \dots \mathcal{S}_Q, \lambda\}} ||\rmU - \lambda \prod_{j=1}^{Q}{\mathcal{S}_j}||_2^2 + \sum_{j=1}^{Q} \delta_j(\mathcal{S}_j)
 \end{equation}
 
-with the $\delta_j(\rmS_j) = 0$ if $\rmS_j \in \mathcal{E}_j$ being the sparsity constraints to satisfy on the associated $\rmS_j$.
+with the $\delta_j(\mathcal{S}_j) = 0$ if $\mathcal{S}_j \in \mathcal{E}_j$ being the sparsity constraints to satisfy on the associated $\mathcal{S}_j$.
 
 Although this probleme being highly non-convex, the authors derive an algorithm from the PALM algorithm \cite{bolte2014proximal}, which they call \textit{Hierarchical PALM4LED} to find a good local minima and give convergence guarantees to learn efficient dictionaries.
 
@@ -158,13 +158,13 @@ Although this probleme being highly non-convex, the authors derive an algorithm 
 
 \subsection{Q-means}
 
-We propose an extension of the K-means algorithm in which the output matrix of center-points $\rmU$ is approximated by a product of sparse matrices $\rmS_j: j = 1 \ldots Q$. From Equation \ref{eq:kmean_problem} and Equation \ref{eq:problem_gribon} we can write a new K-means optimisation problem with sparse factorization constraint which we call \textit{Q-means}:
+We propose an extension of the K-means algorithm in which the output matrix of center-points $\rmU$ is approximated by a product of sparse matrices $\mathcal{S}_j: j = 1 \ldots Q$. From Equation \ref{eq:kmean_problem} and Equation \ref{eq:problem_gribon} we can write a new K-means optimisation problem with sparse factorization constraint which we call \textit{Q-means}:
 
 \begin{equation}
 \begin{split}
 \label{eq:qmean_problem}
-    \argmin_{\{\rmS_1 \dots \rmS_P, \lambda\}, \rvt} & \sum_{k=1}^{K} \sum_{j: \rvt_j = k} ||\rmX_j -\rmU_k||^2 + \sum_{j=1}^{Q} \delta_j(\rmS_j) \\
-    & s.t. ~ \rmU = \lambda \prod_{j=1}^{Q}{\rmS_j}
+    \argmin_{\{\mathcal{S}_1 \dots \mathcal{S}_Q, \lambda\}, \rvt} & \sum_{k=1}^{K} \sum_{j: \rvt_j = k} ||\rmX_j -\rmU_k||^2 + \sum_{j=1}^{Q} \delta_j(\mathcal{S}_j) \\
+    & s.t. ~ \rmU = \lambda \prod_{j=1}^{Q}{\mathcal{S}_j}
 \end{split}
 \end{equation}.
 
@@ -187,10 +187,10 @@ Pluging back this formulation (Equation \ref{eq:kmeans_problem_t_fixed}) into Eq
 \begin{equation}
 \label{eq:qmeans_problem_t_fixed}
 \begin{split}
- \argmin_{\{\rmS_1 \dots \rmS_P, \lambda\}} & \sum_{k=1}^{K} ||\sqrt{n_k^\tau}\hat{\rmU}^{\tau}_k - \sqrt{n_k^\tau}\rmU_k||^2 + \sum_{j=1}^{Q} \delta_j(\rmS_j)\\
- =\argmin_{\{\rmS_1 \dots \rmS_P, \lambda\}} & ||\sqrt{\rvn^\tau} \odot \hat{\rmU}^{\tau} - \sqrt{\rvn^\tau} \odot \rmU||^2 + \sum_{j=1}^{Q} \delta_j(\rmS_j)\\
- %\argmin_{\{\rmS_1 \dots \rmS_P, \lambda\}} & \sum_{k=1}^{K} ||\sqrt{n_k^\tau}\hat{\rmU}^{\surd\tau}_k - \sqrt{n_k^\tau}\rmU^\surd_k||^2 + \sum_{j=1}^{Q} \delta_j(\rmS_j)\\
- s.t. ~& \rmU = \lambda \prod_{j=1}^{Q}{\rmS_j} \\
+ \argmin_{\{\mathcal{S}_1 \dots \mathcal{S}_Q, \lambda\}} & \sum_{k=1}^{K} ||\sqrt{n_k^\tau}\hat{\rmU}^{\tau}_k - \sqrt{n_k^\tau}\rmU_k||^2 + \sum_{j=1}^{Q} \delta_j(\mathcal{S}_j)\\
+ =\argmin_{\{\mathcal{S}_1 \dots \mathcal{S}_Q, \lambda\}} & ||\sqrt{\rvn^\tau} \odot \hat{\rmU}^{\tau} - \sqrt{\rvn^\tau} \odot \rmU||^2 + \sum_{j=1}^{Q} \delta_j(\mathcal{S}_j)\\
+ %\argmin_{\{\mathcal{S}_1 \dots \mathcal{S}_Q, \lambda\}} & \sum_{k=1}^{K} ||\sqrt{n_k^\tau}\hat{\rmU}^{\surd\tau}_k - \sqrt{n_k^\tau}\rmU^\surd_k||^2 + \sum_{j=1}^{Q} \delta_j(\mathcal{S}_j)\\
+ s.t. ~& \rmU = \lambda \prod_{j=1}^{Q}{\mathcal{S}_j} \\
  %& \hat{\rmU}^{\surd\tau}_k = \sqrt{n_k^\tau}\hat{\rmU}^{\tau}_k \\
  %& \rmU^{\surd}_k = \sqrt{n_k^\tau}\rmU_k \\
 \end{split}
@@ -204,19 +204,19 @@ where $\rvn \in \R^K$ is the vector containing the number of elements of $\rmX$ 
 \begin{algorithmic}[1]
 
 
-\REQUIRE $\rmX \in \R^{n \times d}$, $K$, $\{\rmS_1 \dots \rmS_{Q}\}|\rmS_j \in \mathcal{E}_j$
-\ENSURE $\{\rmS_1 \dots \rmS_{Q}\}|\rmS_j \in \mathcal{E}_j$ such that $\prod_{j=1}^{Q}\rmS_j \approx \rmU$ the K means of $n$ $d$-dimensional samples
+\REQUIRE $\rmX \in \R^{n \times d}$, $K$, $\{\mathcal{S}_1 \dots \mathcal{S}_{Q}\}|\mathcal{S}_j \in \mathcal{E}_j$
+\ENSURE $\{\mathcal{S}_1 \dots \mathcal{S}_{Q}\}|\mathcal{S}_j \in \mathcal{E}_j$ such that $\prod_{j=1}^{Q}\mathcal{S}_j \approx \rmU$ the K means of $n$ $d$-dimensional samples
 \STATE $\tau \leftarrow 0$
 \REPEAT
 \STATE $\tau \leftarrow \tau + 1$
-\STATE $t^\tau \leftarrow \argmin_{t \in [\![K]\!]^n} \sum_{i=1}^{n} {||\rvx_i - \lambda \left[\prod_{j=1}^{Q}{\rmS_j^{\tau -1}}\right]_{t(i)}||_2^2}$
+\STATE $t^\tau \leftarrow \argmin_{t \in [\![K]\!]^n} \sum_{i=1}^{n} {||\rvx_i - \lambda \left[\prod_{j=1}^{Q}{\mathcal{S}_j^{\tau -1}}\right]_{t(i)}||_2^2}$
 \FORALL {$k \in [\![K]\!]$}
 \label{line:startkmeans}
 \STATE $n_k^\tau \leftarrow |\{i: t^\tau_i=k\}|$
 \STATE $\hat{\rmU}^\tau_k \leftarrow \frac{1}{n^\tau_k} \sum_{i: t^\tau_i = k} {\rvx_i}$
 \ENDFOR
 \label{line:endkmeans}
-\STATE $\{\rmS^\tau_1 \dots \rmS^\tau_{Q}\} \leftarrow \argmin_{\{\rmS_1 \dots \rmS_P, \lambda\}} ||\sqrt{\rvn^\tau} \odot \hat{\rmU}^\tau - \sqrt{\rvn^\tau} \odot \lambda \prod_{j=1}^{Q}{\rmS_j}||_2^2 + \sum_{j=1}^{Q} \delta_j(\rmS_j)$
+\STATE $\{\mathcal{S}^\tau_1 \dots \mathcal{S}^\tau_{Q}\} \leftarrow \argmin_{\{\mathcal{S}_1 \dots \mathcal{S}_P, \lambda\}} ||\sqrt{\rvn^\tau} \odot \hat{\rmU}^\tau - \sqrt{\rvn^\tau} \odot \lambda \prod_{j=1}^{Q}{\mathcal{S}_j}||_2^2 + \sum_{j=1}^{Q} \delta_j(\mathcal{S}_j)$
 \UNTIL{$i=0$}
 \end{algorithmic}
 \end{algorithm}
