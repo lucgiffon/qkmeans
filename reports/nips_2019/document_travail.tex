@@ -77,7 +77,7 @@ $[\![K]\!]$ with $K \in \sN$ is the set of all i such as $i \in \sN$ and $i < K$
 
 \subsection{K-means}
 
-The K-means algorithm is used to partition a given set of observations $\rmX$ into a predefined amount of $K$ clusters while minimizing the distance between the observation in each partition:
+The K-means algorithm is used to partition a given set of observations $\rmX$ into a predefined amount of $K$ clusters while minimizing the distance between the observations in each partition:
 
 \begin{equation}
 \label{eq:kmean_problem}
@@ -87,7 +87,7 @@ The K-means algorithm is used to partition a given set of observations $\rmX$ in
 % = \argmin_{\rmU, \rvt} \sum_{k=1}^{K} c_k + \sum_{k=1}^{K} n_k||\hat{\rmU}_k - \rmU_k||^2
 where $\rmU \in \R^{K \times d}$ is the matrix of the clusters center-points and $\rvt \in  [\![K]\!]^n$ is the indicator vector.
 
-The algorithm (Algorithm \ref{algo:kmeans}) starts with an initialized set of $K$ center-points ($\{\rmU_i \in \R^d\}_{i=1}^{K}$). Each update step $\tau$ is divided into two parts: (i) all observations $\rmX_i$ are assigned to their nearest cluster based on the center-points $\rmU_i^{\tau-1}$s at this step (Line \ref{line:assignation_kmeans}) in $O(ndK)$ operations. (ii) the new center-points $\rmU_i^{\tau}$s are computed as the means of the assignated $\rmX_i$ (Line \ref{line:compute_means}) for a total of $O(nd)$ operations.
+The algorithm (Algorithm \ref{algo:kmeans}) starts with an initialized set of $K$ center-points ($\{\rmU_i \in \R^d\}_{i=1}^{K}$). Each update step $\tau$ is divided into two parts: (i) all observations $\rmX_i$ are assigned to their nearest cluster based on the center-points $\rmU_i^{(\tau-1)}$s at this step (Line \ref{line:assignation_kmeans}) in $O(ndK)$ operations. (ii) the new center-points $\rmU_i^{(\tau)}$s are computed as the means of the assignated $\rmX_i$ (Line \ref{line:compute_means}) for a total of $O(nd)$ operations.
 
 \begin{algorithm}
 \caption{K-means algorithm}
@@ -100,15 +100,15 @@ The algorithm (Algorithm \ref{algo:kmeans}) starts with an initialized set of $K
 \STATE $\tau \leftarrow 0$
 \REPEAT
 \STATE $\tau \leftarrow \tau + 1$
-\STATE $\rvt^\tau \leftarrow \argmin_{\rvt \in [\![K]\!]^n} \sum_{i=1}^{n} {||\rvx_i - \rmU^{\tau-1}_{\rvt(i)}||_2^2}$
+\STATE $\rvt^{(\tau)} \leftarrow \argmin_{\rvt \in [\![K]\!]^n} \sum_{i=1}^{n} {||\rmX_i - \rmU^{(\tau-1)}_{\rvt_i}||_2^2}$
 \label{line:assignation_kmeans}
 \FORALL {$k \in [\![K]\!]^n$}
-\STATE $n_k^\tau \leftarrow |\{i: \rvt^\tau_i=k\}|$
-\STATE $\rmU^\tau_k \leftarrow \frac{1}{n_k^\tau} \sum_{i: \rvt^\tau_i = k} {\rvx_i}$
+\STATE $n_k^{(\tau)} \leftarrow |\{i: \rvt^{(\tau)}_i=k\}|$
+\STATE $\rmU^{(\tau)}_k \leftarrow \frac{1}{n_k^{(\tau)}} \sum_{i: \rvt^{(\tau)}_i = k} {\rmX_i}$
 \label{line:compute_means}
 \ENDFOR
 \UNTIL{stop criterion}
-\RETURN $\rmU^\tau$
+\RETURN $\rmU^{(\tau)}$
 \end{algorithmic}
 \end{algorithm}
 
@@ -151,14 +151,14 @@ Considering $\rmGamma$ being a sparse matrice too, it can be renamed as $\rmGamm
 
 with the $\delta_j(\mathcal{S}_j) = 0$ if $\mathcal{S}_j \in \mathcal{E}_j$ being the sparsity constraints to satisfy on the associated $\mathcal{S}_j$.
 
-Although this probleme being highly non-convex, the authors derive an algorithm from the PALM algorithm \cite{bolte2014proximal}, which they call \textit{Hierarchical PALM4LED} to find a good local minima and give convergence guarantees to learn efficient dictionaries.
+Although this problem being highly non-convex, the authors derive an algorithm from the PALM algorithm \cite{bolte2014proximal}, which they call \textit{Hierarchical PALM4LED} to find a good local minima and give convergence guarantees to learn efficient dictionaries.
 
 
 \section{Contribution}
 
 \subsection{Q-means}
 
-We propose an extension of the K-means algorithm in which the output matrix of center-points $\rmU$ is approximated by a product of sparse matrices $\mathcal{S}_j: j = 1 \ldots Q$. From Equation \ref{eq:kmean_problem} and Equation \ref{eq:problem_gribon} we can write a new K-means optimisation problem with sparse factorization constraint which we call \textit{Q-means}:
+We propose an extension of the K-means algorithm in which the matrix of center-points $\rmU$ is constrained to be expressed as a product of sparse matrices $\mathcal{S}_j: j = 1 \ldots Q$. From Equation \ref{eq:kmean_problem} and Equation \ref{eq:problem_gribon} we can write a new K-means optimisation problem with sparse factorization constraint which we call \textit{Q-means}:
 
 \begin{equation}
 \begin{split}
@@ -168,35 +168,70 @@ We propose an extension of the K-means algorithm in which the output matrix of c
 \end{split}
 \end{equation}.
 
-This problem can be solved using Algorithm \ref{algo:qmeans} which is a simple extension of the K-means algorithm (Algorithm \ref{algo:kmeans}) and is guaranteed to converge. Indeed, the K-means problem at a given time-step $\tau$ with fixed $\rvt$ can be re-written:
+This problem can be solved using Algorithm \ref{algo:qmeans} which is a simple extension of the K-means algorithm (Algorithm \ref{algo:kmeans}) and is guaranteed to converge. To show this convergence, we need to show that each update step in one iteration $\tau$ of the algorithm actually reduces the overall objective. To this end, we start by re-writting the objective at a given time-step $\tau$:
 
 \begin{equation}
-\label{eq:kmeans_problem_t_fixed}
 \begin{split}
- \argmin_{\rmU} & \sum_{k=1}^{K} c_k^\tau + \sum_{k=1}^{K} n_k^\tau||\hat{\rmU}^\tau_k - \rmU_k||^2 \\
- % & = \argmin_{\rmU} \sum_{k=1}^{K} n_k^\tau||\hat{\rmU}^\tau_k - \rmU_k||^2 \\
- % s.t:~& c^\tau_k = \sum_{j: \rvt^\tau_j = k} {||\rmX_j - \hat{\rmU}^\tau_k||^2} \\
- % & \hat{\rmU}^\tau_k = \frac{1}{n^\tau_k} \sum_{j: \rvt^\tau_j = k} {\rmX_j}
+\label{eq:qmean_problem_2}
+    g(\{ \mathcal{S}_1^{(\tau)}, \ldots,\mathcal{S}_Q^{(\tau)} \}, \lambda^{(\tau)}, \rvt^{(\tau)}) = & \sum_{k=1}^{K} \left( \sum_{j: \rvt^{(\tau)}_j = k} ||\rmX_j - \rmU^{(\tau)}_k||^2 + \sum_{j=1}^{Q} \delta_j(\mathcal{S}_j^{(\tau)}) \right)\\
+    & s.t. ~ \rmU = \lambda^{(\tau)} \prod_{j=1}^{Q}{\mathcal{S}_j^{(\tau)}}
 \end{split}
-\end{equation} 
+\end{equation}.
 
-where $c^\tau_k = \sum_{j: \rvt^\tau_j = k} {||\rmX_j - \hat{\rmU}^\tau_k||^2}$ is constant \textit{w.r.t.} $\rmU$ and $\hat{\rmU}^\tau_k = \frac{1}{n^\tau_k} \sum_{j: \rvt^\tau_j = k} {\rmX_j}$ is the actual K-means solution for $\rmU$ at this time step (Algorithm \ref{algo:kmeans}, Line \ref{line:compute_means}). Roughly speaking, this formulation summarizes to finding the $\rmU$ that minimizes its column-wise distance to the oracle $\rmU^\tau$ at this time-step.
+Then we assess wether or not this objective diminish at each time-step in Algorithm \ref{algo:qmeans}.
 
-Pluging back this formulation (Equation \ref{eq:kmeans_problem_t_fixed}) into Equation \ref{eq:qmean_problem}, we have at a given time-step $\tau$ of Algorithm \ref{algo:qmeans} and for a fixed $\rvt$:
+\paragraph{Assignation step (Line \ref{line:qmeans_assignation})} For a fixed $\rmU^{(\tau-1)}$ the new indicator vector $\rvt^{(\tau)}$ is defined such as:
+
+\begin{equation}
+ \rvt^{(\tau)}_i = \argmin_{k \in [\![K]\!]} ||\rmX_i - \rmU^{(\tau-1)}||_2^2
+\end{equation}
+
+for any $i \in [\![n]\!]$. This step is exactly identical in the K-means algorithm (Algorithm \ref{algo:kmeans}) and is clearly minimizing the objective function \textit{w.r.t.} to vector $\rvt$.
+
+\paragraph{Centroids computation step (Line \ref{line:startkmeans} to \ref{line:endkmeans})} For a fixed $\rvt^{(\tau)}$, the new sparsely-factorized centroids are solution of the following subproblem:
 
 \begin{equation}
 \label{eq:qmeans_problem_t_fixed}
 \begin{split}
- \argmin_{\{\mathcal{S}_1 \dots \mathcal{S}_Q, \lambda\}} & \sum_{k=1}^{K} ||\sqrt{n_k^\tau}\hat{\rmU}^{\tau}_k - \sqrt{n_k^\tau}\rmU_k||^2 + \sum_{j=1}^{Q} \delta_j(\mathcal{S}_j)\\
- =\argmin_{\{\mathcal{S}_1 \dots \mathcal{S}_Q, \lambda\}} & ||\sqrt{\rvn^\tau} \odot \hat{\rmU}^{\tau} - \sqrt{\rvn^\tau} \odot \rmU||^2 + \sum_{j=1}^{Q} \delta_j(\mathcal{S}_j)\\
- %\argmin_{\{\mathcal{S}_1 \dots \mathcal{S}_Q, \lambda\}} & \sum_{k=1}^{K} ||\sqrt{n_k^\tau}\hat{\rmU}^{\surd\tau}_k - \sqrt{n_k^\tau}\rmU^\surd_k||^2 + \sum_{j=1}^{Q} \delta_j(\mathcal{S}_j)\\
- s.t. ~& \rmU = \lambda \prod_{j=1}^{Q}{\mathcal{S}_j} \\
- %& \hat{\rmU}^{\surd\tau}_k = \sqrt{n_k^\tau}\hat{\rmU}^{\tau}_k \\
- %& \rmU^{\surd}_k = \sqrt{n_k^\tau}\rmU_k \\
+ \argmin_{\{ \mathcal{S}_1, \ldots,\mathcal{S}_Q\}, \lambda} & g(\{ \mathcal{S}_1, \ldots,\mathcal{S}_Q\}, \lambda, \rvt^{(\tau)}) = \argmin_{\{ \mathcal{S}_1, \ldots,\mathcal{S}_Q\}, \lambda} \sum_{k=1}^{K} \left( \sum_{j: \rvt^{(\tau)}_j = k} ||\rmX_j - \rmU_k||^2_2 + \sum_{j=1}^{Q} \delta_j(\mathcal{S}_j) \right) \\
+ = & \argmin_{\{ \mathcal{S}_1, \ldots,\mathcal{S}_Q\}, \lambda}  ||\mathcal{D}_{\sqrt{\rvn^{(\tau)}}}~(\hat{\rmX}^{(\tau)} - \rmU)||_{\mathcal{F}} ^ 2  + \sum_{k=1}^{K} c_k^{(\tau)} +  \sum_{j=1}^{Q} \delta_j(\mathcal{S}_j)\\
+  = & \argmin_{\{ \mathcal{S}_1, \ldots,\mathcal{S}_Q\}, \lambda}  ||\mathcal{D}_{\sqrt{\rvn^{(\tau)}}}~(\hat{\rmX}^{(\tau)} - \rmU)||_{\mathcal{F}} ^ 2  +  \sum_{j=1}^{Q} \delta_j(\mathcal{S}_j)\\
+ s.t. ~ \rmU =& \lambda \prod_{j=1}^{Q}{\mathcal{S}_j}
+\end{split} 
+\end{equation}
+
+where :
+
+\begin{itemize}
+ \item $\sqrt{\rvn^{(\tau)}} \in {\R^{K}}$ is the pair-wise square root of the vector indicating the number of observation in each cluster at step $\tau$: $\rvn_k = |\{i: \rvt^\tau_i = k\}|$;
+ \item $\mathcal{D}_\rvv \in \R^{K \times K}$ refers to a diagonal matrix with entries in the diagonal from a vector $\rvv$;
+ \item $\hat{\rmX}^{(\tau)} \in \R^{K \times d}$ refers to the real centroid matrix obtained at step $\tau$ \textit{w.r.t} the indicator vector at this step $\rvt^{(\tau)}$: $\hat{\rmX}^{(\tau)}_k = \frac{1}{\rvn_k}\sum_{j:\rvt^{(\tau)}_j = k} {\rmX_j}$. When $\rvt^{(\tau)}$ is fixed, this is constant.
+ \item $c_k^{(\tau)} = \sum_{j: \rvt^{(\tau)}_j = k}^{}||\rmX_j - \hat{\rmX}_k^{(\tau)}||$ is constant \textit{w.r.t} $\{ \mathcal{S}_1, \ldots,\mathcal{S}_Q\}$ and $\lambda$.
+\end{itemize}
+
+Again,  the minimization of the overall objective $g$ from Equation \ref{eq:qmean_problem_2} is clear since the $\{ \mathcal{S}_1, \ldots,\mathcal{S}_Q\}$ and $\lambda$ are precisely chosen to minimize $g$.
+
+Note that the formulation of the problem in Equation \ref{eq:qmeans_problem_t_fixed} shows the connection between the K-means and \textit{Hierarchical PALM4LED} objectives, which allow to combine them without trouble. Indeed, we can set
+
+\begin{equation*}
+\rmA^{(\tau)} = \mathcal{D}_{\sqrt{\rvn^{(\tau)}}}~\hat{\rmX}^{(\tau)}
+\end{equation*}
+and
+\begin{equation*}
+\rmB^{(\tau)} = \mathcal{D}_{\sqrt{\rvn^{(\tau)}}}~\rmU = \mathcal{D}_{\sqrt{\rvn^{(\tau)}}}~\lambda \prod_{j=1}^{Q}{\mathcal{S}_j} = \lambda \prod_{j=0}^{Q}{\mathcal{S}_j}
+\end{equation*}
+
+with $\mathcal{S}_0$ fixed and equal to $\mathcal{D}_{\sqrt{\rvn^{(\tau)}}}$. The Equation \ref{eq:qmeans_problem_t_fixed} can then be rewritten 
+
+\begin{equation}
+\begin{split}
+ \argmin_{\{ \mathcal{S}_1, \ldots,\mathcal{S}_Q\}, \lambda} & ||\rmA^{(\tau)} - \rmB^{(\tau)}||_{\mathcal{F}} ^ 2  +  \sum_{j=0}^{Q} \delta_j(\mathcal{S}_j)\\
+ s.t. &~ \rmB^{(\tau)} = \lambda \prod_{j=0}^{Q}{\mathcal{S}_j}
 \end{split}
 \end{equation}
 
-where $\rvn \in \R^K$ is the vector containing the number of elements of $\rmX$ in each cluster and $\rvv \odot \rmA$ refers to the broadcasted multiplication of the elements of $\rvv$ with the rows of $\rmA$. The analogy with Equation \ref{eq:problem_gribon} is now obvious: we can use the \textit{Hierarchical PALM4LED} algorithm \cite{magoarou2014learning} to solve the problem of Equation \ref{eq:qmeans_problem_t_fixed} where $\rvn^\tau$ and $\hat{\rmU}^{\tau}$ are the real K-means computed in Lines \ref{line:startkmeans} to \ref{line:endkmeans} (Algorithm \ref{algo:qmeans}).
+Since \textit{Hierarchical PALM4LED} successivly update the $\mathcal{S}_j$s independently and in an alternating fashion, we can still use \textit{PALM4LED} in to solve this problem with the $\mathcal{S}_0$ fixed.
+
 
 \begin{algorithm}
 \caption{Q-means algorithm}
@@ -209,15 +244,19 @@ where $\rvn \in \R^K$ is the vector containing the number of elements of $\rmX$ 
 \STATE $\tau \leftarrow 0$
 \REPEAT
 \STATE $\tau \leftarrow \tau + 1$
-\STATE $t^\tau \leftarrow \argmin_{t \in [\![K]\!]^n} \sum_{i=1}^{n} {||\rvx_i - \lambda \left[\prod_{j=1}^{Q}{\mathcal{S}_j^{\tau -1}}\right]_{t(i)}||_2^2}$
+\STATE $\rvt^{(\tau)} \leftarrow \argmin_{\rvt \in [\![K]\!]^n} \sum_{i=1}^{n} {||\rmX_i - \rmU^{(\tau -1)}_{\rvt(i)}||_2^2}$
+\label{line:qmeans_assignation}
 \FORALL {$k \in [\![K]\!]$}
 \label{line:startkmeans}
-\STATE $n_k^\tau \leftarrow |\{i: t^\tau_i=k\}|$
-\STATE $\hat{\rmU}^\tau_k \leftarrow \frac{1}{n^\tau_k} \sum_{i: t^\tau_i = k} {\rvx_i}$
+\STATE $n_k^{(\tau)} \leftarrow |\{i: \rvt^{(\tau)}_i=k\}|$
+\STATE $\hat{\rmX}^{(\tau)}_k \leftarrow \frac{1}{n^\tau_k} \sum_{i: \rvt^\tau_i = k} {\rvx_i}$
 \ENDFOR
 \label{line:endkmeans}
-\STATE $\{\mathcal{S}^\tau_1 \dots \mathcal{S}^\tau_{Q}\} \leftarrow \argmin_{\{\mathcal{S}_1 \dots \mathcal{S}_P, \lambda\}} ||\sqrt{\rvn^\tau} \odot \hat{\rmU}^\tau - \sqrt{\rvn^\tau} \odot \lambda \prod_{j=1}^{Q}{\mathcal{S}_j}||_2^2 + \sum_{j=1}^{Q} \delta_j(\mathcal{S}_j)$
-\UNTIL{$i=0$}
+\STATE $\rmA^{(\tau)} \leftarrow \mathcal{D}_{\sqrt{\rvn^{(\tau)}}}~\hat{\rmX}^{(\tau)} $
+\STATE $\{\mathcal{S}^{(\tau)}_1 \dots \mathcal{S}^{(\tau)}_{Q}\}, \lambda^{(\tau)} \leftarrow \argmin_{\{\mathcal{S}_1 \dots \mathcal{S}_Q, \lambda\}} ||\rmA^{(\tau)} - ~\lambda\prod_{j=0}^{Q}{\mathcal{S}_j}||_\mathcal{F}^2 + \sum_{j=0}^{Q} \delta_j(\mathcal{S}_j)$
+\STATE $\rmU^{(\tau)}_k \leftarrow \lambda^{(\tau)} \prod_{j=1}^{Q}{\mathcal{S}_j^{(\tau)}}$
+
+\UNTIL{stop criterion}
 \end{algorithmic}
 \end{algorithm}
 
@@ -228,7 +267,16 @@ The factorization of $\rmU$ could then be used in ulterior algorithm that involv
 
 \subsection{Nyström approximation}
 
-Standard kernel machines are often prohibited in large scale applications because of their associated Gram matrix which has $O(n^2)$ storage and $O(n^2d)$ computational complexity. A well-known strategy to overcome this problem is to use the Nyström method which compute a low-rank approximation of the Gram matrix on the basis of some pre-selected landmark points. 
+Standard kernel machines are often prohibited in large scale applications because of their associated Gram matrix $\rmK$ which has $O(n^2)$ storage and $O(n^2d)$ computational complexity: $\forall i,j \in [\![n]\!], \rmK_{i,j} = k(\rmX_i, \rmX_j)$. A well-known strategy to overcome this problem is to use the Nyström method which compute a low-rank approximation of the Gram matrix on the basis of some pre-selected landmark points. 
+
+Given $K \ll n$ landmark points $\{\rmU_i\}_{i=1}^{K}$, the Nyström method gives the following approximation of the full Gram matrix:
+
+\begin{equation}
+ \label{eq:nystrom}
+ \rmK \approx \tilde\rmK = \rmC\rmW^\dagger\rmC^T
+\end{equation}
+
+with $\rmW \in \R^{K \times K}$ containing all the kernel values between landmarks: $\forall i,j \in [\![K]\!]~ \rmW_{i,j} = k(\rmU_i, \rmU_j)$; $\rmW^\dagger$ being the pseudo-inverse of $\rmW$ and $\rmC \in \R^{n \times K}$ containing all the kernel values between landmark points and data points: $\forall i \in [\![n]\!], \forall j \in [\![K]\!]~ \rmC_{i, j} = k(\rmX_i, \rmU_j)$.
 
 \subsubsection{Efficient Nyström approximation}
 
@@ -240,7 +288,7 @@ Remarking that the main computation cost of the Nyström approximation comes fro
  K(\rvx_i, \rvx_j) = f(\rvx_i) f(\rvx_j) g(\rvx_i^T\rvx_j)
 \end{equation}
 
-where $f: \R^d \rightarrow \R$ and $g: \R \rightarrow \R$. They show that this family of functions contains some widely used kernel such as the Gaussian kernel or the Polynomial one. Given a set of $m$ landmark points $\rmU \in \R^{m \times d}$ and a sample $\rvx$, the computational time for computing the kernel between $\rvx$ and each row of $\rmU$ (necessary for the Nyström approximation) is bottlenecked by the computation of the product $\rmU\rvx$. They hence propose to write the $\rmU$ matrix as the concatenation of structured $s = m / d$ product of matrices:
+where $f: \R^d \rightarrow \R$ and $g: \R \rightarrow \R$. They show that this family of functions contains some widely used kernel such as the Gaussian kernel or the Polynomial one. Given a set of $K$ landmark points $\rmU \in \R^{K \times d}$ and a sample $\rvx$, the computational time for computing the kernel between $\rvx$ and each row of $\rmU$ (necessary for the Nyström approximation) is bottlenecked by the computation of the product $\rmU\rvx$. They hence propose to write the $\rmU$ matrix as the concatenation of structured $s = K / d$ product of matrices:
 
 \begin{equation}
  \rmU = \left[ \rmV_1 \rmH^T, \cdots, \rmV_s\rmH^T  \right]^T
@@ -248,13 +296,20 @@ where $f: \R^d \rightarrow \R$ and $g: \R \rightarrow \R$. They show that this f
 
 where the $\rmH$ is a $d \times d$ matrix associated with a fast transform such as the \textit{Haar} or \textit{Hadamard} matrix and the $\rmV_i$s are some $d \times d$ diagonal matrices to be either chosen with a standard landmark selection method or learned using an algorithm they provide.
 
-Depending on the $\rmH$ matrix they chose, they can improve the time complexity for the computation of $\rmU\rvx$ from $O(md)$ to $O(m \log{d})$ (\textit{Fast Hadamard transform}) or $O(m)$ (\textit{Fast Haar Transform}).
+Depending on the $\rmH$ matrix they chose, they can improve the time complexity for the computation of $\rmU\rvx$ from $O(Kd)$ to $O(K \log{d})$ (\textit{Fast Hadamard transform}) or $O(K)$ (\textit{Fast Haar Transform}).
 
-\subsubsection{QALM in Nyström}
+\subsubsection{Q-means in Nyström}
 
-We propose to use our QALM algorithm in order to learn directly the $\rmU$ matrix in the Nyström approximation so that the matrix-vector multiplaction $\rmU \rvx$ is cheap to compute.
+We propose to use our Q-means algorithm in order to learn directly the $\rmU$ matrix in the Nyström approximation so that the matrix-vector multiplication $\rmU \rvx$ is cheap to compute but the structure of $\rmU$ is not constrained by some pre-defined transform matrix. We propose to take the objective $\rmU$ matrix as the K-means matrix of $\rmX$ since it has been shown to achieve good reconstruction accuracy in the Nyström method but express it as a product of sparse matrices.
 
-Construction remplacement d'une matrice de hadamard par une transformée apprise
+In \cite{si2016computationally}, they propose two point of view to show how their method improve the state of the art:
+
+\begin{itemize}
+ \item For a fixed time budget, they show better approximation accuracy of their Nyström method by sampling (\textit{learning}) more landmark points;
+ \item For a fixed error budget, they show lower time consumption.
+\end{itemize}
+
+Our algorithm could allow to get an efficient Nyström approximation for the same set of landmark points, expressed as a factorization of sparse matrix. In the experiments, we will take Nyström with K-means sampling as our baseline for reconstructing the full Gram-Matrix and we will show that our method can work
 
 \subsection{RBF networks}
 
