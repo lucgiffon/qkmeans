@@ -1,4 +1,5 @@
 \documentclass[twocolumn]{article}
+\usepackage{natbib}
 
 \usepackage[width=17cm,height=22cm]{geometry}
 \usepackage[french]{babel}
@@ -9,7 +10,6 @@
 
 \newtheorem{theorem}{Théorème}
 
-\bibliographystyle{alpha}
 
 \title{Exemple d'article au format CAp'2019}
 \author[1]{Auteur A\thanks{Si vraiment vous voulez mettre votre email
@@ -26,7 +26,6 @@
 %====================================================================================
 \input{math_commands.tex}
 
-\usepackage{natbib}
 \usepackage{algorithm}
 \usepackage{algorithmic}
 \usepackage{varwidth}
@@ -68,7 +67,7 @@ The K-means algorithm is used to partition a given set of observations $\rmX$ in
 % = \argmin_{\rmU, \rvt} \sum_{k=1}^{K} c_k + \sum_{k=1}^{K} n_k||\hat{\rmU}_k - \rmU_k||^2
 where $\rmU \in \R^{K \times d}$ is the matrix of the clusters center-points and $\rvt \in  [\![K]\!]^n$ is the indicator vector.
 
-The algorithm (Algorithm \ref{algo:kmeans}) starts with an initialized set of $K$ center-points ($\{\rmU_i \in \R^d\}_{i=1}^{K}$). Each update step $\tau$ is divided into two parts: (i) all observations $\rmX_i$ are assigned to their nearest cluster based on the center-points $\rmU_i^{(\tau-1)}$s at this step (Line \ref{line:assignation_kmeans}) in $O(ndK)$ operations. (ii) the new center-points $\rmU_i^{(\tau)}$s are computed as the means of the assignated $\rmX_i$ (Line \ref{line:compute_means}) for a total of $O(nd)$ operations.
+The algorithm (Algorithm \ref{algo:kmeans}) starts with an initialized set of $K$ center-points ($\{\rmU_i \in \R^d\}_{i=1}^{K}$). Each update step $\tau$ is divided into two parts: (i) all observations $\rmX_i$ are assigned to their nearest cluster based on the center-points $\rmU_i^{(\tau-1)}$s at this step (Line \ref{line:kmeans:assignment}) in $O(ndK)$ operations. (ii) the new center-points $\rmU_i^{(\tau)}$s are computed as the means of the assignated $\rmX_i$ (Line \ref{line:kmeans:compute_means}) for a total of $O(nd)$ operations.
 
 \begin{algorithm}
 \caption{K-means algorithm}
@@ -82,11 +81,12 @@ The algorithm (Algorithm \ref{algo:kmeans}) starts with an initialized set of $K
 \REPEAT
 \STATE $\tau \leftarrow \tau + 1$
 \STATE $\rvt^{(\tau)} \leftarrow \argmin_{\rvt \in [\![K]\!]^n} \sum_{i=1}^{n} {||\rmX_i - \rmU^{(\tau-1)}_{\rvt_i}||_2^2}$
-\label{line:assignation_kmeans}
+\label{line:kmeans:assignment}
 \FORALL {$k \in [\![K]\!]^n$}
 \STATE $n_k^{(\tau)} \leftarrow |\{i: \rvt^{(\tau)}_i=k\}|$
+\label{line:kmeans:count}
 \STATE $\rmU^{(\tau)}_k \leftarrow \frac{1}{n_k^{(\tau)}} \sum_{i: \rvt^{(\tau)}_i = k} {\rmX_i}$
-\label{line:compute_means}
+\label{line:kmeans:compute_means}
 \ENDFOR
 \UNTIL{stop criterion}
 \RETURN $\rmU^{(\tau)}$
@@ -97,12 +97,12 @@ The algorithm (Algorithm \ref{algo:kmeans}) starts with an initialized set of $K
 Once the cluster have been defined, for any $\rvx \in \R^d$ the cluster associated with this $\rvx$ is:
 
 \begin{equation}
-\label{eq:assignation_problem_kmeans}
+\label{eq:assignment_problem_kmeans}
 \argmin_{k \in [\![K]\!]} ||\rvx - \rmU_{k}||_2^2 = \argmin_{k \in [\![K]\!]} ||U_k||_2^2 - 2 \rmU_{k}^T\rvx
 \end{equation}.
 
 
-We remark here that the computational bottleneck of this assignation lies in the computation of $\rmU_k^T\rvx$ for all $k$. This computation is also encountered in the assignation step Line \ref{line:assignation_kmeans} of the Algorithm \ref{algo:kmeans}.
+We remark here that the computational bottleneck of this assignment lies in the computation of $\rmU_k^T\rvx$ for all $k$. This computation is also encountered in the assignment step Line \ref{line:kmeans:assignment} of the Algorithm \ref{algo:kmeans}.
 
 
 \subsection{Learning Fast transforms as the product of sparse matrices}
@@ -162,7 +162,7 @@ This problem can be solved using Algorithm \ref{algo:qmeans} which is a simple e
 
 Then we assess wether or not this objective diminish at each time-step in Algorithm \ref{algo:qmeans}.
 
-\paragraph{Assignation step (Line \ref{line:qmeans_assignation})} For a fixed $\rmU^{(\tau-1)}$ the new indicator vector $\rvt^{(\tau)}$ is defined such as:
+\paragraph{Assignment step (Line \ref{line:qmeans:assignment})} For a fixed $\rmU^{(\tau-1)}$ the new indicator vector $\rvt^{(\tau)}$ is defined such as:
 
 \begin{equation}
  \rvt^{(\tau)}_i = \argmin_{k \in [\![K]\!]} ||\rmX_i - \rmU^{(\tau-1)}||_2^2
@@ -170,7 +170,7 @@ Then we assess wether or not this objective diminish at each time-step in Algori
 
 for any $i \in [\![n]\!]$. This step is exactly identical in the K-means algorithm (Algorithm \ref{algo:kmeans}) and is clearly minimizing the objective function \textit{w.r.t.} to vector $\rvt$.
 
-\paragraph{Centroids computation step (Line \ref{line:startkmeans} to \ref{line:endkmeans})} For a fixed $\rvt^{(\tau)}$, the new sparsely-factorized centroids are solution of the following subproblem:
+\paragraph{Centroids computation step (Line \ref{line:qmeans:startkmeans} to \ref{line:qmeans:endkmeans})} For a fixed $\rvt^{(\tau)}$, the new sparsely-factorized centroids are solution of the following subproblem:
 
 \begin{equation}
 \label{eq:qmeans_problem_t_fixed}
@@ -186,7 +186,7 @@ for any $i \in [\![n]\!]$. This step is exactly identical in the K-means algorit
 where :
 
 \begin{itemize}
- \item $\sqrt{\rvn^{(\tau)}} \in {\R^{K}}$ is the pair-wise square root of the vector indicating the number of observation in each cluster at step $\tau$: $\rvn_k = |\{i: \rvt^\tau_i = k\}|$;
+ \item $\sqrt{\rvn^{(\tau)}} \in {\R^{K}}$ is the pair-wise square root of the vector indicating the number of observation in each cluster at step $\tau$: $\rvn_k^{(\tau)} = |\{i: \rvt^\tau_i = k\}|$;
  \item $\mathcal{D}_\rvv \in \R^{K \times K}$ refers to a diagonal matrix with entries in the diagonal from a vector $\rvv$;
  \item $\hat{\rmX}^{(\tau)} \in \R^{K \times d}$ refers to the real centroid matrix obtained at step $\tau$ \textit{w.r.t} the indicator vector at this step $\rvt^{(\tau)}$: $\hat{\rmX}^{(\tau)}_k = \frac{1}{\rvn_k}\sum_{j:\rvt^{(\tau)}_j = k} {\rmX_j}$. When $\rvt^{(\tau)}$ is fixed, this is constant.
  \item $c_k^{(\tau)} = \sum_{j: \rvt^{(\tau)}_j = k}^{}||\rmX_j - \hat{\rmX}_k^{(\tau)}||$ is constant \textit{w.r.t} $\{ \mathcal{S}_1, \ldots,\mathcal{S}_Q\}$ and $\lambda$.
@@ -228,30 +228,51 @@ Since \textit{Hierarchical PALM4LED} successivly update the $\mathcal{S}_j$s ind
 \REPEAT
 \STATE $\tau \leftarrow \tau + 1$
 \STATE $\rvt^{(\tau)} \leftarrow \argmin_{\rvt \in [\![K]\!]^n} \sum_{i=1}^{n} {||\rmX_i - \rmU^{(\tau -1)}_{\rvt(i)}||_2^2}$
-\label{line:qmeans_assignation}
+\label{line:qmeans:assignment}
 \FORALL {$k \in [\![K]\!]$}
-\label{line:startkmeans}
+\label{line:qmeans:startkmeans}
 \STATE $n_k^{(\tau)} \leftarrow |\{i: \rvt^{(\tau)}_i=k\}|$
 \STATE $\hat{\rmX}^{(\tau)}_k \leftarrow \frac{1}{n^\tau_k} \sum_{i: \rvt^\tau_i = k} {\rvx_i}$
 \ENDFOR
-\label{line:endkmeans}
+\label{line:qmeans:endkmeans}
 \STATE $\rmA^{(\tau)} \leftarrow \mathcal{D}_{\sqrt{\rvn^{(\tau)}}}~\hat{\rmX}^{(\tau)} $
-
-
-\STATE \begin{varwidth}[t]{\linewidth}
-      $\{\mathcal{S}^{(\tau)}_1 \dots \mathcal{S}^{(\tau)}_{Q}\}, \lambda^{(\tau)}~\backslash \backslash$ \par
-        \hskip\algorithmicindent $\leftarrow \argmin_{\{\mathcal{S}_1 \dots \mathcal{S}_Q, \lambda\}} ||\rmA^{(\tau)} - ~\lambda\prod_{j=0}^{Q}{\mathcal{S}_j}||_\mathcal{F}^2~\backslash \backslash$\par
-        \hskip\algorithmicindent $ + \sum_{j=0}^{Q} \delta_j(\mathcal{S}_j)$
-      \end{varwidth}
-      
-%\STATE $\{\mathcal{S}^{(\tau)}_1 \dots \mathcal{S}^{(\tau)}_{Q}\}, \lambda^{(\tau)}  \leftarrow \argmin_{\{\mathcal{S}_1 \dots \mathcal{S}_Q, \lambda\}} ||\rmA^{(\tau)} - ~\lambda\prod_{j=0}^{Q}{\mathcal{S}_j}||_\mathcal{F}^2 + \sum_{j=0}^{Q} \delta_j(\mathcal{S}_j)$
+\STATE $\{\mathcal{S}^{(\tau)}_1 \dots \mathcal{S}^{(\tau)}_{Q}\}, \lambda^{(\tau)} \leftarrow \argmin_{\{\mathcal{S}_1 \dots \mathcal{S}_Q, \lambda\}} ||\rmA^{(\tau)} - ~\lambda\prod_{j=0}^{Q}{\mathcal{S}_j}||_\mathcal{F}^2 + \sum_{j=0}^{Q} \delta_j(\mathcal{S}_j)$
 \STATE $\rmU^{(\tau)}_k \leftarrow \lambda^{(\tau)} \prod_{j=1}^{Q}{\mathcal{S}_j^{(\tau)}}$
 
 \UNTIL{stop criterion}
 \end{algorithmic}
 \end{algorithm}
 
-The factorization of $\rmU$ could then be used in ulterior algorithm that involve a matrix-vector multiplication with $\rmU$: typically any algorithm involving the assignation of some data points to one of the cluster (Equation \ref{eq:assignation_problem_kmeans}). Such applications of our proposed algorithm are discussed in Section \ref{sec:uses}.
+
+The factorization of $\rmU$ could then be used in ulterior algorithm that involve a matrix-vector multiplication with $\rmU$: typically any algorithm involving the assignment of some data points to one of the cluster (Equation \ref{eq:assignment_problem_kmeans}). Such applications of our proposed algorithm are discussed in Section \ref{sec:uses}.
+
+\subsection{Complexity}
+\paragraph{Complexity of a multiplication of dense matrices.}
+If $\rmA$ is an $M\times K $ matrix and $\rmB$ is an $K \times N$ matrix, then computing $\rmA \rmB$ can be done in $\mathcal{O}\left (MKN\right )$ operations.
+
+\paragraph{Complexity of a multiplication with a sparse matrix.}
+If $\rmA$ is a sparse matrix with $a$ non-zero entries and $\rmB$ is a dense matrix with $N$ columns, then computing $\rmA \rmB$ can be done in $\mathcal{O}\left (aN\right )$ operations.
+If $\rmB$ is also sparse, with $b$ non-zero entries, then the bound is $\mathcal{O}\left ( \min\left ( a \min\left (b, N \right ), b \min\left (a, M\right ) \right ) \right )$ where $M$ is the number of rows in $\rmA$.
+This is a naive upper bound for sparse matrices, some tighter bound may be found.
+
+\paragraph{Complexity of algorithm Palm4LED.}
+to be completed
+
+\paragraph{Complexity of algorithm Hierarchical PALM4LED.}
+to be completed
+
+\paragraph{Complexity of Kmeans (algorithm~\ref{algo:kmeans}).}
+Each iteration takes $\mathcal{O}\left (ndk\right )$
+\begin{itemize}
+\item Assignment, line~\ref{line:kmeans:assignment}: $\mathcal{O}\left (ndk\right )$\\
+it is dominated by the computation of $\rmU \rmX^T$ using $\left \|\rvx-\rvu\right \|_2^2=\left \|\rvx\right \|_2^2+\left \|\rvu\right \|_2^2-2\left <\rvx, \rvu\right >$
+\item Computing size of cluster, line~\ref{line:kmeans:count}: $\mathcal{O}\left (n \right )$\\
+it consists in one pass over $\rvt$.
+\item Updating the centroids, line~\ref{line:kmeans:compute_means}: $\mathcal{O}\left (nd\right )$\\
+since each example is summed once.
+\end{itemize}
+
+\paragraph{Complexity of Q-means (algorithm~\ref{algo:qmeans}).}
 
 \section{Applications}
 \label{sec:uses}
@@ -312,6 +333,7 @@ Besoin d'éclaircir les liens avec nearest neighbours
 
 %\bibliographystyle{plain}
 %\bibliography{references}
-\bibliographystyle{plain}
+%\bibliographystyle{plain}
+\bibliographystyle{alpha}
 \bibliography{biblio}
 \end{document}
