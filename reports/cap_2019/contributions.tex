@@ -7,7 +7,8 @@ We propose an extension of the K-means algorithm in which the matrix of center-p
 \begin{equation}
 \begin{split}
 \label{eq:qmean_problem}
-    \argmin_{\{\mathcal{S}_1 \dots \mathcal{S}_Q, \lambda\}, \rvt} & \sum_{k=1}^{K} \sum_{j: \rvt_j = k} ||\rmX_j -\rmU_k||^2 + \sum_{j=1}^{Q} \delta_j(\mathcal{S}_j) \\
+ \argmin_{\{\mathcal{S}_1 \dots \mathcal{S}_Q, \lambda\}, \rvt} & g(\{ \mathcal{S}_1, \ldots,\mathcal{S}_Q \}, \lambda, \rvt)\\
+    =\argmin_{\{\mathcal{S}_1 \dots \mathcal{S}_Q, \lambda\}, \rvt} & \sum_{k=1}^{K} \left( \sum_{j: \rvt_j = k} ||\rmX_j -\rmU_k||^2 \right) + \sum_{j=1}^{Q} \delta_j(\mathcal{S}_j) \\
     & s.t. ~ \rmU = \lambda \prod_{j=1}^{Q}{\mathcal{S}_j}
 \end{split}
 \end{equation}.
@@ -18,7 +19,7 @@ This problem can be solved using Algorithm \ref{algo:qmeans} which is a simple e
 \begin{split}
 \label{eq:qmean_problem_2}
     g(&\{ \mathcal{S}_1^{(\tau)}, \ldots,\mathcal{S}_Q^{(\tau)} \}, \lambda^{(\tau)}, \rvt^{(\tau)})\\
-    = & \sum_{k=1}^{K} \left( \sum_{j: \rvt^{(\tau)}_j = k} ||\rmX_j - \rmU^{(\tau)}_k||^2 + \sum_{j=1}^{Q} \delta_j(\mathcal{S}_j^{(\tau)}) \right)\\
+    = & \sum_{k=1}^{K} \left( \sum_{j: \rvt^{(\tau)}_j = k} ||\rmX_j - \rmU^{(\tau)}_k||^2 \right) + \sum_{j=1}^{Q} \delta_j(\mathcal{S}_j^{(\tau)})\\
     & s.t. ~ \rmU = \lambda^{(\tau)} \prod_{j=1}^{Q}{\mathcal{S}_j^{(\tau)}}
 \end{split}
 \end{equation}.
@@ -39,7 +40,7 @@ for any $i \in [\![n]\!]$. This step is exactly identical in the K-means algorit
 \label{eq:qmeans_problem_t_fixed}
 \begin{split}
  \argmin_{\{ \mathcal{S}_1, \ldots,\mathcal{S}_Q\}, \lambda} & g(\{ \mathcal{S}_1, \ldots,\mathcal{S}_Q\}, \lambda, \rvt^{(\tau)}) \\
- = \argmin_{\{ \mathcal{S}_1, \ldots,\mathcal{S}_Q\}, \lambda} &\sum_{k=1}^{K} \left( \sum_{j: \rvt^{(\tau)}_j = k} ||\rmX_j - \rmU_k||^2_2 + \sum_{j=1}^{Q} \delta_j(\mathcal{S}_j) \right) \\
+ = \argmin_{\{ \mathcal{S}_1, \ldots,\mathcal{S}_Q\}, \lambda} &\sum_{k=1}^{K} \left( \sum_{j: \rvt^{(\tau)}_j = k} ||\rmX_j - \rmU_k||^2_2 \right) + \sum_{j=1}^{Q} \delta_j(\mathcal{S}_j)  \\
  = \argmin_{\{ \mathcal{S}_1, \ldots,\mathcal{S}_Q\}, \lambda} & ||\mathcal{D}_{\sqrt{\rvn^{(\tau)}}}~(\hat{\rmX}^{(\tau)} - \rmU)||_{\mathcal{F}} ^ 2  \\
  &+ \sum_{k=1}^{K} c_k^{(\tau)} + \sum_{j=1}^{Q} \delta_j(\mathcal{S}_j)\\
  & s.t. ~ \rmU = \lambda \prod_{j=1}^{Q}{\mathcal{S}_j}

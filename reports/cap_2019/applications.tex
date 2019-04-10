@@ -3,9 +3,9 @@
 
 \subsection{Nyström approximation}
 
-Standard kernel machines are often prohibited in large scale applications because of their associated Gram matrix $\rmK$ which has $O(n^2)$ storage and $O(n^2d)$ computational complexity: $\forall i,j \in [\![n]\!], \rmK_{i,j} = k(\rmX_i, \rmX_j)$. A well-known strategy to overcome this problem is to use the Nyström method which compute a low-rank approximation of the Gram matrix on the basis of some pre-selected landmark points. 
+Standard kernel machines are often prohibited in large scale applications because of their associated Kernel matrix $\rmK$ which has $O(n^2)$ storage and $O(n^2d)$ computational complexity: $\forall i,j \in [\![n]\!], \rmK_{i,j} = k(\rmX_i, \rmX_j)$. A well-known strategy to overcome this problem is to use the Nyström method which compute a low-rank approximation of the Kernel matrix on the basis of some pre-selected landmark points. 
 
-Given $K \ll n$ landmark points $\{\rmU_i\}_{i=1}^{K}$, the Nyström method gives the following approximation of the full Gram matrix:
+Given $K \ll n$ landmark points $\{\rmU_i\}_{i=1}^{K}$, the Nyström method gives the following approximation of the full Kernel matrix:
 
 \begin{equation}
  \label{eq:nystrom}
@@ -36,16 +36,10 @@ Depending on the $\rmH$ matrix they chose, they can improve the time complexity 
 
 \subsubsection{Q-means in Nyström}
 
-We propose to use our Q-means algorithm in order to learn directly the $\rmU$ matrix in the Nyström approximation so that the matrix-vector multiplication $\rmU \rvx$ is cheap to compute but the structure of $\rmU$ is not constrained by some pre-defined transform matrix. We propose to take the objective $\rmU$ matrix as the K-means matrix of $\rmX$ since it has been shown to achieve good reconstruction accuracy in the Nyström method but express it as a product of sparse matrices.
+We propose to use our Q-means algorithm in order to learn directly the $\rmU$ matrix in the Nyström approximation so that the matrix-vector multiplication $\rmU \rvx$ is cheap to compute but the structure of $\rmU$ is not constrained by some pre-defined transform matrix. We propose to take the objective $\rmU$ matrix as the K-means matrix of $\rmX$ since it has been shown to achieve good reconstruction accuracy in the Nyström method.
 
-In \cite{si2016computationally}, they propose two point of view to show how their method improve the state of the art:
 
-\begin{itemize}
- \item For a fixed time budget, they show better approximation accuracy of their Nyström method by sampling (\textit{learning}) more landmark points;
- \item For a fixed error budget, they show lower time consumption.
-\end{itemize}
-
-Our algorithm could allow to get an efficient Nyström approximation for the same set of landmark points, expressed as a factorization of sparse matrix. In the experiments, we will take Nyström with K-means sampling as our baseline for reconstructing the full Gram-Matrix and we will show that our method can work
+Our algorithm could allow to get an efficient Nyström approximation while keeping the quality of the K-means landmark points, expressed as a factorization of sparse matrix.  
 
 %{RBF networks}
 

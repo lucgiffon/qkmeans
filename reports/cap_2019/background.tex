@@ -12,7 +12,7 @@ The K-means algorithm is used to partition a given set of observations $\rmX$ in
 % = \argmin_{\rmU, \rvt} \sum_{k=1}^{K} c_k + \sum_{k=1}^{K} n_k||\hat{\rmU}_k - \rmU_k||^2
 where $\rmU \in \R^{K \times d}$ is the matrix of the clusters center-points and $\rvt \in  [\![K]\!]^n$ is the indicator vector.
 
-The algorithm (Algorithm \ref{algo:kmeans}) starts with an initialized set of $K$ center-points ($\{\rmU_i \in \R^d\}_{i=1}^{K}$). Each update step $\tau$ is divided into two parts: (i) all observations $\rmX_i$ are assigned to their nearest cluster based on the center-points $\rmU_i^{(\tau-1)}$s at this step (Line \ref{line:kmeans:assignment}) in $O(ndK)$ operations. (ii) the new center-points $\rmU_i^{(\tau)}$s are computed as the means of the assignated $\rmX_i$ (Line \ref{line:kmeans:compute_means}) for a total of $O(nd)$ operations.
+The algorithm (Algorithm \ref{algo:kmeans}) starts with an initialized set of $K$ center-points ($\{\rmU_i \in \R^d\}_{i=1}^{K}$). Each update step $\tau$ is divided into two parts: (i) all observations $\rmX_i$ are assigned to their nearest cluster based on the center-points $\rmU_i^{(\tau-1)}$s at this step (Line \ref{line:kmeans:assignment}) in $\mathcal{O}(ndK)$ operations. (ii) the new center-points $\rmU_i^{(\tau)}$s are computed as the means of the assignated $\rmX_i$ (Line \ref{line:kmeans:compute_means}) for a total of $\mathcal{O}(nd)$ operations.
 
 \begin{algorithm}
 \caption{K-means algorithm}
