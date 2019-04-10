@@ -115,12 +115,12 @@ The factorization of $\rmU$ could then be used in ulterior algorithm that involv
 If $\rmA$ is an $M\times K $ matrix and $\rmB$ is an $K \times N$ matrix, then computing $\rmA \rmB$ can be done in $\mathcal{O}\left (MKN\right )$ operations.
 
 \paragraph{Complexity of a multiplication with a sparse matrix.}
-If $\rmA$ is a sparse matrix with $a$ non-zero entries and $\rmB$ is a dense matrix with $N$ columns, then computing $\rmA \rmB$ can be done in $\mathcal{O}\left (aN\right )$ operations.
-If $\rmB$ is also sparse, with $b$ non-zero entries, then the bound is $\mathcal{O}\left ( \min\left ( a \min\left (b, N \right ), b \min\left (a, M\right ) \right ) \right )$ where $M$ is the number of rows in $\rmA$.
-This is a naive upper bound for sparse matrices, some tighter bound may be found.
+If $\rmA$ is a sparse matrix with $a$ non-zero entries and $\rmB$ is a dense matrix in $\R^{M \times N}N$, then computing $\rmA \rmB$ can be done in $\mathcal{O}\left (aMN\right )$ operations.
+%If $\rmB$ is also sparse, with $b$ non-zero entries, then the bound is $\mathcal{O}\left ( \min\left ( a \min\left (b, N \right ), b \min\left (a, M\right ) \right ) \right )$ where $M$ is the number of rows in $\rmA$.
+%This is a naive upper bound for sparse matrices, some tighter bound may be found.
 
 \paragraph{Complexity of algorithm \textit{PALM4LED}.}
-Each iteration takes $\mathcal{0}(Kd(pQ+K+d))$. In the following analysis, we refer to the lines in Algorithm 2 of \cite{magoarou2014learning}. Also, we consider the scenario when the first factor is in $\R^{K \times d}$ and all the others are in $\R^{d \times d}$. Finaly, we set the number of value in each sparse matrix to be the same and equal to $p$.
+Each iteration takes $\mathcal{O}(Kd(pQ+K+d))$. In the following analysis, we refer to the lines in Algorithm 2 of \cite{magoarou2014learning}. Also, we consider the scenario when the first factor is in $\R^{K \times d}$ and all the others are in $\R^{d \times d}$. Finaly, we set the number of value in each sparse matrix to be the same and equal to $p$.
 
 For each of the $Q$ factors, the complexity is $\mathcal{O}(Kd(pQ + d))$:
 
