@@ -1,22 +1,25 @@
 \section{Conclusion}
 \label{sec:conclusion}
 
-résumé de ce qui est proposé
+In this paper, we proposed a new algorithm with convergence proof that allows to learn a matrix of K-means center-points with sparse factorization constraint. We provide complexity analysis showing that this particular matrix may speed up further machine learning algorithmq that would usually make use of the standard K-means center-points matrix. In particular, we show that this algorithm could be used in the context of the Nyström approximation.
+
+This paper doesn't contain any experiment result as it is an ongoing work at the moment. In the next subsection (Section \ref{sec:foreseen_experiments}), we discuss foreseen experiments that would aim at illustrating the speed gain when using our method while not reducing the overall accuracy in some machine learning settings.
+
+Last but not least, we discuss in the Section \ref{sec:discussion} a broader scope of application of our Algorithm and some other theoretical advantage it could bring.
 
 \subsection{Foreseen experiments}
+\label{sec:foreseen_experiments}
 
-\begin{itemize}
- \item Kmeans nystrom vs qmeans nystrom (speed/accuracy reconstruction)
-%In the experiments, we will take Nyström with K-means sampling as our baseline for reconstructing the full Kernel Matrix and we will show that our method can work faster for the same
-\item idem pour accuracy tâche d'apprentissage
-\item qmeans nystrom vs efficient nystrom (speed/accuracy reconstruction)
-\item idem pour accuracy tâche d'apprentissage
-\end{itemize}
+Our algorithm will be evaluated on the same metrics than \cite{si2016computationally} on the Nyström approximation, namely the reconstruction error of the Kernel matrix and the accuracy error in subsequent machine learning experiments. Those error will be considered with respect to the computation speed. The considered baseline will be Nyström with simple K-means selected landmark points and, obviously, the efficient Nyström algorithm proposed in \cite{si2016computationally}.
 
 \subsection{Discussion}
+\label{sec:discussion}
 
-Scope plus large de Q-means: algorithme alternatif à K-means dans tous les cas où on utilise le résultat de K-means pour un produit matrice vecteur (l'assignation nécessite un produit matrice-vecteur donc ça fait la plupart des cas)
-\begin{itemize}
- \item rbf networks
- \item hierarchical nearest neighbours
-\end{itemize}
+The algorithm we propose, \textit{Q-means}, could be applied to any other method that uses the K-means algorithm in its initialization. The K-means Nyström method is only one instance of such algorithm but we can already think of other examples like some nearest neighbour search algorithm based on the K-means clustering of the input space \cite{wang2011fast}.
+
+Finaly, the sparse factorization constraint for the K-means center points matrix may play the role of some regularization with parameter being the number of values in each factor. This is just an intuition for now and this must be investigated more thoroughly from both the theoretical and experimental point of view.
+
+%\begin{itemize}
+% \item rbf networks
+% \item hierarchical nearest neighbours
+%\end{itemize}
