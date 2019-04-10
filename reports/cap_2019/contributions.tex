@@ -115,31 +115,31 @@ The factorization of $\rmU$ could then be used in an ulterior algorithm that inv
 If $\rmA$ is an $M\times K $ matrix and $\rmB$ is an $K \times N$ matrix, then computing $\rmA \rmB$ can be done in $\mathcal{O}\left (MKN\right )$ operations.
 
 \paragraph{Complexity of a multiplication with a sparse matrix.}
-If $\rmA$ is a sparse matrix with $a$ non-zero entries and $\rmB$ is a dense matrix in $\R^{M \times N}N$, then computing $\rmA \rmB$ can be done in $\mathcal{O}\left (aMN\right )$ operations.
+If $\rmA$ is a sparse matrix with $a$ non-zero entries and $\rmB$ is a dense matrix with $N$ columns, then computing $\rmA \rmB$ can be done in $\mathcal{O}\left (aN\right )$ operations.
 %If $\rmB$ is also sparse, with $b$ non-zero entries, then the bound is $\mathcal{O}\left ( \min\left ( a \min\left (b, N \right ), b \min\left (a, M\right ) \right ) \right )$ where $M$ is the number of rows in $\rmA$.
 %This is a naive upper bound for sparse matrices, some tighter bound may be found.
 
 \paragraph{Complexity of algorithm \textit{PALM4LED}.}
-Each iteration takes $\mathcal{O}(Kd(pQ+K+d))$. In the following analysis, we refer to the lines in Algorithm 2 of \cite{magoarou2014learning}. Also, we consider the scenario when the first factor is in $\R^{K \times d}$ and all the others are in $\R^{d \times d}$. Finaly, we set the number of values in each sparse matrix to be the same and equal to $p$.
+Each iteration takes $\mathcal{O}(Q(dpQ + Kd + d^2)$. In the following analysis, we refer to the lines in Algorithm 2 of \cite{magoarou2014learning}. Also, we consider the scenario when the first factor is in $\R^{K \times d}$ and all the others are in $\R^{d \times d}$. Finaly, we set the number of values in each sparse matrix to be the same and equal to $p$.
 
-For each of the $Q$ factors, the complexity is $\mathcal{O}(Kd(pQ + d))$:
+For each of the $Q$ factors, the complexity is $\mathcal{O}(dpQ + Kd + d^2))$:
 %
 \begin{itemize}
- \item Lines 3 and 4: $\mathcal{O}(KdpQ)$;
- \item Line 5: $\mathcal{O}(Kd + d^2)$;
- \item Line 6: $\mathcal{O}(Kd)$ for the projection operation and the substraction plus $\mathcal{O}(Kd^2)$ for the matrix multiplcations.
+ \item Lines 3 and 4: $\mathcal{O}(dpQ)$ by computing the products right to left and taking advantage of the sparsity of the factors;
+ \item Line 5: $\mathcal{O}(Kd + d^2)$ because $\rmR \in \R^{K \times d}$ and $\rmL \in \R^{d \times d}$;
+ \item Line 6: $\mathcal{O}(dpQ + Kd)$ for the sparse product and the projection operation.
 \end{itemize}
 %
-The two last statement of each iteration are in time $\mathcal{O}(Kd(pQ + K)$:
+The two last statement of each iteration are in time $\mathcal{O}(dpQ)$, again taking advantage of the sparse factorisation.
 %
-\begin{itemize}
- \item Line 8: $\mathcal{O}(KdpQ)$;
- \item Line 9: $\mathcal{O}(KdK)$.
-\end{itemize}
+%\begin{itemize}
+% \item Line 8: $\mathcal{O}(dpQ)$;
+% \item Line 9: $\mathcal{O}(dpQ)$.
+%\end{itemize}
 
 \paragraph{Complexity of algorithm \textit{Hierarchical PALM4LED}.}
 
-The hierarchical version of the algorithm corresponds to the same algorithm repeated $Q$ times. The overall complexity is then $\mathcal{O}(QKd(pQ+K+d))$. We now note that, in practice, $Q$ is supposed to be small compared to $K$ or $d$, and that $p$ should be of the same order than $d$. In that case, we can simplify the complexity of the final algorithm to $\mathcal{O}(Kd(d+K))$.
+The hierarchical version of the algorithm corresponds to the same algorithm repeated $Q$ times. The overall complexity is then $\mathcal{O}(Q^2(dpQ + Kd + d^2))$. We now note that, in practice, $Q$ is supposed to be small compared to $K$ or $d$, and that $p$ should be of the same order than $d$. In that case, we can simplify the complexity of the final algorithm to $\mathcal{O}(Kd + d^2)$.
 
 \paragraph{Complexity of Kmeans (algorithm~\ref{algo:kmeans}).}
 Each iteration takes $\mathcal{O}\left (ndk\right )$
@@ -154,6 +154,6 @@ since each example is summed once.
 
 \paragraph{Complexity of Q-means (algorithm~\ref{algo:qmeans}).}
 
-Naively, each iteration of the \textit{Q-means} algorithm has the same complexity than K-means with and additional $\mathcal{O}(Kd(d+K))$. This leads to the overall complexity of $\mathcal{O}(Kd(n+ d+K))$. In the case where the dimensionality of the data is negligible in front of the size of the dataset, this is of the same order of complexity than the vanilla K-means algorithm, e.g. $\mathcal{O}(ndk)$. Nevertheless, we can already take advantage of the decomposition of the center-point matrix in the assignment step of the Algorithm: indeed, when the intermediate center-point matrix $\rmU^{(\tau-1)}$ has the sparse factorization constraint, assigning a $n$ data points to their cluster can be done in time $\mathcal{O}(n K \log d)$ operations, which leads to the new complexity for \textit{Q-means}: $\mathcal{O}(nK\log d + nd)$
+Naively, each iteration of the \textit{Q-means} algorithm has the same complexity than K-means with and additional $\mathcal{O}(Kd + d^2)$ for the \textit{Hierarchical PALM4LED} step. This leads to the overall complexity of $\mathcal{O}(Kdn + d^2)$. In the case where the dimensionality of the data is negligible in front of the size of the dataset, this is of the same order of complexity than the vanilla K-means algorithm, e.g. $\mathcal{O}(ndk)$. Nevertheless, we can already take advantage of the decomposition of the center-point matrix in the assignment step of the Algorithm: indeed, when the intermediate center-point matrix $\rmU^{(\tau-1)}$ has the sparse factorization constraint, assigning a $n$ data points to their cluster can be done in time $\mathcal{O}(n K \log d)$ operations, which leads to the new complexity for \textit{Q-means}: $\mathcal{O}(nK\log d + Kd + d^2)$
 
-Once the decomposed center-point matrix has been obtained, the assignation of a new data point to a cluster becomes $\mathcal{O}()$
+Once the decomposed center-point matrix has been obtained, the assignation of a new data point to a cluster becomes $\mathcal{O}(nK\log d)$ which would be usefull in many machine learning application usually using the K-means algorithm.
