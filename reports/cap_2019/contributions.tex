@@ -3,7 +3,7 @@
 \subsection{Q-means}
 
 We propose an extension of the K-means algorithm in which the matrix of center-points $\rmU$ is constrained to be expressed as a product of sparse matrices $\mathcal{S}_j: j = 1 \ldots Q$. From Equation \ref{eq:kmean_problem} and Equation \ref{eq:problem_gribon} we can write a new K-means optimisation problem with sparse factorization constraint which we call \textit{Q-means}:
-
+%
 \begin{equation}
 \begin{split}
 \label{eq:qmean_problem}
@@ -12,9 +12,9 @@ We propose an extension of the K-means algorithm in which the matrix of center-p
     & s.t. ~ \rmU = \lambda \prod_{j=1}^{Q}{\mathcal{S}_j}
 \end{split}
 \end{equation}.
-
-This problem can be solved using Algorithm \ref{algo:qmeans} which is a simple extension of the K-means algorithm (Algorithm \ref{algo:kmeans}) and is guaranteed to converge. To show this convergence, we need to show that each update step in one iteration $\tau$ of the algorithm actually reduces the overall objective. To this end, we start by re-writting the objective at a given time-step $\tau$:
-
+%
+This problem can be solved using Algorithm \ref{algo:qmeans} which is a simple extension of the K-means algorithm (Algorithm \ref{algo:kmeans}) and is guaranteed to converge. To show this convergence, we need to show that each update step in one iteration $\tau$ of the algorithm actually reduces the overall objective. To this end, we start by re-writing the objective at a given time-step $\tau$:
+%
 \begin{equation}
 \begin{split}
 \label{eq:qmean_problem_2}
@@ -23,19 +23,19 @@ This problem can be solved using Algorithm \ref{algo:qmeans} which is a simple e
     & s.t. ~ \rmU = \lambda^{(\tau)} \prod_{j=1}^{Q}{\mathcal{S}_j^{(\tau)}}
 \end{split}
 \end{equation}.
+%
+We then assess whether or not this objective diminishes at each time-step in Algorithm \ref{algo:qmeans}.
 
-Then we assess wether or not this objective diminish at each time-step in Algorithm \ref{algo:qmeans}.
-
-\paragraph{Assignment step (Line \ref{line:qmeans:assignment})} For a fixed $\rmU^{(\tau-1)}$ the new indicator vector $\rvt^{(\tau)}$ is defined such as:
-
+\paragraph{Assignment step (Line \ref{line:qmeans:assignment})} For a fixed $\rmU^{(\tau-1)}$ the new indicator vector $\rvt^{(\tau)}$ is defined as:
+%
 \begin{equation}
  \rvt^{(\tau)}_i = \argmin_{k \in [\![K]\!]} ||\rmX_i - \rmU^{(\tau-1)}||_2^2
 \end{equation}
-
+%
 for any $i \in [\![n]\!]$. This step is exactly identical in the K-means algorithm (Algorithm \ref{algo:kmeans}) and is clearly minimizing the objective function \textit{w.r.t.} to vector $\rvt$.
 
-\paragraph{Centroids computation step (Line \ref{line:qmeans:startkmeans} to \ref{line:qmeans:endkmeans})} For a fixed $\rvt^{(\tau)}$, the new sparsely-factorized centroids are solution of the following subproblem:
-
+\paragraph{Centroids computation step (Line \ref{line:qmeans:startkmeans} to \ref{line:qmeans:endkmeans})} For a fixed $\rvt^{(\tau)}$, the new sparsely-factorized centroids are solutions of the following subproblem:
+%
 \begin{equation}
 \label{eq:qmeans_problem_t_fixed}
 \begin{split}
@@ -46,11 +46,11 @@ for any $i \in [\![n]\!]$. This step is exactly identical in the K-means algorit
  & s.t. ~ \rmU = \lambda \prod_{j=1}^{Q}{\mathcal{S}_j}
 \end{split} 
 \end{equation}
-
+%
 where :
-
+%
 \begin{itemize}
- \item $\sqrt{\rvn^{(\tau)}} \in {\R^{K}}$ is the pair-wise square root of the vector indicating the number of observation in each cluster at step $\tau$: $\rvn_k^{(\tau)} = |\{i: \rvt^\tau_i = k\}|$;
+ \item $\sqrt{\rvn^{(\tau)}} \in {\R^{K}}$ is the pair-wise square root of the vector indicating the number of observations in each cluster at step $\tau$: $\rvn_k^{(\tau)} = |\{i: \rvt^\tau_i = k\}|$;
  \item $\mathcal{D}_\rvv \in \R^{K \times K}$ refers to a diagonal matrix with entries in the diagonal from a vector $\rvv$;
  \item $\hat{\rmX}^{(\tau)} \in \R^{K \times d}$ refers to the real centroid matrix obtained at step $\tau$ \textit{w.r.t} the indicator vector at this step $\rvt^{(\tau)}$: $\hat{\rmX}^{(\tau)}_k = \frac{1}{\rvn_k}\sum_{j:\rvt^{(\tau)}_j = k} {\rmX_j}$. When $\rvt^{(\tau)}$ is fixed, this is constant.
  \item $c_k^{(\tau)} = \sum_{j: \rvt^{(\tau)}_j = k}^{}||\rmX_j - \hat{\rmX}_k^{(\tau)}||$ is constant \textit{w.r.t} $\{ \mathcal{S}_1, \ldots,\mathcal{S}_Q\}$ and $\lambda$.
@@ -58,8 +58,8 @@ where :
 
 Again,  the minimization of the overall objective $g$ from Equation \ref{eq:qmean_problem_2} is clear since the $\{ \mathcal{S}_1, \ldots,\mathcal{S}_Q\}$ and $\lambda$ are precisely chosen to minimize $g$.
 
-Note that the formulation of the problem in Equation \ref{eq:qmeans_problem_t_fixed} shows the connection between the K-means and \textit{Hierarchical PALM4LED} objectives, which allow to combine them without trouble. Indeed, we can set
-
+Note that the formulation of the problem in Equation \ref{eq:qmeans_problem_t_fixed} shows the connection between the K-means and \textit{Hierarchical PALM4LED} objectives, which allows us to combine them without trouble. Indeed, we can set
+%
 \begin{equation*}
 \rmA^{(\tau)} = \mathcal{D}_{\sqrt{\rvn^{(\tau)}}}~\hat{\rmX}^{(\tau)}
 \end{equation*}
@@ -67,9 +67,9 @@ and
 \begin{equation*}
 \rmB^{(\tau)} = \mathcal{D}_{\sqrt{\rvn^{(\tau)}}}~\rmU = \mathcal{D}_{\sqrt{\rvn^{(\tau)}}}~\lambda \prod_{j=1}^{Q}{\mathcal{S}_j} = \lambda \prod_{j=0}^{Q}{\mathcal{S}_j}
 \end{equation*}
-
-with $\mathcal{S}_0$ fixed and equal to $\mathcal{D}_{\sqrt{\rvn^{(\tau)}}}$. The Equation \ref{eq:qmeans_problem_t_fixed} can then be rewritten 
-
+%
+with $\mathcal{S}_0$ fixed and equal to $\mathcal{D}_{\sqrt{\rvn^{(\tau)}}}$. The Equation \ref{eq:qmeans_problem_t_fixed} can then be rewritten as
+%
 \begin{equation}
 \begin{split}
  \argmin_{\{ \mathcal{S}_1, \ldots,\mathcal{S}_Q\}, \lambda} & ||\rmA^{(\tau)} - \rmB^{(\tau)}||_{\mathcal{F}} ^ 2  +  \sum_{j=0}^{Q} \delta_j(\mathcal{S}_j)\\
@@ -77,7 +77,7 @@ with $\mathcal{S}_0$ fixed and equal to $\mathcal{D}_{\sqrt{\rvn^{(\tau)}}}$. Th
 \end{split}
 \end{equation}
 
-Since \textit{Hierarchical PALM4LED} successivly update the $\mathcal{S}_j$s independently and in an alternating fashion, we can still use \textit{PALM4LED} in to solve this problem with the $\mathcal{S}_0$ fixed.
+Since \textit{Hierarchical PALM4LED} successivly updates the $\mathcal{S}_j$s independently and in an alternating fashion, we can still use \textit{PALM4LED} in to solve this problem with the $\mathcal{S}_0$ fixed.
 
 
 \begin{algorithm}
@@ -108,7 +108,7 @@ Since \textit{Hierarchical PALM4LED} successivly update the $\mathcal{S}_j$s ind
 \end{algorithm}
 
 
-The factorization of $\rmU$ could then be used in ulterior algorithm that involve a matrix-vector multiplication with $\rmU$: typically any algorithm involving the assignment of some data points to one of the cluster (Equation \ref{eq:assignment_problem_kmeans}). Such applications of our proposed algorithm are discussed in Section \ref{sec:uses}.
+The factorization of $\rmU$ could then be used in an ulterior algorithm that involves a matrix-vector multiplication with $\rmU$: typically any algorithm involving the assignment of some data points to one of the clusters (Equation \ref{eq:assignment_problem_kmeans}). Such applications of our proposed algorithm are discussed in Section \ref{sec:uses}.
 
 \subsection{Complexity}
 \paragraph{Complexity of a multiplication of dense matrices.}
@@ -120,18 +120,18 @@ If $\rmA$ is a sparse matrix with $a$ non-zero entries and $\rmB$ is a dense mat
 %This is a naive upper bound for sparse matrices, some tighter bound may be found.
 
 \paragraph{Complexity of algorithm \textit{PALM4LED}.}
-Each iteration takes $\mathcal{O}(Kd(pQ+K+d))$. In the following analysis, we refer to the lines in Algorithm 2 of \cite{magoarou2014learning}. Also, we consider the scenario when the first factor is in $\R^{K \times d}$ and all the others are in $\R^{d \times d}$. Finaly, we set the number of value in each sparse matrix to be the same and equal to $p$.
+Each iteration takes $\mathcal{O}(Kd(pQ+K+d))$. In the following analysis, we refer to the lines in Algorithm 2 of \cite{magoarou2014learning}. Also, we consider the scenario when the first factor is in $\R^{K \times d}$ and all the others are in $\R^{d \times d}$. Finaly, we set the number of values in each sparse matrix to be the same and equal to $p$.
 
 For each of the $Q$ factors, the complexity is $\mathcal{O}(Kd(pQ + d))$:
-
+%
 \begin{itemize}
- \item Line 3 and 4: $\mathcal{O}(KdpQ)$;
+ \item Lines 3 and 4: $\mathcal{O}(KdpQ)$;
  \item Line 5: $\mathcal{O}(Kd + d^2)$;
  \item Line 6: $\mathcal{O}(Kd)$ for the projection operation and the substraction plus $\mathcal{O}(Kd^2)$ for the matrix multiplcations.
 \end{itemize}
-
-And the two last statement of each iteration are in time $\mathcal{O}(Kd(pQ + K)$:
-
+%
+The two last statement of each iteration are in time $\mathcal{O}(Kd(pQ + K)$:
+%
 \begin{itemize}
  \item Line 8: $\mathcal{O}(KdpQ)$;
  \item Line 9: $\mathcal{O}(KdK)$.
@@ -139,7 +139,7 @@ And the two last statement of each iteration are in time $\mathcal{O}(Kd(pQ + K)
 
 \paragraph{Complexity of algorithm \textit{Hierarchical PALM4LED}.}
 
-The hierarchical version of the algorithm correspond to the same algorithm repeated $Q$ times. The overall complexity is then $\mathcal{O}(QKd(pQ+K+d))$. We now note that, in practice, $Q$ is supposed to be small compared to $K$ or $d$ and that $p$ should be of the same order than $d$. In that case, we can simplify the complexity of the final algorithm to $\mathcal{O}(Kd(d+K))$.
+The hierarchical version of the algorithm corresponds to the same algorithm repeated $Q$ times. The overall complexity is then $\mathcal{O}(QKd(pQ+K+d))$. We now note that, in practice, $Q$ is supposed to be small compared to $K$ or $d$, and that $p$ should be of the same order than $d$. In that case, we can simplify the complexity of the final algorithm to $\mathcal{O}(Kd(d+K))$.
 
 \paragraph{Complexity of Kmeans (algorithm~\ref{algo:kmeans}).}
 Each iteration takes $\mathcal{O}\left (ndk\right )$
@@ -147,13 +147,13 @@ Each iteration takes $\mathcal{O}\left (ndk\right )$
 \item Assignment, line~\ref{line:kmeans:assignment}: $\mathcal{O}\left (ndk\right )$\\
 it is dominated by the computation of $\rmU \rmX^T$ using $\left \|\rvx-\rvu\right \|_2^2=\left \|\rvx\right \|_2^2+\left \|\rvu\right \|_2^2-2\left <\rvx, \rvu\right >$
 \item Computing size of cluster, line~\ref{line:kmeans:count}: $\mathcal{O}\left (n \right )$\\
-it consists in one pass over $\rvt$.
+it consists of one pass over $\rvt$.
 \item Updating the centroids, line~\ref{line:kmeans:compute_means}: $\mathcal{O}\left (nd\right )$\\
 since each example is summed once.
 \end{itemize}
 
 \paragraph{Complexity of Q-means (algorithm~\ref{algo:qmeans}).}
 
-Naively, each iteration of the \textit{Q-means} algorithm has the same complexity than K-means with and additional $\mathcal{O}(Kd(d+K))$. This leads to the overall complexity of $\mathcal{O}(Kd(n+ d+K))$. In the case where the dimensionality of the data is negligible in front of the size of the dataset, this is of the same order of complexity than the vanilla K-means algorithm, e.g. $\mathcal{O}(ndk)$. Nevertheless, we can already take advantage of the decomposition of the center-points matrix in the assignment step of the Algorithm: indeed, when the intermediate center-points matrix $\rmU^{(\tau-1)}$ has the sparse factorization constraint, assigning a $n$ data points to their cluster can be done in time $\mathcal{O}(n K \log d)$ operations, which leads to the new complexity for \textit{Q-means}: $\mathcal{O}(nK\log d + nd)$
+Naively, each iteration of the \textit{Q-means} algorithm has the same complexity than K-means with and additional $\mathcal{O}(Kd(d+K))$. This leads to the overall complexity of $\mathcal{O}(Kd(n+ d+K))$. In the case where the dimensionality of the data is negligible in front of the size of the dataset, this is of the same order of complexity than the vanilla K-means algorithm, e.g. $\mathcal{O}(ndk)$. Nevertheless, we can already take advantage of the decomposition of the center-point matrix in the assignment step of the Algorithm: indeed, when the intermediate center-point matrix $\rmU^{(\tau-1)}$ has the sparse factorization constraint, assigning a $n$ data points to their cluster can be done in time $\mathcal{O}(n K \log d)$ operations, which leads to the new complexity for \textit{Q-means}: $\mathcal{O}(nK\log d + nd)$
 
-once the decomposed center-points matrix has been obtained, the assignation of a new data point to a cluster becomes $\mathcal{O}()$
+Once the decomposed center-point matrix has been obtained, the assignation of a new data point to a cluster becomes $\mathcal{O}()$
