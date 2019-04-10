@@ -2,7 +2,7 @@
 \label{sec:background}
 \subsection{K-means}
 \label{sec:kmeans}
-The K-means algorithm is used to partition a given set of observations $\rmX$ into a predefined amount of $K$ clusters while minimizing the distance between the observations in each partition:
+The K-means algorithm is used to partition a given set of observations $\rmX$ into a predefined $K$ clusters while minimizing the distance between the observations in each partition:
 
 \begin{equation}
 \label{eq:kmean_problem}
@@ -10,7 +10,7 @@ The K-means algorithm is used to partition a given set of observations $\rmX$ in
 \end{equation}
 % autre écriture de l'objectif de k-means
 % = \argmin_{\rmU, \rvt} \sum_{k=1}^{K} c_k + \sum_{k=1}^{K} n_k||\hat{\rmU}_k - \rmU_k||^2
-where $\rmU \in \R^{K \times d}$ is the matrix of the clusters center-points and $\rvt \in  [\![K]\!]^n$ is the indicator vector.
+where $\rmU \in \R^{K \times d}$ is the matrix of the cluster's center-points and $\rvt \in  [\![K]\!]^n$ is the indicator vector.
 
 The algorithm (Algorithm \ref{algo:kmeans}) starts with an initialized set of $K$ center-points ($\{\rmU_i \in \R^d\}_{i=1}^{K}$). Each update step $\tau$ is divided into two parts: (i) all observations $\rmX_i$ are assigned to their nearest cluster based on the center-points $\rmU_i^{(\tau-1)}$s at this step (Line \ref{line:kmeans:assignment}) in $\mathcal{O}(ndK)$ operations. (ii) the new center-points $\rmU_i^{(\tau)}$s are computed as the means of the assignated $\rmX_i$ (Line \ref{line:kmeans:compute_means}) for a total of $\mathcal{O}(nd)$ operations.
 
@@ -39,42 +39,42 @@ The algorithm (Algorithm \ref{algo:kmeans}) starts with an initialized set of $K
 \end{algorithm}
 
 
-Once the cluster have been defined, for any $\rvx \in \R^d$ the cluster associated with this $\rvx$ is:
+Once the clusters have been defined, for any $\rvx \in \R^d$ the cluster associated with this $\rvx$ is:
 
 \begin{equation}
 \label{eq:assignment_problem_kmeans}
-\argmin_{k \in [\![K]\!]} ||\rvx - \rmU_{k}||_2^2 = \argmin_{k \in [\![K]\!]} ||U_k||_2^2 - 2 \rmU_{k}^T\rvx
+\argmin_{k \in [\![K]\!]} ||\rvx - \rmU_{k}||_2^2 = \argmin_{k \in [\![K]\!]} ||\rmU_{k}||_2^2 - 2 \rmU_{k}^T\rvx
 \end{equation}.
 
 
-We remark here that the computational bottleneck of this assignment lies in the computation of $\rmU_k^T\rvx$ for all $k$. This computation is also encountered in the assignment step Line \ref{line:kmeans:assignment} of the Algorithm \ref{algo:kmeans}.
+We remark here that the computational bottleneck of this assignment lies in the computation of $\rmU_k^T\rvx$ for all $k$. This computation is also encountered in the assignment step (line \ref{line:kmeans:assignment}) of the Algorithm \ref{algo:kmeans}.
 
 
 \subsection{Learning Fast transforms as the product of sparse matrices}
 \label{sec:palm4led}
-A popular way for providing concise description of high-dimensional vectors $\rmU \in \R^{K \times d}$ is to compute a sparse representation using a dictionnary:
-
+A popular way for providing concise description of high-dimensional vectors $\rmU \in \R^{K \times d}$ is to compute a sparse representation using a dictionary:
+%
 \begin{equation}
 \rmU^T \approx \rmD\rmGamma
 \end{equation}
+%
+where $\rmD \in \R^{d \times d}$ is a dictionary and $\rmGamma \in \R^{d \times K}$ has sparse columns. Historically, the dictionary is either (i) analytic: $\rmD$ is chosen to give a fast reconstruction of the initial matrix by taking advantage of some fast-transform algorithm (the \textit{Fast Hadamard Transform} for instance) or (ii) learned: $\rmD$ is learned from the data itself to give a good reconstruction of the initial matrix.
 
-where $\rmD \in \R^{d \times d}$ is a dictionnary and $\rmGamma \in \R^{d \times K}$ has sparse columns. Historically, the dictionnary is either (i) analytic: $\rmD$ is chosen to give a fast reconstruction of the initial matrix by taking advantage of some fast-transform algorithm (the \textit{Fast Hadamard Transform} for instance) or (ii) learned: $\rmD$ is learned from the data itself to give a good reconstruction of the initial matrix.
-
-Building on the observation that the fast-transform associated with an analytic dictionnary can be expressed as the product of sparse matrices $\mathcal{S}_j$ from a set $\mathcal{S}$ of size $M$, \cite{magoarou2014learning} proposes an algorithm to learn a dictionnary from the data with sparsity constraints such that this dictionnary would be both well-suited with the data and fast to use:
-
+Building on the observation that the fast-transform associated with an analytic dictionary can be expressed as the product of sparse matrices $\mathcal{S}_j$ from a set $\mathcal{S}$ of size $M$, \cite{magoarou2014learning} proposes an algorithm to learn a dictionary from the data with sparsity constraints such that this dictionary would be both well-suited with the data and fast to use:
+%
 \begin{equation}
 \rmD = \lambda \prod_{j=1}^{M}\mathcal{S}_j
 \end{equation}
-
+%
 with $\forall j \in \{1 \ldots M\}$, $\mathcal{S}_j \in \mathcal{E}_j$, $\mathcal{E}_j = \lbrace \rmA \in \R^{a \times a+1}~\text{s.t.}~||\rmA||_0^0 \leq p_j, ||\rmA||_1 = 1 \rbrace$ and $p_j$ being chosen suitably. The $\lambda$ parameter has been added along with the normalization constraint in the $\mathcal{E}_j$ in order to remove scaling ambiguity in the learned $\mathcal{S}_j$.
 
-Considering $\rmGamma$ being a sparse matrice too, it can be renamed as $\rmGamma = \mathcal{S}_{M+1}$. We set $Q = M+1$ and the overall dictionnary learning problem can be expressed as the following optimisation problem:
-
+Considering $\rmGamma$ being a sparse matrice too, it can be renamed as $\rmGamma = \mathcal{S}_{M+1}$. We set $Q = M+1$ and the overall dictionary learning problem can be expressed as the following optimisation problem:
+%
 \begin{equation}
 \label{eq:problem_gribon}
 \min_{\{\mathcal{S}_1 \dots \mathcal{S}_Q, \lambda\}} ||\rmU - \lambda \prod_{j=1}^{Q}{\mathcal{S}_j}||_2^2 + \sum_{j=1}^{Q} \delta_j(\mathcal{S}_j)
 \end{equation}
-
+%
 with the $\delta_j(\mathcal{S}_j) = 0$ if $\mathcal{S}_j \in \mathcal{E}_j$ being the sparsity constraints to satisfy on the associated $\mathcal{S}_j$.
 
-Although this problem being highly non-convex, the authors derive an algorithm from the PALM algorithm \cite{bolte2014proximal}, which they call \textit{Hierarchical PALM4LED} to find a good local minima and give convergence guarantees to learn efficient dictionaries.
+Although this problem is highly non-convex, the authors derive an algorithm from the PALM algorithm \cite{bolte2014proximal}, which they call \textit{Hierarchical PALM4LED} to find a good local minima and give convergence guarantees to learn efficient dictionaries.
