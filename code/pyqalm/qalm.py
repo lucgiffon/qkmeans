@@ -186,7 +186,7 @@ def HierarchicalPALM4MSA(arr_X_target: np.array,
     nb_factors = len(lst_S)
 
     if residual_sparsity_decrease is None:
-        residual_sparsity_decrese = 0.5
+        residual_sparsity_decrease = 0.5
     if residual_global_sparsity is None:
         residual_global_sparsity = min(arr_X_target.shape) ** 2
 
@@ -198,7 +198,7 @@ def HierarchicalPALM4MSA(arr_X_target: np.array,
         if nb_factors_so_far == nb_factors - 1:
             nb_keep_values_relaxed = nb_keep_values
         else:
-            nb_keep_values_relaxed *= residual_sparsity_decrese
+            nb_keep_values_relaxed *= residual_sparsity_decrease
         print("working on factor:", k)
         # define constraints: ||0 = d pour T1; no constraint on ||0 for T2
         lst_nb_keep_values_constraints = [int(nb_keep_values_relaxed),
