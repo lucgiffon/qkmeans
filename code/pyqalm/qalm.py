@@ -89,8 +89,7 @@ def PALM4MSA(arr_X_target: np.array,
         - Normalize data
         """
         # compute gradient of the distance metric (with 1/_c gradient step size)
-        grad_step = 1. / _c * _lambda * _left_side.T @ ((
-                                                                    _lambda * _left_side @ S_old @ _right_side) - arr_X_target) @ _right_side.T
+        grad_step = 1. / _c * _lambda * _left_side.T @ ((_lambda * _left_side @ S_old @ _right_side) - arr_X_target) @ _right_side.T
 
         # grad_step[np.abs(grad_step) < np.finfo(float).eps] = 0.
         # 1 step for minimizing + flatten necessary for the upcoming projection
@@ -102,6 +101,9 @@ def PALM4MSA(arr_X_target: np.array,
         S_proj = S_tmp
         S_proj = S_proj / norm(S_proj, ord="fro")
         return S_proj
+
+    def compute_objective_function(_f_lambda, _lst_S):
+        return np.linalg.norm(arr_X_target - f_lambda * multi_dot(lst_S), ord='fro')
 
     assert len(lst_S_init) > 0
     assert get_side_prod(lst_S_init).shape == arr_X_target.shape
@@ -144,8 +146,8 @@ def PALM4MSA(arr_X_target: np.array,
             lst_S[-j] = update_S(lst_S[-j], left_side, right_side, c, f_lambda,
                                  lst_nb_keep_values[-j])
 
-            objective_function[i_iter, j - 1] = np.linalg.norm(
-                arr_X_target - f_lambda * multi_dot(lst_S), ord='fro')
+            objective_function[i_iter, j - 1] = \
+                compute_objective_function(_f_lambda=f_lambda, _lst_S=lst_S)
 
         # re-compute the full factorisation
         if len(lst_S) == 1:
@@ -155,12 +157,17 @@ def PALM4MSA(arr_X_target: np.array,
         # update lambda
         f_lambda = update_scaling_factor(arr_X_target, arr_X_curr)
 
-        objective_function[i_iter, -1] = np.linalg.norm(
-            arr_X_target - f_lambda * multi_dot(lst_S), ord='fro')
+        objective_function[i_iter, -1] = \
+            compute_objective_function(_f_lambda=f_lambda, _lst_S=lst_S)
 
     plt.figure()
     for j in range(nb_factors + 1):
         plt.semilogy(objective_function[:, j], label=str(j))
+    plt.legend()
+    plt.show()
+
+    plt.figure()
+    plt.semilogy(objective_function.flat)
     plt.legend()
     plt.show()
     return f_lambda, lst_S, arr_X_curr, objective_function
