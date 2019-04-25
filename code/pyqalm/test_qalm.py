@@ -1,6 +1,10 @@
 import unittest
-import numpy a np
-from pyqalm.qalm import projection_operator, get_side_prod, inplace_hardthreshold
+import numpy as np
+import matplotlib.pyplot as plt
+
+from pyqalm.qalm import projection_operator, get_side_prod, \
+    inplace_hardthreshold, update_scaling_factor
+
 
 def test_get_side_prod():
     # TODO refactor into a unittest
@@ -9,7 +13,7 @@ def test_get_side_prod():
     nb_keep_values =64
     factors = [projection_operator(np.random.rand(d, d), nb_keep_values) for _ in range(nb_factors)]
     result = get_side_prod(factors)
-    truth =
+    # truth =
     visual_evaluation_palm4msa()
 
 
@@ -50,6 +54,17 @@ def visual_evaluation_palm4msa(target, init_factors, final_factors, result):
         plt.subplot(3, nb_factors, nb_factors + nb_factors + (i+1))
         plt.imshow(init_factors[i])
 
+
+
+
+class TestUpdateScalingFactor(unittest.TestCase):
+    def test_update_scaling_factor(self):
+        X_shape = 123, 234
+        X = np.random.randn(*X_shape)
+        X_est = np.random.randn(*X_shape)
+        actual = update_scaling_factor(X=X, X_est=X_est)
+        desired = np.trace(X.T @ X_est) / np.trace(X_est.T @ X_est)
+        np.testing.assert_almost_equal(actual=actual, desired=desired)
 
 class MyTestCase(unittest.TestCase):
     def test_something(self):

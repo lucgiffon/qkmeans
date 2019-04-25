@@ -6,7 +6,6 @@
 """
 import numpy as np
 from numpy.linalg import norm
-from numpy import trace
 from numpy import identity
 from numpy import argpartition
 from numpy.linalg import multi_dot
@@ -60,6 +59,10 @@ def get_side_prod(lst_factors, id_size=0):
     else:
         side_prod = multi_dot(lst_factors)
     return side_prod
+
+
+def update_scaling_factor(X, X_est):
+    return np.sum(X * X_est) / np.sum(X_est**2)
 
 
 def PALM4MSA(arr_X_target: np.array,
@@ -150,8 +153,7 @@ def PALM4MSA(arr_X_target: np.array,
         else:
             arr_X_curr = multi_dot(lst_S)
         # update lambda
-        f_lambda = trace(arr_X_target.T @ arr_X_curr) / trace(
-            arr_X_curr.T @ arr_X_curr)
+        f_lambda = update_scaling_factor(arr_X_target, arr_X_curr)
 
         objective_function[i_iter, -1] = np.linalg.norm(
             arr_X_target - f_lambda * multi_dot(lst_S), ord='fro')
