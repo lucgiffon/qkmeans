@@ -13,7 +13,7 @@ from pyqalm.test.test_qalm import visual_evaluation_palm4msa
 
 
 d = 32
-nb_iter = 500
+nb_iter = 5
 nb_factors = 5
 nb_keep_values = 64
 
@@ -24,8 +24,8 @@ lst_factors = [np.eye(d) for _ in range(nb_factors)]
 lst_factors[-1] = np.zeros((d, d))  # VE
 _lambda = 1.
 had = hadamard(d)
-# H =  had / norm(had, ord='fro')
-H = had
+H =  had / norm(had, ord='fro')
+# H = had
 print(H)
 
 #final_lambda, final_factors, final_X = PALM4LED(H, lst_factors, [nb_keep_values for _ in range(nb_factors)], _lambda, nb_iter)

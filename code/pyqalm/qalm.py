@@ -298,8 +298,8 @@ def HierarchicalPALM4MSA(arr_X_target: np.array,
 
         plt.figure()
         plt.subplot(221)
-        plt.title('Residual Iteration {}, fine tuning'.format(k))
-        plt.imshow(arr_residual)
+        plt.title('Residual Iteration {}, step1 '.format(k))
+        plt.imshow(F1)
         plt.colorbar()
 
         plt.subplot(222)
