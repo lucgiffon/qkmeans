@@ -221,11 +221,13 @@ def HierarchicalPALM4MSA(arr_X_target: np.array,
     """
 
     # initialisation
-    if right_to_left:
-        arr_residual = arr_X_target
-    else:  # attention: vérifier l'équivalence en prenant en compte le lambda
-        arr_residual = arr_X_target.T
-        lst_S_init = [S.T for S in lst_S_init[::-1]]
+    # if right_to_left:
+    #     arr_residual = arr_X_target
+    # else:  # attention: vérifier l'équivalence en prenant en compte le lambda
+    #     arr_residual = arr_X_target.T
+    #     lst_S_init = [S.T for S in lst_S_init[::-1]]
+
+    arr_residual = arr_X_target
 
     lst_S = deepcopy(lst_S_init)
     nb_factors = len(lst_S)
@@ -233,7 +235,6 @@ def HierarchicalPALM4MSA(arr_X_target: np.array,
     if residual_sparsity_decrease is None:
         residual_sparsity_decrease = 0.5
     if residual_global_sparsity is None:
-        residual_global_sparsity = min(arr_X_target.shape) ** 2
         residual_global_sparsity = min(arr_X_target.shape) ** 2
 
     nb_keep_values_relaxed = residual_global_sparsity
@@ -248,19 +249,18 @@ def HierarchicalPALM4MSA(arr_X_target: np.array,
             nb_keep_values_relaxed *= residual_sparsity_decrease
         print("working on factor:", k)
         # define constraints: ||0 = d pour T1; relaxed constraint on ||0 for T2
-        lst_nb_keep_values_constraints = [int(nb_keep_values_relaxed),
-                                          nb_keep_values]
+        lst_nb_keep_values_constraints = [nb_keep_values,int(nb_keep_values_relaxed)]
         # calcule decomposition en 2 du résidu
-        residual_init = get_side_prod(lst_S_init[:-nb_factors_so_far])
+        residual_init = get_side_prod(lst_S_init[nb_factors_so_far:])
         f_lambda_prime, (F2, F1), _, _ = PALM4MSA(
             arr_X_target=arr_residual,
-            lst_S_init=[residual_init, lst_S_init[-nb_factors_so_far]],
+            lst_S_init=[lst_S_init[k], residual_init],
             nb_factors=2,
             lst_nb_keep_values=lst_nb_keep_values_constraints,
             f_lambda_init=f_lambda,
             nb_iter=nb_iter)
         f_lambda *= f_lambda_prime
-        lst_S[-nb_factors_so_far] = F1
+        lst_S[k] = F2
 
         plt.figure()
         plt.subplot(221)
@@ -287,11 +287,10 @@ def HierarchicalPALM4MSA(arr_X_target: np.array,
 
         # arr_residual = F2
         # get the k first elements [:k+1] and the next one (k+1)th as arr_residual
-        lst_nb_keep_values_constraints = [int(nb_keep_values_relaxed)] + [
-            nb_keep_values] * nb_factors_so_far
-        f_lambda, (arr_residual, *lst_S[-nb_factors_so_far:]), _, _ = PALM4MSA(
+        lst_nb_keep_values_constraints = [nb_keep_values] * nb_factors_so_far + [int(nb_keep_values_relaxed)]
+        f_lambda, (*lst_S[:nb_factors_so_far], arr_residual), _, _ = PALM4MSA(
             arr_X_target=arr_X_target,
-            lst_S_init=[F2] + lst_S[-nb_factors_so_far:],
+            lst_S_init=lst_S[:nb_factors_so_far] + [F2],
             nb_factors=nb_factors_so_far + 1,
             lst_nb_keep_values=lst_nb_keep_values_constraints,
             f_lambda_init=f_lambda,
@@ -305,20 +304,21 @@ def HierarchicalPALM4MSA(arr_X_target: np.array,
 
         plt.subplot(222)
         plt.imshow(f_lambda * get_side_prod(
-            [arr_residual] + lst_S[-nb_factors_so_far:]))
+            lst_S[:nb_factors_so_far] + [arr_residual]))
         plt.colorbar()
         plt.title('reconstructed')
 
 
         plt.subplot(223)
-        plt.imshow(arr_residual)
-        plt.colorbar()
-        plt.title('residual (left factor)')
-
-        plt.subplot(224)
-        plt.imshow(lst_S[-nb_factors_so_far])
+        plt.imshow(lst_S[k])
         plt.colorbar()
         plt.title('current factor')
+
+
+        plt.subplot(224)
+        plt.imshow(arr_residual)
+        plt.colorbar()
+        plt.title('residual (right factor)')
 
 
         plt.show()
@@ -339,9 +339,10 @@ def HierarchicalPALM4MSA(arr_X_target: np.array,
 
     #         print(f_lambda_prime)
     # last factor is residual of last palm4LED
-    lst_S[0] = arr_residual
-    if not right_to_left:
-        lst_S = [S.T for S in lst_S[::-1]]
+    lst_S[-1] = arr_residual
+
+    # if not right_to_left:
+    #     lst_S = [S.T for S in lst_S[::-1]]
 
     if len(lst_S) == 1:
         arr_X_curr = f_lambda * lst_S[0]
