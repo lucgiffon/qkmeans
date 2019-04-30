@@ -201,9 +201,8 @@ def PALM4MSA(arr_X_target: np.array,
 def HierarchicalPALM4MSA(arr_X_target: np.array,
                          lst_S_init: list,
                          nb_keep_values: int,
-                         f_lambda_init: float,
                          nb_iter: int,
-
+                         f_lambda_init:float=1,#: float,
                          residual_sparsity_decrease=None,
                          residual_global_sparsity=None,
                          right_to_left=True):
@@ -220,6 +219,7 @@ def HierarchicalPALM4MSA(arr_X_target: np.array,
     :param right_to_left:
     :return:
     """
+
     # initialisation
     if right_to_left:
         arr_residual = arr_X_target
@@ -237,6 +237,7 @@ def HierarchicalPALM4MSA(arr_X_target: np.array,
         residual_global_sparsity = min(arr_X_target.shape) ** 2
 
     nb_keep_values_relaxed = residual_global_sparsity
+    f_lambda = f_lambda_init
 
     # main loop
     for k in range(nb_factors - 1):
@@ -249,28 +250,39 @@ def HierarchicalPALM4MSA(arr_X_target: np.array,
         # define constraints: ||0 = d pour T1; relaxed constraint on ||0 for T2
         lst_nb_keep_values_constraints = [int(nb_keep_values_relaxed),
                                           nb_keep_values]
-        # calcule decomposition en 2 du dernier résidu de l'opération précédente
+        # calcule decomposition en 2 du résidu
         residual_init = get_side_prod(lst_S_init[:-nb_factors_so_far])
-        f_lambda_prime, (F2, F1), _, _ = PALM4MSA(arr_X_target=arr_residual,
-                                                  lst_S_init=[residual_init,
-                                                              lst_S_init[
-                                                                  -nb_factors_so_far]],
-                                                  nb_factors=2,
-                                                  lst_nb_keep_values=lst_nb_keep_values_constraints,
-                                                  f_lambda_init=f_lambda_init,
-                                                  nb_iter=nb_iter)
-
+        f_lambda_prime, (F2, F1), _, _ = PALM4MSA(
+            arr_X_target=arr_residual,
+            lst_S_init=[residual_init, lst_S_init[-nb_factors_so_far]],
+            nb_factors=2,
+            lst_nb_keep_values=lst_nb_keep_values_constraints,
+            f_lambda_init=f_lambda,
+            nb_iter=nb_iter)
+        f_lambda *= f_lambda_prime
         lst_S[-nb_factors_so_far] = F1
 
-        print("1er appel")
-        print("residu:")
-        plt.imshow(f_lambda_prime * F2)
-        plt.show()
-        print("F1:")
-        plt.imshow(F1)
-        plt.show()
-        print("F2F1:")
+        plt.figure()
+        plt.subplot(221)
+        plt.title('Input residual Iteration {}, etape split'.format(k))
+        plt.imshow(arr_residual)
+        plt.colorbar()
+
+        plt.subplot(222)
         plt.imshow(f_lambda_prime * (F2 @ F1))
+        plt.colorbar()
+        plt.title('lambda F2 F1')
+
+        plt.subplot(223)
+        plt.imshow(f_lambda_prime * F2)
+        plt.colorbar()
+        plt.title('lambda*F2')
+
+        plt.subplot(224)
+        plt.imshow(F1)
+        plt.colorbar()
+        plt.title('F1')
+
         plt.show()
 
         # arr_residual = F2
@@ -282,19 +294,46 @@ def HierarchicalPALM4MSA(arr_X_target: np.array,
             lst_S_init=[F2] + lst_S[-nb_factors_so_far:],
             nb_factors=nb_factors_so_far + 1,
             lst_nb_keep_values=lst_nb_keep_values_constraints,
-            f_lambda_init=f_lambda_prime,
+            f_lambda_init=f_lambda,
             nb_iter=nb_iter)
-        print("2eme appel")
-        print("residu:")
+
+        plt.figure()
+        plt.subplot(221)
+        plt.title('Residual Iteration {}, fine tuning'.format(k))
         plt.imshow(arr_residual)
-        plt.show()
-        print("current factor:")
-        plt.imshow(lst_S[-nb_factors_so_far])
-        plt.show()
-        print("reconstructed:")
-        plt.imshow(f_lambda_prime * get_side_prod(
+        plt.colorbar()
+
+        plt.subplot(222)
+        plt.imshow(f_lambda * get_side_prod(
             [arr_residual] + lst_S[-nb_factors_so_far:]))
+        plt.colorbar()
+        plt.title('reconstructed')
+
+
+        plt.subplot(223)
+        plt.imshow(arr_residual)
+        plt.colorbar()
+        plt.title('residual (left factor)')
+
+        plt.subplot(224)
+        plt.imshow(lst_S[-nb_factors_so_far])
+        plt.colorbar()
+        plt.title('current factor')
+
+
         plt.show()
+
+        # print("2eme appel")
+        # print("residu:")
+        # plt.imshow(arr_residual)
+        # plt.show()
+        # print("current factor:")
+        # plt.imshow(lst_S[-nb_factors_so_far])
+        # plt.show()
+        # print("reconstructed:")
+        # plt.imshow(f_lambda * get_side_prod(
+        #     [arr_residual] + lst_S[-nb_factors_so_far:]))
+        # plt.show()
         # arr_residual = lst_S[k+1]
         # arr_residual = T2
 
