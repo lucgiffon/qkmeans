@@ -12,6 +12,7 @@ from numpy.linalg import multi_dot
 from copy import deepcopy
 
 import matplotlib.pyplot as plt  # TODO remove (no graphics in algorithms)
+from numpy.matlib import repmat
 
 
 def projection_operator(input_arr, nb_keep_values):
@@ -36,6 +37,30 @@ def inplace_hardthreshold(input_arr, nb_keep_values):
     lowest_values_idx = argpartition(np.absolute(input_arr), -nb_keep_values, axis=None)[:-nb_keep_values]
     # set the value of the lowest values to zero
     input_arr.reshape(-1)[lowest_values_idx] = 0
+
+
+def prox_splincol(input_arr, nb_val_by_row_col):
+    def projection_max_by_col(X, nb_val_by_col):
+        nb_val_by_col = round(nb_val_by_col)
+        Xabs = np.abs(X)
+        Xprox_col = np.zeros_like(X)
+        sortIndex = np.argsort(-Xabs, axis=0) # -Xabs for sort in descending order
+        maxIndex = sortIndex[:nb_val_by_col, :]
+        incre = np.arange(0, X.shape[0] * X.shape[1]-1, X.shape[0]) # the vector of idx of the first cell of each column (in the flattened vector)
+        incremat = repmat(incre, nb_val_by_col, 1)
+        maxIndex = maxIndex + incremat # type: np.ndarray
+        maxIndex = maxIndex.flatten() # index of the column-wise maximum values (in the flattened version of the input array)
+        unraveled_indices = np.unravel_index(maxIndex, Xabs.shape, order='F') # order=F: translation from matlab code with column major indexing (Fortran style)
+        Xprox_col[unraveled_indices] = X[unraveled_indices]
+        return Xprox_col
+
+    Xprox_col = projection_max_by_col(input_arr, nb_val_by_row_col)
+    Xprox_lin = projection_max_by_col(input_arr.T, nb_val_by_row_col).T
+
+    Xprox = Xprox_col + Xprox_lin * (Xprox_col==0)
+
+    return Xprox
+
 
 
 def get_side_prod(lst_factors, id_size=0):
@@ -96,9 +121,9 @@ def PALM4MSA(arr_X_target: np.array,
         S_tmp = S_old - grad_step
         # projection
         # S_proj = projection_operator(S_tmp, _nb_keep_values)
-        inplace_hardthreshold(S_tmp, _nb_keep_values)
+        # inplace_hardthreshold(S_tmp, _nb_keep_values); S_proj = S_tmp
+        S_proj = prox_splincol(S_tmp, _nb_keep_values/min(arr_X_target.shape)) # todo changer la façon dont les contraintes sont gérées (façon faµst c'est pas mal avec les lambda expressions)
         # normalize because all factors must have norm 1
-        S_proj = S_tmp
         S_proj = S_proj / norm(S_proj, ord="fro")
         return S_proj
 
@@ -182,6 +207,19 @@ def HierarchicalPALM4MSA(arr_X_target: np.array,
                          residual_sparsity_decrease=None,
                          residual_global_sparsity=None,
                          right_to_left=True):
+    """
+
+
+    :param arr_X_target:
+    :param lst_S_init: The factors are given right to left. In all case.
+    :param nb_keep_values:
+    :param f_lambda_init:
+    :param nb_iter:
+    :param residual_sparsity_decrease:
+    :param residual_global_sparsity:
+    :param right_to_left:
+    :return:
+    """
     # initialisation
     if right_to_left:
         arr_residual = arr_X_target
@@ -196,6 +234,7 @@ def HierarchicalPALM4MSA(arr_X_target: np.array,
         residual_sparsity_decrease = 0.5
     if residual_global_sparsity is None:
         residual_global_sparsity = min(arr_X_target.shape) ** 2
+        residual_global_sparsity = min(arr_X_target.shape) ** 2
 
     nb_keep_values_relaxed = residual_global_sparsity
 
@@ -207,7 +246,7 @@ def HierarchicalPALM4MSA(arr_X_target: np.array,
         else:
             nb_keep_values_relaxed *= residual_sparsity_decrease
         print("working on factor:", k)
-        # define constraints: ||0 = d pour T1; no constraint on ||0 for T2
+        # define constraints: ||0 = d pour T1; relaxed constraint on ||0 for T2
         lst_nb_keep_values_constraints = [int(nb_keep_values_relaxed),
                                           nb_keep_values]
         # calcule decomposition en 2 du dernier résidu de l'opération précédente

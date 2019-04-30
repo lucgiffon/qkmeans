@@ -9,11 +9,11 @@ from scipy.linalg import hadamard
 from numpy.linalg import norm
 
 from pyqalm.qalm import HierarchicalPALM4MSA
-from pyqalm.test_qalm import visual_evaluation_palm4msa
+from pyqalm.test.test_qalm import visual_evaluation_palm4msa
 
 
 d = 32
-nb_iter = 5000
+nb_iter = 50
 nb_factors = 5
 nb_keep_values = 64
 
@@ -28,7 +28,12 @@ H =  had / norm(had, ord='fro')
 print(H)
 
 #final_lambda, final_factors, final_X = PALM4LED(H, lst_factors, [nb_keep_values for _ in range(nb_factors)], _lambda, nb_iter)
-final_lambda, final_factors, final_X = HierarchicalPALM4MSA(H, lst_factors, nb_keep_values, _lambda, nb_iter, right_to_left=True)
+final_lambda, final_factors, final_X = HierarchicalPALM4MSA(H,
+                                                            lst_factors,
+                                                            nb_keep_values,
+                                                            _lambda,
+                                                            nb_iter,
+                                                            right_to_left=True)
 
 print("Lambda value: " + str(final_lambda))
 visual_evaluation_palm4msa(H, lst_factors, final_factors, final_X)
