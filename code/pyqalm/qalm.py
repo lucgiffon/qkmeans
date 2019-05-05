@@ -44,7 +44,7 @@ def prox_splincol(input_arr, nb_val_by_row_col):
         nb_val_by_col = round(nb_val_by_col)
         Xabs = np.abs(X)
         Xprox_col = np.zeros_like(X)
-        sortIndex = np.argsort(-Xabs, axis=0) # -Xabs for sort in descending order
+        sortIndex = np.argsort(-Xabs, axis=0, kind="stable") # -Xabs for sort in descending order
         maxIndex = sortIndex[:nb_val_by_col, :]
         incre = np.arange(0, X.shape[0] * X.shape[1]-1, X.shape[0]) # the vector of idx of the first cell of each column (in the flattened vector)
         incremat = repmat(incre, nb_val_by_col, 1)
@@ -119,6 +119,12 @@ def PALM4MSA(arr_X_target: np.array,
         # grad_step[np.abs(grad_step) < np.finfo(float).eps] = 0.
         # 1 step for minimizing + flatten necessary for the upcoming projection
         S_tmp = S_old - grad_step
+        # plt.figure()
+        # plt.subplot(221)
+        # plt.title('before proj')
+        # plt.imshow(S_tmp)
+        # plt.colorbar()
+        # plt.show()
         # projection
         # S_proj = projection_operator(S_tmp, _nb_keep_values)
         # inplace_hardthreshold(S_tmp, _nb_keep_values); S_proj = S_tmp
@@ -128,7 +134,7 @@ def PALM4MSA(arr_X_target: np.array,
         return S_proj
 
     def compute_objective_function(_f_lambda, _lst_S):
-        return np.linalg.norm(arr_X_target - f_lambda * multi_dot(lst_S), ord='fro')
+        return np.linalg.norm(arr_X_target - _f_lambda * multi_dot(_lst_S), ord='fro')
 
     assert len(lst_S_init) > 0
     assert get_side_prod(lst_S_init).shape == arr_X_target.shape
@@ -171,6 +177,13 @@ def PALM4MSA(arr_X_target: np.array,
             lst_S[-j] = update_S(lst_S[-j], left_side, right_side, c, f_lambda,
                                  lst_nb_keep_values[-j])
 
+            # plt.figure()
+            # plt.subplot(221)
+            # plt.title('{}'.format(-j))
+            # plt.imshow(lst_S[-j])
+            # plt.colorbar()
+            # plt.show()
+
             objective_function[i_iter, j - 1] = \
                 compute_objective_function(_f_lambda=f_lambda, _lst_S=lst_S)
 
@@ -186,6 +199,7 @@ def PALM4MSA(arr_X_target: np.array,
             compute_objective_function(_f_lambda=f_lambda, _lst_S=lst_S)
 
     plt.figure()
+    plt.title("n factors {}".format(nb_factors))
     for j in range(nb_factors + 1):
         plt.semilogy(objective_function[:, j], label=str(j))
     plt.legend()
@@ -290,7 +304,7 @@ def HierarchicalPALM4MSA(arr_X_target: np.array,
         lst_nb_keep_values_constraints = [nb_keep_values] * nb_factors_so_far + [int(nb_keep_values_relaxed)]
         f_lambda, (*lst_S[:nb_factors_so_far], arr_residual), _, _ = PALM4MSA(
             arr_X_target=arr_X_target,
-            lst_S_init=lst_S[:nb_factors_so_far] + [F2],
+            lst_S_init=lst_S[:nb_factors_so_far] + [F1],
             nb_factors=nb_factors_so_far + 1,
             lst_nb_keep_values=lst_nb_keep_values_constraints,
             f_lambda_init=f_lambda,
