@@ -225,23 +225,22 @@ In Equation~\ref{eq:assignment_problem_kmeans}, we have seen that the cost of th
 
 \paragraph{Q-means factorization construction}
 
-This fastening of the assignation step can also be used while constructing the Q-means factorization: the complexity of this step is reduced from $\mathcal{O}(ndk)$ to $\mathcal{O}(np \log q)$. Nevertheless, this reduction has to be taken cautiously because of the extra-step in the Q-means algorithm: the inner call to the hierarchical-PALM4MSA at each iteration that costs $\mathcal{O}(Q^2(Qpq + Kd + q^2\log q^2) + K^2d)$. This leaves us with an overall time complexity of $\mathcal{O}(Q^2(Qpq + Kd + q^2\log q^2) + K^2d) + np \log q$. \addLG{We note here that our use of the PALM4MSA algorithm doesn't directly rely on the number of sample in the full dataset and }
+This fastening of the assignation step can also be used while constructing the Q-means factorization: the complexity of this step is reduced from $\mathcal{O}(ndk)$ to $\mathcal{O}(np \log q)$. Nevertheless, this reduction has to be taken cautiously because of the extra-step in the Q-means algorithm: the inner call to the hierarchical-PALM4MSA at each iteration that costs $\mathcal{O}(Q^2(Qpq + Kd + q^2\log q^2) + K^2d)$. This leaves us with an overall time complexity of $\mathcal{O}(Q^2(Qpq + Kd + q^2\log q^2) + K^2d) + np \log q$. \addLG{We note here that our use of the PALM4MSA algorithm doesn't rely on the number of sample in the full dataset: if $n$ is large enough compared to $K$ and $d$, then the complexity is majored by $\mathcal{O}(np \log q)$}
 
-We now note that, in practice, $Q$ is supposed to be small compared to $K$ or $d$, and that $p$ should be of the same order than $d$. In that case, we can simplify the complexity of the final algorithm to $\mathcal{O}(Kd + d^2)$.
+%We now note that, in practice, $Q$ is supposed to be small compared to $K$ or $d$, and that $p$ should be of the same order than $d$. In that case, we can simplify the complexity of the final algorithm to $\mathcal{O}(Kd + d^2)$.
 
-\paragraph{Complexity of Kmeans (algorithm~\ref{algo:kmeans}).}
-Each iteration takes $\mathcal{O}\left (ndk\right )$
-\begin{itemize}
-\item Assignment, line~\ref{line:kmeans:assignment}: $\mathcal{O}\left (ndk\right )$\\
-it is dominated by the computation of $\rmU \rmX^T$ using $\left \|\rvx-\rvu\right \|_2^2=\left \|\rvx\right \|_2^2+\left \|\rvu\right \|_2^2-2\left <\rvx, \rvu\right >$
-\item Computing size of cluster, line~\ref{line:kmeans:count}: $\mathcal{O}\left (n \right )$\\
-it consists of one pass over $\rvt$.
-\item Updating the centroids, line~\ref{line:kmeans:compute_means}: $\mathcal{O}\left (nd\right )$\\
-since each example is summed once.
-\end{itemize}
+%\paragraph{Complexity of Kmeans (algorithm~\ref{algo:kmeans}).}
+%Each iteration takes $\mathcal{O}\left (ndk\right )$
+%\begin{itemize}
+%\item Assignment, line~\ref{line:kmeans:assignment}: $\mathcal{O}\left (ndk\right )$\\
+%it is dominated by the computation of $\rmU \rmX^T$ using $\left \|\rvx-\rvu\right \|_2^2=\left \|\rvx\right \|_2^2+\left \|\rvu\right \|_2^2-2\left <\rvx, \rvu\right >$
+%\item Computing size of cluster, line~\ref{line:kmeans:count}: $\mathcal{O}\left (n \right )$\\ it consists of one pass over $\rvt$.
+% \item Updating the centroids, line~\ref{line:kmeans:compute_means}: $\mathcal{O}\left (nd\right )$\\
+%since each example is summed once.
+%\end{itemize}
 
-\paragraph{Complexity of Q-means (algorithm~\ref{algo:qmeans}).}
+%\paragraph{Complexity of Q-means (algorithm~\ref{algo:qmeans}).}
 
-Naively, each iteration of the \textit{Q-means} algorithm has the same complexity than K-means with an additional $\mathcal{O}(Kd + d^2)$ for the \textit{Hierarchical PALM4LED} step. This leads to the overall complexity of $\mathcal{O}(Kdn + d^2)$. In the case where the dimensionality of the data is negligible in front of the size of the dataset, this is of the same order of complexity than the vanilla K-means algorithm, e.g. $\mathcal{O}(ndk)$. Nevertheless, we can already take advantage of the decomposition of the center-point matrix in the assignment step of the Algorithm: indeed, when the intermediate center-point matrix $\rmU^{(\tau-1)}$ has the sparse factorization constraint, assigning a $n$ data points to their cluster can be done in time $\mathcal{O}(n K \log d)$ operations, which leads to the new complexity for \textit{Q-means}: $\mathcal{O}(nK\log d + Kd + d^2)$
+%Naively, each iteration of the \textit{Q-means} algorithm has the same complexity than K-means with an additional $\mathcal{O}(Kd + d^2)$ for the \textit{Hierarchical PALM4LED} step. This leads to the overall complexity of $\mathcal{O}(Kdn + d^2)$. In the case where the dimensionality of the data is negligible in front of the size of the dataset, this is of the same order of complexity than the vanilla K-means algorithm, e.g. $\mathcal{O}(ndk)$. Nevertheless, we can already take advantage of the decomposition of the center-point matrix in the assignment step of the Algorithm: indeed, when the intermediate center-point matrix $\rmU^{(\tau-1)}$ has the sparse factorization constraint, assigning a $n$ data points to their cluster can be done in time $\mathcal{O}(n K \log d)$ operations, which leads to the new complexity for \textit{Q-means}: $\mathcal{O}(nK\log d + Kd + d^2)$
 
-Once the decomposed center-point matrix has been obtained, the assignation of a new data point to a cluster becomes $\mathcal{O}(nK\log d)$ which would be usefull in many machine learning application usually using the K-means algorithm.
+%Once the decomposed center-point matrix has been obtained, the assignation of a new data point to a cluster becomes $\mathcal{O}(nK\log d)$ which would be usefull in many machine learning application usually using the K-means algorithm.
