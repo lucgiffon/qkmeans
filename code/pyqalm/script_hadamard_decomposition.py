@@ -13,7 +13,7 @@ from pyqalm.test.test_qalm import visual_evaluation_palm4msa
 
 
 d = 32
-nb_iter = 10
+nb_iter = 30
 nb_factors = 5
 nb_keep_values = 64
 
