@@ -56,9 +56,30 @@ def prox_splincol(input_arr, nb_val_by_row_col):
 
     Xprox_col = projection_max_by_col(input_arr, nb_val_by_row_col)
     Xprox_lin = projection_max_by_col(input_arr.T, nb_val_by_row_col).T
+    Xprox = Xprox_col + Xprox_lin * (Xprox_col == 0)
 
-    Xprox = Xprox_col + Xprox_lin * (Xprox_col==0)
+    if nb_val_by_row_col == 8:
+        plt.figure()
 
+        plt.subplot(221)
+        plt.imshow(input_arr)
+        plt.colorbar()
+        plt.title('all val')
+
+        plt.subplot(222)
+        plt.imshow(Xprox_col)
+        plt.colorbar()
+        plt.title('selected columns val')
+        plt.subplot(223)
+        plt.imshow(Xprox_lin)
+        plt.colorbar()
+        plt.title('selected row val')
+
+        plt.subplot(224)
+        plt.imshow(Xprox)
+        plt.colorbar()
+        plt.title('selected val')
+    # plt.show()
     return Xprox
 
 
@@ -166,8 +187,7 @@ def PALM4MSA(arr_X_target: np.array,
             #             print(norm(right_side, ord=2))
 
             # compute minimum c value (according to paper)
-            min_c_value = (f_lambda * norm(right_side, ord=2) * norm(left_side,
-                                                                     ord=2)) ** 2
+            min_c_value = (f_lambda * norm(right_side, ord=2) * norm(left_side, ord=2)) ** 2
             # add epsilon because it is exclusive minimum
             # c = min_c_value * (1+np.finfo(float).eps)
             c = min_c_value * 1.001
@@ -209,6 +229,7 @@ def PALM4MSA(arr_X_target: np.array,
     plt.semilogy(objective_function.flat)
     plt.legend()
     plt.show()
+    print("Lambda norm:", f_lambda)
     return f_lambda, lst_S, arr_X_curr, objective_function
 
 
@@ -266,15 +287,22 @@ def HierarchicalPALM4MSA(arr_X_target: np.array,
         lst_nb_keep_values_constraints = [nb_keep_values,int(nb_keep_values_relaxed)]
         # calcule decomposition en 2 du résidu
         residual_init = get_side_prod(lst_S_init[nb_factors_so_far:])
-        f_lambda_prime, (F2, F1), _, _ = PALM4MSA(
+        residual_init = np.zeros_like(residual_init)
+        S_init = np.eye(lst_S_init[k].shape[0], lst_S_init[k].shape[1])
+
+        print("step split")
+
+
+        f_lambda_prime, (new_factor, new_residual), _, _ = PALM4MSA(
             arr_X_target=arr_residual,
-            lst_S_init=[lst_S_init[k], residual_init],
+            lst_S_init=[S_init, residual_init],
             nb_factors=2,
             lst_nb_keep_values=lst_nb_keep_values_constraints,
-            f_lambda_init=f_lambda,
+            f_lambda_init=1.,
+            # f_lambda_init=f_lambda,
             nb_iter=nb_iter)
         f_lambda *= f_lambda_prime
-        lst_S[k] = F2
+        lst_S[k] = new_factor
 
         plt.figure()
         plt.subplot(221)
@@ -283,28 +311,30 @@ def HierarchicalPALM4MSA(arr_X_target: np.array,
         plt.colorbar()
 
         plt.subplot(222)
-        plt.imshow(f_lambda_prime * (F2 @ F1))
+        plt.imshow(f_lambda_prime * (new_factor @ new_residual))
         plt.colorbar()
-        plt.title('lambda F2 F1')
+        plt.title('lambda * new_factor @ new_residual')
 
         plt.subplot(223)
-        plt.imshow(f_lambda_prime * F2)
+        plt.imshow(f_lambda_prime * new_factor)
         plt.colorbar()
-        plt.title('lambda*F2')
+        plt.title('lambda*new_factor')
 
         plt.subplot(224)
-        plt.imshow(F1)
+        plt.imshow(new_residual)
         plt.colorbar()
-        plt.title('F1')
+        plt.title('new_residual')
 
         plt.show()
 
         # arr_residual = F2
         # get the k first elements [:k+1] and the next one (k+1)th as arr_residual
         lst_nb_keep_values_constraints = [nb_keep_values] * nb_factors_so_far + [int(nb_keep_values_relaxed)]
+        print("step finetuning")
+
         f_lambda, (*lst_S[:nb_factors_so_far], arr_residual), _, _ = PALM4MSA(
             arr_X_target=arr_X_target,
-            lst_S_init=lst_S[:nb_factors_so_far] + [F1],
+            lst_S_init=lst_S[:nb_factors_so_far] + [new_residual],
             nb_factors=nb_factors_so_far + 1,
             lst_nb_keep_values=lst_nb_keep_values_constraints,
             f_lambda_init=f_lambda,
@@ -312,8 +342,8 @@ def HierarchicalPALM4MSA(arr_X_target: np.array,
 
         plt.figure()
         plt.subplot(221)
-        plt.title('Residual Iteration {}, step1 '.format(k))
-        plt.imshow(F1)
+        plt.title('Residual Iteration {}, step fine tune '.format(k))
+        plt.imshow(arr_residual)
         plt.colorbar()
 
         plt.subplot(222)

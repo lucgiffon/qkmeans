@@ -13,7 +13,7 @@ from pyqalm.test.test_qalm import visual_evaluation_palm4msa
 
 
 d = 32
-nb_iter = 500
+nb_iter = 10
 nb_factors = 5
 nb_keep_values = 64
 
@@ -40,3 +40,8 @@ final_lambda, final_factors, final_X = HierarchicalPALM4MSA(
 
 print("Lambda value: " + str(final_lambda))
 visual_evaluation_palm4msa(H, lst_factors, final_factors, final_X)
+
+vec = np.random.rand(d)
+h_vec = H @ vec
+r_vec = final_X @ vec
+print("Distance:", norm(h_vec - r_vec))

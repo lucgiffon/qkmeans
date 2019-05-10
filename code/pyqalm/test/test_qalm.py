@@ -20,8 +20,10 @@ def visual_evaluation_palm4msa(target, init_factors, final_factors, result):
     plt.figure(figsize=(15, 15))
     plt.subplot(3, 2, 1)
     plt.imshow(target)
+    plt.colorbar()
     plt.subplot(3, 2, 2)
     plt.imshow(result)
+    plt.colorbar()
     print("Première ligne: Objectif \t | \t Résultat")
     print("Deuxième ligne: Les facteurs")
     print("Troisième ligne: Les facteurs initiaux")
@@ -30,5 +32,6 @@ def visual_evaluation_palm4msa(target, init_factors, final_factors, result):
         plt.imshow(final_factors[i])
         plt.subplot(3, nb_factors, nb_factors + nb_factors + (i+1))
         plt.imshow(init_factors[i])
+    plt.show()
 
 
