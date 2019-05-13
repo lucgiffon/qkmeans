@@ -77,8 +77,12 @@ def PALM4MSA(arr_X_target: np.array,
     else:
         factor_number_generator = range(0, nb_factors, 1)
     # main loop
-    for i_iter in range(nb_iter):
-        # todo critère d'arrêt delta erreur = 10^-6
+    i_iter = 0
+    delta_objective_error = 1e-6
+    first_iter = True
+    while ((i_iter < nb_iter) and (objective_function[i_iter-1, -1] > delta_objective_error)) or (first_iter):
+        first_iter = False
+
         for j in factor_number_generator:
 
             left_side = get_side_prod(lst_S[:j], arr_X_target.shape[0])  # L
@@ -110,6 +114,12 @@ def PALM4MSA(arr_X_target: np.array,
         objective_function[i_iter, -1] = \
             compute_objective_function(_f_lambda=f_lambda, _lst_S=lst_S)
 
+        logger.debug("Iteration {}; Objective value: {}".format(i_iter, objective_function[i_iter, -1]))
+
+        i_iter += 1
+
+    objective_function = objective_function[:i_iter, :]
+
     if graphical_display:
         plt.figure()
         plt.title("n factors {}".format(nb_factors))
@@ -123,7 +133,7 @@ def PALM4MSA(arr_X_target: np.array,
         plt.legend()
         plt.show()
 
-    return f_lambda, lst_S, arr_X_curr, objective_function
+    return f_lambda, lst_S, arr_X_curr, objective_function, i_iter
 
 
 def HierarchicalPALM4MSA(arr_X_target: np.array,
@@ -154,13 +164,15 @@ def HierarchicalPALM4MSA(arr_X_target: np.array,
     bigger number first)
     :return:
     """
-    if update_right_to_left:
+    if not update_right_to_left:
         raise NotImplementedError # todo voir pourquoi ça plante... zero division error?
 
     arr_residual = arr_X_target
 
     lst_S = deepcopy(lst_S_init)
     nb_factors = len(lst_S)
+
+    lst_nb_iter_by_factor = []
 
     if residual_sparsity_decrease is None:
         residual_sparsity_decrease = 0.5
@@ -193,7 +205,8 @@ def HierarchicalPALM4MSA(arr_X_target: np.array,
             lst_nb_keep_values=[nb_keep_values, int(nb_keep_values_relaxed)], #define constraints: ||0 = d pour T1; relaxed constraint on ||0 for T2
             f_lambda_init=1.,
             nb_iter=nb_iter,
-            update_right_to_left=update_right_to_left)
+            update_right_to_left=update_right_to_left,
+            graphical_display=graphical_display)
 
         if update_right_to_left:
             lst_S_init_split_step = [S_init, residual_init]
@@ -201,9 +214,9 @@ def HierarchicalPALM4MSA(arr_X_target: np.array,
             lst_S_init_split_step = [residual_init, S_init]
 
         if residual_on_right:
-            f_lambda_prime, (new_factor, new_residual), _, _ =  func_split_step_palm4msa(lst_S_init=lst_S_init_split_step)
+            f_lambda_prime, (new_factor, new_residual), _, _, nb_iter_this_factor =  func_split_step_palm4msa(lst_S_init=lst_S_init_split_step)
         else:
-            f_lambda_prime, (new_factor, new_residual), _, _ = func_split_step_palm4msa(lst_S_init=lst_S_init_split_step)
+            f_lambda_prime, (new_factor, new_residual), _, _, nb_iter_this_factor = func_split_step_palm4msa(lst_S_init=lst_S_init_split_step)
 
         f_lambda *= f_lambda_prime
         if residual_on_right:
@@ -249,14 +262,18 @@ def HierarchicalPALM4MSA(arr_X_target: np.array,
             lst_nb_keep_values=lst_nb_keep_values, # lst_nb_keep_values_constraints,
             f_lambda_init=f_lambda,
             nb_iter=nb_iter,
-            update_right_to_left=update_right_to_left)
+            update_right_to_left=update_right_to_left,
+            graphical_display=graphical_display)
 
         if residual_on_right:
-            f_lambda, (*lst_S[:nb_factors_so_far], arr_residual), _, _ = func_fine_tune_step_palm4msa(lst_S_init=lst_S[:nb_factors_so_far] + [new_residual],
+            f_lambda, (*lst_S[:nb_factors_so_far], arr_residual), _, _, nb_iter_this_factor_bis = func_fine_tune_step_palm4msa(lst_S_init=lst_S[:nb_factors_so_far] + [new_residual],
                                                                                                       lst_nb_keep_values=[nb_keep_values] * nb_factors_so_far + [int(nb_keep_values_relaxed)])
         else:
-            f_lambda, (arr_residual, *lst_S[-nb_factors_so_far:]), _, _ = func_fine_tune_step_palm4msa(lst_S_init=[new_residual] + lst_S[-nb_factors_so_far:],
+            f_lambda, (arr_residual, *lst_S[-nb_factors_so_far:]), _, _, nb_iter_this_factor_bis = func_fine_tune_step_palm4msa(lst_S_init=[new_residual] + lst_S[-nb_factors_so_far:],
                                                                                                       lst_nb_keep_values=[int(nb_keep_values_relaxed)] + [nb_keep_values] * nb_factors_so_far)
+
+        lst_nb_iter_by_factor.append(nb_iter_this_factor + nb_iter_this_factor_bis)
+
 
         if graphical_display:
             plt.figure()
@@ -297,4 +314,4 @@ def HierarchicalPALM4MSA(arr_X_target: np.array,
     else:
         arr_X_curr = f_lambda * multi_dot(lst_S)
 
-    return f_lambda, lst_S, arr_X_curr
+    return f_lambda, lst_S, arr_X_curr, lst_nb_iter_by_factor
