@@ -4,7 +4,11 @@
 .. moduleauthor:: Valentin Emiya
 .. moduleauthor:: Luc Giffon
 """
+import logging
+import daiquiri
+
 import numpy as np
+from pyqalm.utils import logger
 from scipy.linalg import hadamard
 from numpy.linalg import norm
 
@@ -12,6 +16,7 @@ from pyqalm.qalm import HierarchicalPALM4MSA
 from pyqalm.test.test_qalm import visual_evaluation_palm4msa
 
 
+daiquiri.setup(level=logging.DEBUG)
 d = 32
 nb_iter = 30
 nb_factors = 5
@@ -27,7 +32,6 @@ had = hadamard(d)
 #H =  had / norm(had, ord='fro')
 # H = had
 H = had / np.sqrt(32)
-print(H)
 
 #final_lambda, final_factors, final_X = PALM4LED(H, lst_factors, [nb_keep_values for _ in range(nb_factors)], _lambda, nb_iter)
 final_lambda, final_factors, final_X = HierarchicalPALM4MSA(
@@ -38,10 +42,9 @@ final_lambda, final_factors, final_X = HierarchicalPALM4MSA(
     nb_iter=nb_iter,
     right_to_left=True)
 
-print("Lambda value: " + str(final_lambda))
 visual_evaluation_palm4msa(H, lst_factors, final_factors, final_X)
 
 vec = np.random.rand(d)
 h_vec = H @ vec
 r_vec = final_X @ vec
-print("Distance:", norm(h_vec - r_vec))
+logger.debug("Distance matrice to random vector (true vs fake):{}".format(norm(h_vec - r_vec)))

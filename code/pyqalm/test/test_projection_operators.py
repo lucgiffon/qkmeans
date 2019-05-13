@@ -1,8 +1,7 @@
 import unittest
 
 import numpy as np
-from pyqalm.qalm import projection_operator, get_side_prod, \
-    inplace_hardthreshold, prox_splincol
+from pyqalm.projection_operators import projection_operator, inplace_hardthreshold, prox_splincol
 
 
 class TestProjectionOperators(unittest.TestCase):
