@@ -40,7 +40,9 @@ final_lambda, final_factors, final_X = HierarchicalPALM4MSA(
     nb_keep_values=nb_keep_values,
     f_lambda_init=_lambda,
     nb_iter=nb_iter,
-    right_to_left=True)
+    update_right_to_left=True,
+    residual_on_right=True,
+    graphical_display=True)
 
 visual_evaluation_palm4msa(H, lst_factors, final_factors, final_X)
 

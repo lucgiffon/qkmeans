@@ -21,9 +21,11 @@ def PALM4MSA(arr_X_target: np.array,
              lst_nb_keep_values: list,
              f_lambda_init: float,
              nb_iter: int,
+             update_right_to_left=True,
              graphical_display=False):
     """
-    lst S init contains factors in decreasing indexes: S5 S4 S3 S2 S1
+    lst S init contains factors in decreasing indexes (e.g: the order along which they are multiplied in the product).
+        example: S5 S4 S3 S2 S1
 
     lst S [-j] = Sj
 
@@ -68,23 +70,29 @@ def PALM4MSA(arr_X_target: np.array,
     lst_S = deepcopy(lst_S_init) # todo may not be necessary; check this ugliness
 
     objective_function = np.empty((nb_iter, nb_factors + 1))
+
+    if update_right_to_left:
+         # range arguments: start, stop, step
+        factor_number_generator = range(-1, -(nb_factors + 1), -1)
+    else:
+        factor_number_generator = range(0, nb_factors, 1)
     # main loop
     for i_iter in range(nb_iter):
         # todo critère d'arrêt delta erreur = 10^-6
-        for j in range(1, nb_factors + 1):
+        for j in factor_number_generator:
 
-            left_side = get_side_prod(lst_S[:-j], arr_X_target.shape[0])  # L = products of all yet updated factors during this iter
-            right_side = get_side_prod(lst_S[nb_factors - j + 1:],
-                                       arr_X_target.shape[0])  # R = products of all not yet updated factors
+            left_side = get_side_prod(lst_S[:j], arr_X_target.shape[0])  # L
+            index_value_for_right_factors_selection = (nb_factors + j + 1) % (nb_factors + 1) # trust me, I am a scientist.
+            right_side = get_side_prod(lst_S[index_value_for_right_factors_selection:], arr_X_target.shape[0])  # R
 
             # compute minimum c value (according to paper)
             min_c_value = (f_lambda * norm(right_side, ord=2) * norm(left_side, ord=2)) ** 2
             # add epsilon because it is exclusive minimum
             c = min_c_value * 1.001
-            logger.debug("Lipsitchz constant value: {}".format(c))
+            logger.debug("Lipsitchz constant value: {}; c value: {}".format(min_c_value, c))
             # compute new factor value
-            lst_S[-j] = update_S(lst_S[-j], left_side, right_side, c, f_lambda,
-                                 lst_nb_keep_values[-j])
+            lst_S[j] = update_S(lst_S[j], left_side, right_side, c, f_lambda,
+                                 lst_nb_keep_values[j])
 
             if graphical_display:
                 objective_function[i_iter, j - 1] = \
@@ -125,8 +133,9 @@ def HierarchicalPALM4MSA(arr_X_target: np.array,
                          f_lambda_init:float=1,
                          residual_sparsity_decrease=None,
                          residual_global_sparsity=None,
-                         right_to_left=True,
-                         graphical_display=False): # todo manage right_to_left option
+                         residual_on_right:bool=True,
+                         update_right_to_left=True,
+                         graphical_display=False):
     """
 
 
@@ -137,16 +146,16 @@ def HierarchicalPALM4MSA(arr_X_target: np.array,
     :param nb_iter:
     :param residual_sparsity_decrease:
     :param residual_global_sparsity:
-    :param right_to_left:
+    :param update_right_to_left: Way in which the factors are updated in the inner PALM4MSA algorithm. If update_right_to_left is True,
+    the factors are updated right to left (e.g; the last factor in the list first). Otherwise the contrary.
+    :param residual_on_right: During the split step, the residual can be computed as a right or left factor. If residual_on_right is True,
+    the residuals are computed as right factors. We can also see this option as the update way for the hierarchical strategy:
+    when the residual is computed on the right, it correspond to compute the last factor first (left to right according to the paper: the factor with the
+    bigger number first)
     :return:
     """
-
-    # initialisation
-    # if right_to_left:
-    #     arr_residual = arr_X_target
-    # else:  # attention: vérifier l'équivalence en prenant en compte le lambda
-    #     arr_residual = arr_X_target.T
-    #     lst_S_init = [S.T for S in lst_S_init[::-1]]
+    if update_right_to_left:
+        raise NotImplementedError # todo voir pourquoi ça plante... zero division error?
 
     arr_residual = arr_X_target
 
@@ -169,8 +178,7 @@ def HierarchicalPALM4MSA(arr_X_target: np.array,
         else:
             nb_keep_values_relaxed *= residual_sparsity_decrease
         logger.debug("Working on factor: {}".format(k))
-        # define constraints: ||0 = d pour T1; relaxed constraint on ||0 for T2
-        lst_nb_keep_values_constraints = [nb_keep_values,int(nb_keep_values_relaxed)]
+
         # calcule decomposition en 2 du résidu
         residual_init = get_side_prod(lst_S_init[nb_factors_so_far:])
         residual_init = np.zeros_like(residual_init)
@@ -178,15 +186,30 @@ def HierarchicalPALM4MSA(arr_X_target: np.array,
 
         logger.debug("Step split")
 
-        f_lambda_prime, (new_factor, new_residual), _, _ = PALM4MSA(
+        func_split_step_palm4msa = lambda lst_S_init: PALM4MSA(
             arr_X_target=arr_residual,
-            lst_S_init=[S_init, residual_init],
+            lst_S_init=lst_S_init, # eye for factor and zeros for residual
             nb_factors=2,
-            lst_nb_keep_values=lst_nb_keep_values_constraints,
+            lst_nb_keep_values=[nb_keep_values, int(nb_keep_values_relaxed)], #define constraints: ||0 = d pour T1; relaxed constraint on ||0 for T2
             f_lambda_init=1.,
-            nb_iter=nb_iter)
+            nb_iter=nb_iter,
+            update_right_to_left=update_right_to_left)
+
+        if update_right_to_left:
+            lst_S_init_split_step = [S_init, residual_init]
+        else:
+            lst_S_init_split_step = [residual_init, S_init]
+
+        if residual_on_right:
+            f_lambda_prime, (new_factor, new_residual), _, _ =  func_split_step_palm4msa(lst_S_init=lst_S_init_split_step)
+        else:
+            f_lambda_prime, (new_factor, new_residual), _, _ = func_split_step_palm4msa(lst_S_init=lst_S_init_split_step)
+
         f_lambda *= f_lambda_prime
-        lst_S[k] = new_factor
+        if residual_on_right:
+            lst_S[k] = new_factor
+        else:
+            lst_S[nb_factors-nb_factors_so_far] = new_factor
 
         if graphical_display:
             plt.figure()
@@ -196,9 +219,13 @@ def HierarchicalPALM4MSA(arr_X_target: np.array,
             plt.colorbar()
 
             plt.subplot(222)
-            plt.imshow(f_lambda_prime * (new_factor @ new_residual))
+            if residual_on_right:
+                plt.imshow(f_lambda_prime * (new_factor @ new_residual))
+                plt.title('lambda * new_factor @ new_residual')
+            else:
+                plt.imshow(f_lambda_prime * (new_residual @ new_factor))
+                plt.title('lambda * new_residual @ new_factor')
             plt.colorbar()
-            plt.title('lambda * new_factor @ new_residual')
 
             plt.subplot(223)
             plt.imshow(f_lambda_prime * new_factor)
@@ -212,17 +239,24 @@ def HierarchicalPALM4MSA(arr_X_target: np.array,
 
             plt.show()
 
-        # get the k first elements [:k+1] and the next one (k+1)th as arr_residual
-        lst_nb_keep_values_constraints = [nb_keep_values] * nb_factors_so_far + [int(nb_keep_values_relaxed)]
+        # get the k first elements [:k+1] and the next one (k+1)th as arr_residual (depend on the residual_on_right option)
         logger.debug("Step finetuning")
 
-        f_lambda, (*lst_S[:nb_factors_so_far], arr_residual), _, _ = PALM4MSA(
+        func_fine_tune_step_palm4msa = lambda lst_S_init, lst_nb_keep_values: PALM4MSA(
             arr_X_target=arr_X_target,
-            lst_S_init=lst_S[:nb_factors_so_far] + [new_residual],
+            lst_S_init=lst_S_init,  # lst_S[:nb_factors_so_far] + [new_residual],
             nb_factors=nb_factors_so_far + 1,
-            lst_nb_keep_values=lst_nb_keep_values_constraints,
+            lst_nb_keep_values=lst_nb_keep_values, # lst_nb_keep_values_constraints,
             f_lambda_init=f_lambda,
-            nb_iter=nb_iter)
+            nb_iter=nb_iter,
+            update_right_to_left=update_right_to_left)
+
+        if residual_on_right:
+            f_lambda, (*lst_S[:nb_factors_so_far], arr_residual), _, _ = func_fine_tune_step_palm4msa(lst_S_init=lst_S[:nb_factors_so_far] + [new_residual],
+                                                                                                      lst_nb_keep_values=[nb_keep_values] * nb_factors_so_far + [int(nb_keep_values_relaxed)])
+        else:
+            f_lambda, (arr_residual, *lst_S[-nb_factors_so_far:]), _, _ = func_fine_tune_step_palm4msa(lst_S_init=[new_residual] + lst_S[-nb_factors_so_far:],
+                                                                                                      lst_nb_keep_values=[int(nb_keep_values_relaxed)] + [nb_keep_values] * nb_factors_so_far)
 
         if graphical_display:
             plt.figure()
@@ -252,10 +286,11 @@ def HierarchicalPALM4MSA(arr_X_target: np.array,
             plt.show()
 
     # last factor is residual of last palm4LED
-    lst_S[-1] = arr_residual
+    if residual_on_right:
+        lst_S[-1] = arr_residual
+    else:
+        lst_S[0] = arr_residual
 
-    # if not right_to_left:
-    #     lst_S = [S.T for S in lst_S[::-1]]
 
     if len(lst_S) == 1:
         arr_X_curr = f_lambda * lst_S[0]

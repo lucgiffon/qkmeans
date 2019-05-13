@@ -42,6 +42,8 @@ def prox_splincol(input_arr, nb_val_by_row_col):
         Xprox_col[unraveled_indices] = X[unraveled_indices]
         return Xprox_col
 
+    input_arr = np.round(input_arr, 10)
+
     Xprox_col = projection_max_by_col(input_arr, nb_val_by_row_col)
     Xprox_lin = projection_max_by_col(input_arr.T, nb_val_by_row_col).T
     Xprox = Xprox_col + Xprox_lin * (Xprox_col == 0)
