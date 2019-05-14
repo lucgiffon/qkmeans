@@ -27,7 +27,7 @@ def inplace_hardthreshold(input_arr, nb_keep_values):
     input_arr.reshape(-1)[lowest_values_idx] = 0
 
 
-def prox_splincol(input_arr, nb_val_by_row_col):
+def prox_splincol(input_arr, nb_val_total):
     def projection_max_by_col(X, nb_val_by_col):
         nb_val_by_col = round(nb_val_by_col)
         Xabs = np.abs(X)
@@ -44,8 +44,12 @@ def prox_splincol(input_arr, nb_val_by_row_col):
 
     input_arr = np.round(input_arr, 10) # maybe use hard decimal cut ? I don't know
 
-    Xprox_col = projection_max_by_col(input_arr, nb_val_by_row_col)
-    Xprox_lin = projection_max_by_col(input_arr.T, nb_val_by_row_col).T
+    fraction_by_row_col = input_arr.shape[0] * input_arr.shape[1] / nb_val_total
+    nb_val_by_col = int(input_arr.shape[0] / fraction_by_row_col)
+    nb_val_by_row = int(input_arr.shape[1] / fraction_by_row_col)
+
+    Xprox_col = projection_max_by_col(input_arr, nb_val_by_col)
+    Xprox_lin = projection_max_by_col(input_arr.T, nb_val_by_row).T
     Xprox = Xprox_col + Xprox_lin * (Xprox_col == 0)
 
     return Xprox

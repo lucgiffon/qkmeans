@@ -1,13 +1,13 @@
 import logging
 
-from numpy import identity
+from numpy import eye
 from numpy.linalg import multi_dot
 import daiquiri
 
 daiquiri.setup(level=logging.DEBUG)
 logger = daiquiri.getLogger("pyqalm")
 
-def get_side_prod(lst_factors, id_size=0):
+def get_side_prod(lst_factors, id_shape=(0,0)):
     """
     Return the dot product between factors in lst_factors in order.
 
@@ -21,7 +21,7 @@ def get_side_prod(lst_factors, id_size=0):
 
     if len(lst_factors) == 0:
         # convention from the paper itself: dot product of no factors equal Identity
-        side_prod = identity(id_size)
+        side_prod = eye(*id_shape)
     elif len(lst_factors) == 1:
         # if only 1 elm, return the elm itself (Identity * elm actually)
         side_prod = lst_factors[0]

@@ -11,7 +11,7 @@ from numpy.linalg import norm
 from numpy.linalg import multi_dot
 import matplotlib.pyplot as plt
 
-from pyqalm.projection_operators import prox_splincol
+from pyqalm.projection_operators import prox_splincol, inplace_hardthreshold
 from pyqalm.utils import get_side_prod, logger
 
 
@@ -50,7 +50,7 @@ def PALM4MSA(arr_X_target: np.array,
         # projection # todo utiliser un paramètre à cette fonction? voir todo suivant
         # S_proj = projection_operator(S_tmp, _nb_keep_values)
         # inplace_hardthreshold(S_tmp, _nb_keep_values); S_proj = S_tmp
-        S_proj = prox_splincol(S_tmp, _nb_keep_values / min(arr_X_target.shape)) # todo changer la façon dont les contraintes sont gérées (façon faµst c'est pas mal avec les lambda expressions)
+        S_proj = prox_splincol(S_tmp, _nb_keep_values) # todo changer la façon dont les contraintes sont gérées (façon faµst c'est pas mal avec les lambda expressions)
         # normalize because all factors must have norm 1
         S_proj = S_proj / norm(S_proj, ord="fro")
         return S_proj
@@ -85,9 +85,9 @@ def PALM4MSA(arr_X_target: np.array,
 
         for j in factor_number_generator:
 
-            left_side = get_side_prod(lst_S[:j], arr_X_target.shape[0])  # L
+            left_side = get_side_prod(lst_S[:j], (arr_X_target.shape[0], arr_X_target.shape[0]))  # L
             index_value_for_right_factors_selection = (nb_factors + j + 1) % (nb_factors + 1) # trust me, I am a scientist.
-            right_side = get_side_prod(lst_S[index_value_for_right_factors_selection:], arr_X_target.shape[0])  # R
+            right_side = get_side_prod(lst_S[index_value_for_right_factors_selection:], (arr_X_target.shape[1], arr_X_target.shape[1]))  # R
 
             # compute minimum c value (according to paper)
             min_c_value = (f_lambda * norm(right_side, ord=2) * norm(left_side, ord=2)) ** 2
@@ -138,11 +138,9 @@ def PALM4MSA(arr_X_target: np.array,
 
 def HierarchicalPALM4MSA(arr_X_target: np.array,
                          lst_S_init: list,
-                         nb_keep_values: int,
+                         lst_dct_param_projection_operator: list,
                          nb_iter: int,
                          f_lambda_init:float=1,
-                         residual_sparsity_decrease=None,
-                         residual_global_sparsity=None,
                          residual_on_right:bool=True,
                          update_right_to_left=True,
                          graphical_display=False):
@@ -154,8 +152,6 @@ def HierarchicalPALM4MSA(arr_X_target: np.array,
     :param nb_keep_values:
     :param f_lambda_init:
     :param nb_iter:
-    :param residual_sparsity_decrease:
-    :param residual_global_sparsity:
     :param update_right_to_left: Way in which the factors are updated in the inner PALM4MSA algorithm. If update_right_to_left is True,
     the factors are updated right to left (e.g; the last factor in the list first). Otherwise the contrary.
     :param residual_on_right: During the split step, the residual can be computed as a right or left factor. If residual_on_right is True,
@@ -167,28 +163,24 @@ def HierarchicalPALM4MSA(arr_X_target: np.array,
     if not update_right_to_left:
         raise NotImplementedError # todo voir pourquoi ça plante... zero division error?
 
+
     arr_residual = arr_X_target
 
     lst_S = deepcopy(lst_S_init)
     nb_factors = len(lst_S)
 
+    # check if lst_dct_param_projection_operator contains a list of dict with param for step split and finetune
+    assert len(lst_dct_param_projection_operator) == nb_factors - 1
+    assert all(len({"split", "finetune"}.difference(dct.keys())) == 0 for dct in lst_dct_param_projection_operator)
+
     lst_nb_iter_by_factor = []
 
-    if residual_sparsity_decrease is None:
-        residual_sparsity_decrease = 0.5
-    if residual_global_sparsity is None:
-        residual_global_sparsity = min(arr_X_target.shape) ** 2
-
-    nb_keep_values_relaxed = residual_global_sparsity
     f_lambda = f_lambda_init
 
     # main loop
     for k in range(nb_factors - 1):
         nb_factors_so_far = k + 1
-        if nb_factors_so_far == nb_factors - 1:
-            nb_keep_values_relaxed = nb_keep_values
-        else:
-            nb_keep_values_relaxed *= residual_sparsity_decrease
+
         logger.debug("Working on factor: {}".format(k))
 
         # calcule decomposition en 2 du résidu
@@ -202,7 +194,7 @@ def HierarchicalPALM4MSA(arr_X_target: np.array,
             arr_X_target=arr_residual,
             lst_S_init=lst_S_init, # eye for factor and zeros for residual
             nb_factors=2,
-            lst_nb_keep_values=[nb_keep_values, int(nb_keep_values_relaxed)], #define constraints: ||0 = d pour T1; relaxed constraint on ||0 for T2
+            lst_nb_keep_values=lst_dct_param_projection_operator[k]["split"], #define constraints: ||0 = d pour T1; relaxed constraint on ||0 for T2
             f_lambda_init=1.,
             nb_iter=nb_iter,
             update_right_to_left=update_right_to_left,
@@ -213,10 +205,7 @@ def HierarchicalPALM4MSA(arr_X_target: np.array,
         else:
             lst_S_init_split_step = [residual_init, S_init]
 
-        if residual_on_right:
-            f_lambda_prime, (new_factor, new_residual), _, _, nb_iter_this_factor =  func_split_step_palm4msa(lst_S_init=lst_S_init_split_step)
-        else:
-            f_lambda_prime, (new_factor, new_residual), _, _, nb_iter_this_factor = func_split_step_palm4msa(lst_S_init=lst_S_init_split_step)
+        f_lambda_prime, (new_factor, new_residual), _, _, nb_iter_this_factor = func_split_step_palm4msa(lst_S_init=lst_S_init_split_step)
 
         f_lambda *= f_lambda_prime
         if residual_on_right:
@@ -255,22 +244,20 @@ def HierarchicalPALM4MSA(arr_X_target: np.array,
         # get the k first elements [:k+1] and the next one (k+1)th as arr_residual (depend on the residual_on_right option)
         logger.debug("Step finetuning")
 
-        func_fine_tune_step_palm4msa = lambda lst_S_init, lst_nb_keep_values: PALM4MSA(
+        func_fine_tune_step_palm4msa = lambda lst_S_init: PALM4MSA(
             arr_X_target=arr_X_target,
-            lst_S_init=lst_S_init,  # lst_S[:nb_factors_so_far] + [new_residual],
+            lst_S_init=lst_S_init,
             nb_factors=nb_factors_so_far + 1,
-            lst_nb_keep_values=lst_nb_keep_values, # lst_nb_keep_values_constraints,
+            lst_nb_keep_values=lst_dct_param_projection_operator[k]["finetune"],
             f_lambda_init=f_lambda,
             nb_iter=nb_iter,
             update_right_to_left=update_right_to_left,
             graphical_display=graphical_display)
 
         if residual_on_right:
-            f_lambda, (*lst_S[:nb_factors_so_far], arr_residual), _, _, nb_iter_this_factor_bis = func_fine_tune_step_palm4msa(lst_S_init=lst_S[:nb_factors_so_far] + [new_residual],
-                                                                                                      lst_nb_keep_values=[nb_keep_values] * nb_factors_so_far + [int(nb_keep_values_relaxed)])
+            f_lambda, (*lst_S[:nb_factors_so_far], arr_residual), _, _, nb_iter_this_factor_bis = func_fine_tune_step_palm4msa(lst_S_init=lst_S[:nb_factors_so_far] + [new_residual])
         else:
-            f_lambda, (arr_residual, *lst_S[-nb_factors_so_far:]), _, _, nb_iter_this_factor_bis = func_fine_tune_step_palm4msa(lst_S_init=[new_residual] + lst_S[-nb_factors_so_far:],
-                                                                                                      lst_nb_keep_values=[int(nb_keep_values_relaxed)] + [nb_keep_values] * nb_factors_so_far)
+            f_lambda, (arr_residual, *lst_S[-nb_factors_so_far:]), _, _, nb_iter_this_factor_bis = func_fine_tune_step_palm4msa(lst_S_init=[new_residual] + lst_S[-nb_factors_so_far:])
 
         lst_nb_iter_by_factor.append(nb_iter_this_factor + nb_iter_this_factor_bis)
 
