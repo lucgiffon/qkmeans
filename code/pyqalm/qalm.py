@@ -182,11 +182,8 @@ def HierarchicalPALM4MSA(arr_X_target: np.array,
     for k in range(nb_factors - 1):
         nb_factors_so_far = k + 1
 
-        logger.debug("Working on factor: {}".format(k))
-
-
-
-        logger.debug("Step split")
+        logger.info("Working on factor: {}".format(k))
+        logger.info("Step split")
 
         # calcule decomposition en 2 du résidu précédent
         func_split_step_palm4msa = lambda lst_S_init: PALM4MSA(
@@ -264,7 +261,7 @@ def HierarchicalPALM4MSA(arr_X_target: np.array,
             plt.show()
 
         # get the k first elements [:k+1] and the next one (k+1)th as arr_residual (depend on the residual_on_right option)
-        logger.debug("Step finetuning")
+        logger.info("Step finetuning")
 
         func_fine_tune_step_palm4msa = lambda lst_S_init: PALM4MSA(
             arr_X_target=arr_X_target,
