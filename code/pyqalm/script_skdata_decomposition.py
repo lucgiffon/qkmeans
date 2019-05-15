@@ -20,7 +20,8 @@ from pyqalm.test.test_qalm import visual_evaluation_palm4msa
 daiquiri.setup(level=logging.DEBUG)
 
 # iris = datasets.load_iris(); X = iris.data
-boston = datasets.load_boston(); X = boston.data
+# boston = datasets.load_boston(); X = boston.data
+X, _ = datasets.make_blobs(n_samples=20, n_features=200, centers=4)
 
 nb_iter = 500
 nb_factors = 2
@@ -28,10 +29,6 @@ d = min(X.shape)
 
 # lst_factors = [projection_operator(np.random.rand(d, d), nb_keep_values) for _ in range(nb_factors)]
 lst_factors = [np.eye(min(X.shape)) for _ in range(nb_factors)]
-# lst_factors = [np.diag(np.random.rand(d)) for _ in range(nb_factors)]
-#lst_factors = [np.random.rand(d, d) for _ in range(nb_factors)]
-# lst_factors = [fac/norm(fac) for fac in lst_factors]
-# lst_factors[-1] = np.zeros((d, d))  # VE
 lst_factors[-1] = np.ones((min(X.shape), X.shape[1]))
 lst_factors[0] = np.eye(X.shape[0], min(X.shape))
 _lambda = 1.
