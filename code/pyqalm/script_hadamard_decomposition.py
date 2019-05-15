@@ -22,17 +22,11 @@ nb_iter = 300
 nb_factors = 5
 
 
-# lst_factors = [projection_operator(np.random.rand(d, d), nb_keep_values) for _ in range(nb_factors)]
 lst_factors = [np.eye(d) for _ in range(nb_factors)]
-# lst_factors = [np.diag(np.random.rand(d)) for _ in range(nb_factors)]
-#lst_factors = [np.random.rand(d, d) for _ in range(nb_factors)]
-# lst_factors = [fac/norm(fac) for fac in lst_factors]
 lst_factors[-1] = np.zeros((d, d))  # VE
-# lst_factors[-1] = np.ones((d, d))  # VE
 _lambda = 1.
 had = hadamard(d)
 #H =  had / norm(had, ord='fro')
-# H = had
 H = had / np.sqrt(32)
 
 lst_nb_keep_values_by_fac_step = []
