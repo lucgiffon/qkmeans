@@ -3,6 +3,7 @@ import logging
 from numpy import eye
 from numpy.linalg import multi_dot
 import daiquiri
+from pyqalm.projection_operators import prox_splincol
 
 daiquiri.setup(level=logging.DEBUG)
 logger = daiquiri.getLogger("pyqalm")
@@ -28,3 +29,9 @@ def get_side_prod(lst_factors, id_shape=(0,0)):
     else:
         side_prod = multi_dot(lst_factors)
     return side_prod
+
+def get_lambda_proxsplincol(nb_keep_values):
+    return lambda mat: prox_splincol(mat, nb_keep_values)
+
+def constant_proj(mat):
+    raise NotImplementedError("This function should not be called but used for its name")
