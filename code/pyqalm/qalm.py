@@ -161,8 +161,9 @@ def HierarchicalPALM4MSA(arr_X_target: np.array,
     :return:
     """
     if not update_right_to_left:
-        raise NotImplementedError # todo voir pourquoi ça plante... zero division error?
+        raise NotImplementedError # todo voir pourquoi ça plante... mismatch dimension
 
+    min_shape = min(arr_X_target.shape)
 
     arr_residual = arr_X_target
 
@@ -183,13 +184,11 @@ def HierarchicalPALM4MSA(arr_X_target: np.array,
 
         logger.debug("Working on factor: {}".format(k))
 
-        # calcule decomposition en 2 du résidu
-        residual_init = get_side_prod(lst_S_init[nb_factors_so_far:])
-        residual_init = np.zeros_like(residual_init)
-        S_init = np.eye(lst_S_init[k].shape[0], lst_S_init[k].shape[1])
+
 
         logger.debug("Step split")
 
+        # calcule decomposition en 2 du résidu précédent
         func_split_step_palm4msa = lambda lst_S_init: PALM4MSA(
             arr_X_target=arr_residual,
             lst_S_init=lst_S_init, # eye for factor and zeros for residual
@@ -200,12 +199,35 @@ def HierarchicalPALM4MSA(arr_X_target: np.array,
             update_right_to_left=update_right_to_left,
             graphical_display=graphical_display)
 
-        if update_right_to_left:
+        if residual_on_right:
+            shape_residual = (min_shape, arr_X_target.shape[-1])
+            shape_fac = (lst_S_init[k].shape[0], lst_S_init[k].shape[1])
+            if update_right_to_left:
+                residual_init = np.zeros(shape_residual)
+                S_init = np.eye(*shape_fac)
+            else:
+                residual_init = np.eye(*shape_residual)
+                S_init = np.zeros(shape_fac)
             lst_S_init_split_step = [S_init, residual_init]
+
+        else:
+            shape_residual = (arr_X_target.shape[0], min_shape)
+            shape_fac = (lst_S_init[nb_factors-nb_factors_so_far].shape[0], lst_S_init[nb_factors-nb_factors_so_far].shape[1])
+            if update_right_to_left:
+                residual_init = np.eye(*shape_residual)
+                S_init = np.zeros(shape_fac)
+            else:
+                residual_init = np.zeros(shape_residual)
+                S_init = np.eye(*shape_fac)
+            lst_S_init_split_step = [residual_init, residual_init]
+
+        if residual_on_right:
+
+            f_lambda_prime, (new_factor, new_residual), _, _, nb_iter_this_factor = func_split_step_palm4msa(lst_S_init=lst_S_init_split_step)
         else:
             lst_S_init_split_step = [residual_init, S_init]
+            f_lambda_prime, (new_residual, new_factor), _, _, nb_iter_this_factor = func_split_step_palm4msa(lst_S_init=lst_S_init_split_step)
 
-        f_lambda_prime, (new_factor, new_residual), _, _, nb_iter_this_factor = func_split_step_palm4msa(lst_S_init=lst_S_init_split_step)
 
         f_lambda *= f_lambda_prime
         if residual_on_right:
