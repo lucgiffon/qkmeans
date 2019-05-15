@@ -9,7 +9,7 @@ from pprint import pformat
 
 import daiquiri
 import numpy as np
-from pyqalm.utils import logger, get_lambda_proxsplincol
+from pyqalm.utils import logger, get_lambda_proxsplincol, constant_proj
 from scipy.linalg import hadamard
 from numpy.linalg import norm
 from sklearn import datasets
@@ -22,7 +22,7 @@ daiquiri.setup(level=logging.INFO)
 
 # iris = datasets.load_iris(); X = iris.data
 # boston = datasets.load_boston(); X = boston.data
-X, _ = datasets.make_blobs(n_samples=20, n_features=200, centers=4)
+X, _ = datasets.make_blobs(n_samples=100, n_features=20, centers=4)
 
 nb_iter = 500
 residual_on_right = False
@@ -40,8 +40,8 @@ nb_keep_values = factor*d
 for k in range(nb_factors - 1):
     nb_values_residual = max(nb_keep_values, int(d / 2 ** (k + 1)) * d)
     dct_step_lst_nb_keep_values = {
-        "split": [get_lambda_proxsplincol(nb_keep_values), get_lambda_proxsplincol(nb_values_residual)] if residual_on_right else [get_lambda_proxsplincol(nb_values_residual), get_lambda_proxsplincol(nb_keep_values)],
-        "finetune": [get_lambda_proxsplincol(nb_keep_values)] * (k+1) + [get_lambda_proxsplincol(nb_values_residual)] if residual_on_right else [get_lambda_proxsplincol(nb_values_residual)] + [get_lambda_proxsplincol(nb_keep_values)] * (k+1)
+        "split": [constant_proj, constant_proj],
+        "finetune": [constant_proj] * (k+1) + [constant_proj]
     }
     lst_proj_op_by_fac_step.append(dct_step_lst_nb_keep_values)
 
