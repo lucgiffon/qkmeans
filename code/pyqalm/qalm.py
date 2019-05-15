@@ -200,32 +200,11 @@ def HierarchicalPALM4MSA(arr_X_target: np.array,
             graphical_display=graphical_display)
 
         if residual_on_right:
-            # shape_residual = (min_shape, arr_X_target.shape[-1]) # todo les shapes sont pre definis a linitialisation des S
-            # shape_fac = (lst_S_init[k].shape[0], lst_S_init[k].shape[1]) # todo les S sont déjà initialisés
-            # if update_right_to_left:
-                # residual_init = np.zeros(shape_residual)
-                # S_init = np.eye(*shape_fac) # todo les S sont déjà initialisés
-            # else:
-                # residual_init = np.eye(*shape_residual)
-                # S_init = np.zeros(shape_fac)# todo les S sont déjà initialisés
-            # ---
-
-            # shape_residual = (lst_S_init[k].shape[1], lst_S_init[-1].shape[1]) # todo is it useful? see residual_init declaration
             residual_init = get_side_prod(lst_S_init[nb_factors_so_far:])
             S_init = lst_S_init[k]
             lst_S_init_split_step = [S_init, residual_init]
 
         else:
-            # shape_residual = (arr_X_target.shape[0], min_shape) # todo les shapes sont pre definis a linitialisation des S
-            # shape_fac = (lst_S_init[nb_factors-nb_factors_so_far].shape[0], lst_S_init[nb_factors-nb_factors_so_far].shape[1])# todo les S sont déjà initialisés
-            # if update_right_to_left:
-            #     residual_init = np.eye(*shape_residual)
-            #     S_init = np.zeros(shape_fac)# todo les S sont déjà initialisés
-            # else:
-            #     residual_init = np.zeros(shape_residual)
-            #     S_init = np.eye(*shape_fac)# todo les S sont déjà initialisés
-
-            # shape_residual = (lst_S_init[k].shape[1], lst_S_init[-1].shape[1]) # todo is it useful? see residual_init declaration
             residual_init = get_side_prod(lst_S_init[:-nb_factors_so_far])
             S_init = lst_S_init[-nb_factors_so_far]
             lst_S_init_split_step = [residual_init, S_init]
