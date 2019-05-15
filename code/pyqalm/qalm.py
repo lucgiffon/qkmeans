@@ -166,7 +166,7 @@ def HierarchicalPALM4MSA(arr_X_target: np.array,
 
     arr_residual = arr_X_target
 
-    lst_S = deepcopy(lst_S_init)
+    lst_S = deepcopy(lst_S_init) # todo initialization of lst_S is just not used
     nb_factors = len(lst_S)
 
     # check if lst_dct_param_projection_operator contains a list of dict with param for step split and finetune
