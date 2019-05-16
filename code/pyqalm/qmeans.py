@@ -88,7 +88,7 @@ def qmeans(X_data, K_nb_cluster, nb_iter, params_palm4msa, initialization):
     i_iter = 0
     delta_objective_error = 1e-6
     first_iter = True
-    while ((i_iter < nb_iter) and (objective_function[i_iter - 1] > delta_objective_error)) or (first_iter):
+    while ((i_iter < nb_iter) and ((objective_function[i_iter - 1] - objective_function[i_iter - 2]) / objective_function[i_iter - 1] ) or (first_iter)):
         first_iter = False
         logger.info("Iteration Qmeans {}".format(i_iter))
 
@@ -138,7 +138,7 @@ def qmeans(X_data, K_nb_cluster, nb_iter, params_palm4msa, initialization):
         # plt.pause(1)
 
         i_iter += 1
-    return objective_function
+    return objective_function[:i_iter]
 
 
 def kmeans(X_data, K_nb_cluster, nb_iter, initialization):
@@ -156,7 +156,7 @@ def kmeans(X_data, K_nb_cluster, nb_iter, initialization):
     i_iter = 0
     delta_objective_error = 1e-6
     first_iter = True
-    while ((i_iter < nb_iter) and (objective_function[i_iter - 1] > delta_objective_error)) or (first_iter):
+    while ((i_iter < nb_iter) and ((objective_function[i_iter - 1] - objective_function[i_iter - 2]) / objective_function[i_iter - 1] > delta_objective_error)) or (first_iter):
         first_iter = False
 
         logger.info("Iteration Kmeans {}".format(i_iter))
@@ -185,7 +185,7 @@ def kmeans(X_data, K_nb_cluster, nb_iter, initialization):
 
         i_iter += 1
 
-    return objective_function, U_centroids
+    return objective_function[:i_iter], U_centroids
 
 
 
