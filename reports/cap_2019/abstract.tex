@@ -1,13 +1,21 @@
 \begin{abstract}
-The K-means algorithm is a pivotal procedure for many tasks of machine learning and
-data analysis such as indexing, nearest-neighbors prediction, clustering and it has
-proved to be essential for improving the accuracy of the well-known Nyström approximation
-procedure used to speed-up kernel machines, which is a motivation in the hindsight
-of the present contribution. We here propose {\em Q-means}, an accelerated
-version of $K$-means, that looks for the matrix $U$ of the $K$ centroids as a product
-of sparse matrices.
-%We propose a new algorithm called \textit{Q-means} for learning a matrix of K-means center-points which can be decomposed as a factorization of sparse matrices.
- This decomposition allows us to compute the matrix-vector product of the $U$ with any vector in time $\mathcal{O}(K log d)$ instead of $\mathcal{O}(Kd)$, where $d$ if the number of factors and the sparsity constraint are properly define -- NOT SURE WITH $d$. As evoked before, we show how our algorithm could be used in the context of the Nyström approximation. % to speed up its use in subsequent kernel machines.
+Beyond its popularity for clustering, the K-means algorithm is a pivotal procedure for other core machine learning and data analysis techniques such as indexing, nearest-neightbors prediction, as well as for more specific approaches like kernel methods accelerated by some Nyström approximation.
+We here propose {\em Q-means}, an accelerated
+version of $K$-means, that looks for the matrix $\mathbf{U}$ of the $K$ centroids as a product
+of sparse matrices. 
+This decomposition provides a computationally-efficient structure similar to that of fast transforms (e.g., Fourier, Hadamard).
+Recent advances in optimization allows to learn such a decomposition in order benefit both from its computationnal efficiency and from its adaptability to the training data.
+As a result, computing the matrix-vector product between the $K \times D$ matrix $\mathbf{U}$ and any vector is obtained in time $\mathcal{O}(P \log P)$, with $P=\min (K, D)$ instead of $\mathcal{O}(KD)$.
+This dramatic acceleration is beneficial whenever a point is assigned to a cluster, i.e., at prediction time and in the assignation step at learning time.
+In addition, we show that the computational overhead due to the decomposition procedure does not penalize the computational cost of the learning stage, 
+which may be faster than the traditionnal Lloyd algorithm depending on the context.
+Finally, we provide discussions and numerical experiments that show the versatility of the proposed computationally-efficient Q-means algorithm.
 
-This paper is a description of work in progress and as such does not contain experimental validation. We give the proposed algorithm with convergence proof, and discuss foreseen experiments and a scope of use.
+Remarque: on ne mentionne pas la qualité de l'approximation qu'on obtient en remplaçant K-means par Q-means?!
+
+%on core machine learning models and techniques such as Nyström approximation, Gaussian mixtures, K-nearest neighbors.
+
+%As evoked before, we show how our algorithm could be used in the context of the Nyström approximation. % to speed up its use in subsequent kernel machines.
+
+% This paper is a description of work in progress and as such does not contain experimental validation. We give the proposed algorithm with convergence proof, and discuss foreseen experiments and a scope of use.
 \end{abstract}
