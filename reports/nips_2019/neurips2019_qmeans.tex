@@ -88,6 +88,32 @@
 \maketitle
 
 \begin{abstract}
+	
+K-means -- and the celebrated Lloyd algorithm -- is more than the clustering method it was 
+originally designed to be. It has indeed proven pivotal to help increase the speed of
+many machine learning and data analysis techniques such as indexing, nearest-neighbor 
+search and prediction, data compression, Radial Basis Function neetworks;
+ its beneficial use has been shown to carry over to the acceleration of kernel machines 
+ (when using the Nyström method). Here, we propose a fast extension of K-means, dubbed Q-means, 
+ that rests on
+the idea of expressing the matrix of the $K$ centroids
+as a product of sparse matrix, a feat made possible by recent results devoted 
+to find approximations of matrices as a product of sparse factors. Using such 
+decomposition squashes the complexity of the matrix-vector product between
+the factorized $K \times D$ centroid matrix $\mathbf{U}$ and any vector from
+$\mathcal{O}(KD)$ to $\mathcal{O}(P+Q \log Q)$, with $Q=\min (K, D)$ and $P=\max (K, D)$,
+where $D$ is the dimension of the training data. This drastic computational saving
+has a direct impact in the assignment process of a point to a cluster, 
+meaning that it is not only tangible at prediction time, but also at training time,
+provided the factorization procedure is performed during Lloyd's algorithm.
+We precisely show that resorting to a factorization step at each iteration does not 
+impair the convergence of the optimization scheme and that, depending on the context, 
+it may entail a reduction of the training time. Finally, we provide discussions and numerical
+ simulations that show the versatility of our computationally-efficient Q-means algorithm.
+
+
+
+
 Beyond its popularity for clustering, the K-means algorithm is a pivotal procedure for other core machine learning and data analysis techniques such as indexing, nearest-neightbors prediction, as well as for more specific approaches like the Nyström approximation for kernel machines.
 
 In this paper, we propose the Q-means algorithm, an accelerated version of $K$-means that stems from recent advances in optimization to learn the centroid matrix as a product of sparse matrices.
