@@ -47,10 +47,6 @@ def PALM4MSA(arr_X_target: np.array,
         # 1 step for minimizing + flatten necessary for the upcoming projection
         S_tmp = S_old - grad_step
 
-        # projection # todo utiliser un paramètre à cette fonction? voir todo suivant
-        # S_proj = projection_operator(S_tmp, _nb_keep_values)
-        # inplace_hardthreshold(S_tmp, _nb_keep_values); S_proj = S_tmp
-        # S_proj = prox_splincol(S_tmp, _nb_keep_values) # todo changer la façon dont les contraintes sont gérées (façon faµst c'est pas mal avec les lambda expressions)
         # normalize because all factors must have norm 1
         S_proj = projection_function(S_tmp)
         S_proj = S_proj / norm(S_proj, ord="fro")
@@ -170,7 +166,7 @@ def HierarchicalPALM4MSA(arr_X_target: np.array,
 
     arr_residual = arr_X_target
 
-    lst_S = deepcopy(lst_S_init) # todo initialization of lst_S is just not used
+    lst_S = deepcopy(lst_S_init)
     nb_factors = len(lst_S)
 
     # check if lst_dct_param_projection_operator contains a list of dict with param for step split and finetune
