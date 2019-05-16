@@ -65,24 +65,24 @@ def qmeans(X_data, K_nb_cluster, nb_iter, params_palm4msa):
     U_centroids = U_centroids_hat
 
     lst_factors = [np.eye(min_K_d) for _ in range(nb_factors)]
-    lst_factors[0] = np.eye(U_centroids_hat.shape[0], min_K_d)
+    lst_factors[0] = np.eye(K_nb_cluster)
+    lst_factors[1] = np.eye(K_nb_cluster, min_K_d)
     lst_factors[-1] = np.zeros((min_K_d, U_centroids_hat.shape[1]))
 
     lst_proj_op_by_fac_step = []
     factor = 4
     nb_keep_values = factor * min_K_d
-
     for k in range(nb_factors - 1):
-        nb_values_residual = max(nb_keep_values, int(min_K_d / 2 ** (k + 1)) * min_K_d)
+        nb_values_residual = max(nb_keep_values, int(min_K_d / 2 ** (k)) * min_K_d) # k instead of (k+1) for the first, constant matrix
         if k == 0:
             dct_step_lst_nb_keep_values = {
-                "split": [constant_proj] * 2,
-                "finetune": [constant_proj] * ((k + 1) + 1)
+                "split": [constant_proj, lambda mat: mat],
+                "finetune": [constant_proj, lambda mat: mat]
             }
         else:
             dct_step_lst_nb_keep_values = {
                 "split": [get_lambda_proxsplincol(nb_keep_values), get_lambda_proxsplincol(nb_values_residual)],
-                "finetune": [get_lambda_proxsplincol(nb_keep_values)] * (k + 1) + [get_lambda_proxsplincol(nb_values_residual)]
+                "finetune": [constant_proj] + [get_lambda_proxsplincol(nb_keep_values)] * (k) + [get_lambda_proxsplincol(nb_values_residual)]
             }
         lst_proj_op_by_fac_step.append(dct_step_lst_nb_keep_values)
 
@@ -140,4 +140,4 @@ def qmeans(X_data, K_nb_cluster, nb_iter, params_palm4msa):
 
 if __name__ == '__main__':
     X, _ = datasets.make_blobs(n_samples=1000, n_features=200, centers=20)
-    qmeans(X, 5, 100, {"nb_factors": 4, "init_lambda": 1., "nb_iter": 300})
+    qmeans(X, 5, 100, {"nb_factors": 5, "init_lambda": 1., "nb_iter": 300})
