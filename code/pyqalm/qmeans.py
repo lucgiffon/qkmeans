@@ -150,7 +150,7 @@ def kmeans(X_data, K_nb_cluster, nb_iter, initialization):
     U_centroids_hat = copy.deepcopy(initialization)
     U_centroids = U_centroids_hat
 
-    objective_function = np.empty((nb_iter, 2))
+    objective_function = np.empty((nb_iter,))
 
     # Loop for the maximum number of iterations
     i_iter = 0
@@ -168,7 +168,7 @@ def kmeans(X_data, K_nb_cluster, nb_iter, initialization):
         # by picking the closest centroid
         indicator_vector = np.argmin(distances, axis=1)
 
-        objective_function[i_iter, 0] = compute_objective(X_data, U_centroids, indicator_vector)
+        objective_function[i_iter,] = compute_objective(X_data, U_centroids, indicator_vector)
 
         # Update centroid location using the newly
         # assigned data point classes
@@ -176,8 +176,6 @@ def kmeans(X_data, K_nb_cluster, nb_iter, initialization):
             U_centroids_hat[c] = np.mean(X_data[indicator_vector == c], 0)
 
         U_centroids = U_centroids_hat
-        objective_function[i_iter, 1] = compute_objective(X_data, U_centroids, indicator_vector)
-
 
         if np.isnan(U_centroids_hat).any():
             exit("Some clusters have no point. Aborting iteration {}".format(i_iter))
@@ -237,7 +235,7 @@ def init_factors(left_dim, right_dim, nb_factors):
     return lst_factors
 
 if __name__ == '__main__':
-    np.random.seed(3)
+    # np.random.seed(3)
 
     nb_clusters = 10
     nb_iter_kmeans = 20

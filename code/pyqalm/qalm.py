@@ -77,7 +77,7 @@ def PALM4MSA(arr_X_target: np.array,
     i_iter = 0
     delta_objective_error = 1e-6
     first_iter = True
-    while ((i_iter < nb_iter) and ((objective_function[i_iter-1, -1] - objective_function[i_iter-2, -1]) / objective_function[i_iter-1, -1] > delta_objective_error)) or (first_iter):
+    while first_iter or ((i_iter < nb_iter) and ((objective_function[i_iter-1, -1] - objective_function[i_iter-2, -1]) / objective_function[i_iter-1, -1] > delta_objective_error)):
         first_iter = False
 
         for j in factor_number_generator:
