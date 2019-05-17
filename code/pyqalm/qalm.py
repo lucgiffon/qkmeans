@@ -75,10 +75,10 @@ def PALM4MSA(arr_X_target: np.array,
         factor_number_generator = range(0, nb_factors, 1)
     # main loop
     i_iter = 0
-    delta_objective_error = 1e-6
-    first_iter = True
-    while first_iter or ((i_iter < nb_iter) and ((objective_function[i_iter-1, -1] - objective_function[i_iter-2, -1]) / objective_function[i_iter-1, -1] > delta_objective_error)):
-        first_iter = False
+    delta_objective_error_threshold = 1e-6
+    delta_objective_error = np.inf
+    while i_iter == 0 or ((i_iter < nb_iter) and (delta_objective_error > delta_objective_error_threshold)):
+
 
         for j in factor_number_generator:
             if lst_projection_functions[j].__name__ == "constant_proj":
@@ -115,7 +115,11 @@ def PALM4MSA(arr_X_target: np.array,
 
         logger.debug("Iteration {}; Objective value: {}".format(i_iter, objective_function[i_iter, -1]))
 
+        if i_iter >= 1:
+            delta_objective_error = np.abs(objective_function[i_iter, -1] - objective_function[i_iter-1, -1]) / objective_function[i_iter-1, -1] # todo vérifier que l'erreur absolue est plus petite que le threshold plusieurs fois d'affilée
+
         i_iter += 1
+
 
     objective_function = objective_function[:i_iter, :]
 
@@ -162,7 +166,7 @@ def HierarchicalPALM4MSA(arr_X_target: np.array,
     if not update_right_to_left:
         raise NotImplementedError # todo voir pourquoi ça plante... mismatch dimension
 
-    min_shape = min(arr_X_target.shape)
+    # min_shape = min(arr_X_target.shape)
 
     arr_residual = arr_X_target
 
@@ -176,6 +180,8 @@ def HierarchicalPALM4MSA(arr_X_target: np.array,
     lst_nb_iter_by_factor = []
 
     f_lambda = f_lambda_init
+
+    objective_function = np.empty((nb_factors,))
 
     # main loop
     for k in range(nb_factors - 1):

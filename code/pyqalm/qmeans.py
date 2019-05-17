@@ -82,18 +82,21 @@ def qmeans(X_data, K_nb_cluster, nb_iter, params_palm4msa, initialization):
         residual_on_right=True,
         graphical_display=False)
 
-    objective_function = np.empty((nb_iter,))
+    objective_function = np.empty((nb_iter,2))
 
     # Loop for the maximum number of iterations
     i_iter = 0
-    delta_objective_error = 1e-6
-    first_iters = True
-    while (first_iters) or ((i_iter < nb_iter) and ((objective_function[i_iter - 1] - objective_function[i_iter - 2]) / objective_function[i_iter - 1] > delta_objective_error)):
-        if i_iter > 1:
-            first_iters = False
+    delta_objective_error_threshold = 1e-6
+    delta_objective_error = np.inf
+    while (i_iter == 0) or ((i_iter < nb_iter) and (delta_objective_error > delta_objective_error_threshold)):
+
         logger.info("Iteration Qmeans {}".format(i_iter))
 
         U_centroids = _lambda * multi_dot(lst_factors[1:])
+
+        if i_iter > 0:
+            objective_function[i_iter, 1] = compute_objective(X_data, U_centroids, indicator_vector)
+
         # Assign all points to the nearest centroid
         # first get distance from all points to all centroids
         distances = get_distances(X_data, U_centroids)
@@ -101,7 +104,7 @@ def qmeans(X_data, K_nb_cluster, nb_iter, params_palm4msa, initialization):
         # by picking the closest centroid
         indicator_vector = np.argmin(distances, axis=1)
 
-        objective_function[i_iter] = compute_objective(X_data, U_centroids, indicator_vector)
+        objective_function[i_iter, 0] = compute_objective(X_data, U_centroids, indicator_vector)
 
         # Update centroid location using the newly
         # assigned data point classes
@@ -112,21 +115,24 @@ def qmeans(X_data, K_nb_cluster, nb_iter, params_palm4msa, initialization):
         cluster_names, counts = np.unique(indicator_vector, return_counts=True)
         cluster_names_sorted = np.argsort(cluster_names)
         diag_counts = np.diag(np.sqrt(counts[cluster_names_sorted])) # todo use sparse matrix object
+        diag_counts_norm = np.linalg.norm(diag_counts)
+        diag_counts_normalized = diag_counts / diag_counts_norm
         # set it as first factor
-        lst_factors[0] = diag_counts
+        lst_factors[0] = diag_counts_normalized
 
         # init_factor = copy.deepcopy(lst_factors) # for visual evaluation
 
-        _lambda, lst_factors, _, nb_iter_by_factor = HierarchicalPALM4MSA(
+        _lambda_tmp, lst_factors, _, nb_iter_by_factor = HierarchicalPALM4MSA(
             arr_X_target=diag_counts @ U_centroids_hat,
             lst_S_init=lst_factors,
             lst_dct_projection_function=lst_proj_op_by_fac_step,
-            f_lambda_init=init_lambda,
+            f_lambda_init=diag_counts_norm,
             nb_iter=nb_iter_palm,
             update_right_to_left=True,
             residual_on_right=True,
             graphical_display=False)
 
+        _lambda = _lambda_tmp / diag_counts_norm
 
         # U_centroids = U_centroids_hat
 
@@ -137,8 +143,11 @@ def qmeans(X_data, K_nb_cluster, nb_iter, params_palm4msa, initialization):
 
         # plt.scatter(i_iter, objective_function[i_iter])
         # plt.pause(1)
+        if i_iter >= 1:
+            delta_objective_error = np.abs(objective_function[i_iter, 0] - objective_function[i_iter-1, 0]) / objective_function[i_iter-1, 0] # todo vérifier que l'erreur absolue est plus petite que le threshold plusieurs fois d'affilée
 
         i_iter += 1
+
     return objective_function[:i_iter]
 
 
@@ -155,10 +164,9 @@ def kmeans(X_data, K_nb_cluster, nb_iter, initialization):
 
     # Loop for the maximum number of iterations
     i_iter = 0
-    delta_objective_error = 1e-6
-    first_iter = True
-    while ((i_iter < nb_iter) and ((objective_function[i_iter - 1] - objective_function[i_iter - 2]) / objective_function[i_iter - 1] > delta_objective_error)) or (first_iter):
-        first_iter = False
+    delta_objective_error_threshold = 1e-6
+    delta_objective_error = np.inf
+    while (i_iter == 0) or ((i_iter < nb_iter) and (delta_objective_error > delta_objective_error_threshold)):
 
         logger.info("Iteration Kmeans {}".format(i_iter))
 
@@ -183,6 +191,9 @@ def kmeans(X_data, K_nb_cluster, nb_iter, initialization):
 
         # plt.scatter(i_iter, objective_function[i_iter])
         # plt.pause(1)
+        if i_iter >= 1:
+            delta_objective_error = np.abs(objective_function[i_iter] - objective_function[i_iter-1]) / objective_function[i_iter-1] # todo vérifier que l'erreur absolue est plus petite que le threshold plusieurs fois d'affilée
+
 
         i_iter += 1
 
@@ -239,7 +250,7 @@ if __name__ == '__main__':
     # np.random.seed(3)
 
     nb_clusters = 10
-    nb_iter_kmeans = 20
+    nb_iter_kmeans = 10
     X, _ = datasets.make_blobs(n_samples=10000, n_features=20, centers=50)
     U_centroids_hat = X[np.random.permutation(X.shape[0])[:nb_clusters]] # kmeans++ initialization is not feasible because complexity is O(ndk)...
 
@@ -278,7 +289,10 @@ if __name__ == '__main__':
 
     plt.figure()
     # plt.yscale("log")
-    plt.plot(objective_values_q, label="qmeans")
-    plt.plot(objective_values_k, label="kmeans")
+    # plt.plot(objective_values_q, label="qmeans")
+    for i in range(len(objective_values_q)):
+        plt.scatter(i, objective_values_q[i, 0], marker="x", color="r")
+        plt.scatter(i, objective_values_q[i, 1], marker="x", color="b")
+    plt.plot(objective_values_k, label="kmeans", color="g")
     plt.legend()
     plt.show()
