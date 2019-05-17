@@ -87,9 +87,10 @@ def qmeans(X_data, K_nb_cluster, nb_iter, params_palm4msa, initialization):
     # Loop for the maximum number of iterations
     i_iter = 0
     delta_objective_error = 1e-6
-    first_iter = True
-    while ((i_iter < nb_iter) and ((objective_function[i_iter - 1] - objective_function[i_iter - 2]) / objective_function[i_iter - 1] ) or (first_iter)):
-        first_iter = False
+    first_iters = True
+    while (first_iters) or ((i_iter < nb_iter) and ((objective_function[i_iter - 1] - objective_function[i_iter - 2]) / objective_function[i_iter - 1] > delta_objective_error)):
+        if i_iter > 1:
+            first_iters = False
         logger.info("Iteration Qmeans {}".format(i_iter))
 
         U_centroids = _lambda * multi_dot(lst_factors[1:])
@@ -239,7 +240,7 @@ if __name__ == '__main__':
 
     nb_clusters = 10
     nb_iter_kmeans = 20
-    X, _ = datasets.make_blobs(n_samples=10000, n_features=20, centers=20)
+    X, _ = datasets.make_blobs(n_samples=10000, n_features=20, centers=50)
     U_centroids_hat = X[np.random.permutation(X.shape[0])[:nb_clusters]] # kmeans++ initialization is not feasible because complexity is O(ndk)...
 
     nb_factors = 5
