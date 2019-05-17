@@ -4,6 +4,7 @@ kmeans algorithm inspired from https://jonchar.net/notebooks/k-means/ .
 import logging
 import daiquiri
 import copy
+from collections import OrderedDict
 
 import numpy as np
 from numpy.linalg import multi_dot
@@ -251,7 +252,7 @@ if __name__ == '__main__':
 
     nb_clusters = 10
     nb_iter_kmeans = 10
-    X, _ = datasets.make_blobs(n_samples=10000, n_features=20, centers=50)
+    X, _ = datasets.make_blobs(n_samples=1000, n_features=20, centers=50)
     U_centroids_hat = X[np.random.permutation(X.shape[0])[:nb_clusters]] # kmeans++ initialization is not feasible because complexity is O(ndk)...
 
     nb_factors = 5
@@ -290,9 +291,13 @@ if __name__ == '__main__':
     plt.figure()
     # plt.yscale("log")
     # plt.plot(objective_values_q, label="qmeans")
-    for i in range(len(objective_values_q)):
-        plt.scatter(i, objective_values_q[i, 0], marker="x", color="r")
-        plt.scatter(i, objective_values_q[i, 1], marker="x", color="b")
-    plt.plot(objective_values_k, label="kmeans", color="g")
-    plt.legend()
+
+    plt.scatter(np.arange(len(objective_values_q)), objective_values_q[:, 0], marker="x", label="qmeans after t (0)", color="r")
+    plt.scatter((2*np.arange(len(objective_values_q))+1)/2, objective_values_q[:, 1], marker="x", label="qmeans after palm (1)", color="b")
+    plt.plot(np.arange(len(objective_values_k)), objective_values_k, label="kmeans", color="g", marker="x")
+    plt.plot(np.arange(len(objective_values_q.flatten()))/2, objective_values_q.flatten(), color="k", label="qmeans")
+
+    handles, labels = plt.gca().get_legend_handles_labels()
+    by_label = OrderedDict(zip(labels, handles))
+    plt.legend(by_label.values(), by_label.keys())
     plt.show()
