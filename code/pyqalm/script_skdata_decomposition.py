@@ -22,11 +22,11 @@ daiquiri.setup(level=logging.INFO)
 
 # iris = datasets.load_iris(); X = iris.data
 # boston = datasets.load_boston(); X = boston.data
-X, _ = datasets.make_blobs(n_samples=20, n_features=200, centers=4)
+X, _ = datasets.make_blobs(n_samples=200, n_features=20, centers=4)
 
 nb_iter = 500
-residual_on_right = False
-nb_factors = 4
+residual_on_right = True
+nb_factors = 10
 d = min(X.shape)
 
 lst_factors = [np.eye(min(X.shape)) for _ in range(nb_factors)]
@@ -35,7 +35,7 @@ lst_factors[0] = np.eye(X.shape[0], min(X.shape))
 _lambda = 1.
 
 lst_proj_op_by_fac_step = []
-factor = 3
+factor = 10
 nb_keep_values = factor*d
 for k in range(nb_factors - 1):
     nb_values_residual = max(nb_keep_values, int(d / 2 ** (k + 1)) * d)
@@ -47,7 +47,7 @@ for k in range(nb_factors - 1):
 
 logger.info("Sparsity parameter by factor: {}".format(pformat(lst_proj_op_by_fac_step)))
 #final_lambda, final_factors, final_X = PALM4LED(H, lst_factors, [nb_keep_values for _ in range(nb_factors)], _lambda, nb_iter)
-final_lambda, final_factors, final_X, nb_iter_by_factor = HierarchicalPALM4MSA(
+final_lambda, final_factors, final_X, nb_iter_by_factor, _ = HierarchicalPALM4MSA(
     arr_X_target=X,
     lst_S_init=lst_factors,
     lst_dct_projection_function=lst_proj_op_by_fac_step,
