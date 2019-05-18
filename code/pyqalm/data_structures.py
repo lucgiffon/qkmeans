@@ -97,11 +97,23 @@ class SparseFactors(LinearOperator):
         return SparseFactors([x.transpose()
                               for x in reversed(self._lst_factors)])
 
-    def get_product(self):
+    def compute_product(self):
         Y = self._lst_factors[-1]
         for X in reversed(self._lst_factors[:-1]):
             Y = X.dot(Y)
         return Y
+
+    def get_factor(self, index, copy=False):
+        if copy:
+            return self._lst_factors[index].copy()
+        else:
+            return self._lst_factors[index]
+
+    def get_list_of_factors(self, copy=False):
+        if copy:
+            return [x.copy() for x in self._lst_factors]
+        else:
+            return self._lst_factors
 
 
 if __name__ == '__main__':
@@ -115,6 +127,6 @@ if __name__ == '__main__':
     print(O.adjoint())
     x = np.random.randn(O.shape[1])[:, None]
     print(P @ x - O @ x)
-    print(P-O.get_product())
-    print(P.T-O.transpose().get_product())
+    print(P - O.compute_product())
+    print(P.T - O.transpose().compute_product())
     print(np.conjugate(P).T-O.adjoint().get_product())

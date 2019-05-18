@@ -27,8 +27,8 @@ class TestSparseFactors(unittest.TestCase):
         np.testing.assert_array_equal(self.S.shape, self.P.shape)
 
     def test_product(self):
-        np.testing.assert_array_almost_equal(self.P,
-                                             self.S.get_product().toarray())
+        np.testing.assert_array_almost_equal(
+            self.P, self.S.compute_product().toarray())
 
     def test_matrix_vector_product(self):
         x = np.random.randn(self.S.shape[1])[:, None]
@@ -39,6 +39,7 @@ class TestSparseFactors(unittest.TestCase):
 
         Sx = self.S @ x
         np.testing.assert_array_almost_equal(Px, Sx)
+
 
 if __name__ == '__main__':
     unittest.main()
