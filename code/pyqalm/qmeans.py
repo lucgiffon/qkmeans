@@ -8,7 +8,7 @@ from collections import OrderedDict
 
 import numpy as np
 from numpy.linalg import multi_dot
-from pyqalm.qalm import HierarchicalPALM4MSA
+from pyqalm.qalm import HierarchicalPALM4MSA, compute_objective_function
 from pyqalm.test.test_qalm import visual_evaluation_palm4msa
 from sklearn import datasets
 import matplotlib.pyplot as plt
@@ -51,7 +51,7 @@ def get_distances(X_data, U_centroids):
 
 
 def compute_objective(X_data, U_centroids, indicator_vector):
-    return np.linalg.norm(X_data - U_centroids[indicator_vector])
+    return np.linalg.norm(X_data - U_centroids[indicator_vector]) ** 2
 
 def qmeans(X_data, K_nb_cluster, nb_iter, nb_factors, params_palm4msa, initialization):
 
@@ -82,7 +82,9 @@ def qmeans(X_data, K_nb_cluster, nb_iter, nb_factors, params_palm4msa, initializ
         residual_on_right=True,
         graphical_display=False)
 
-    objective_function = np.empty((nb_iter,2))
+    _lambda_tmp = _lambda
+
+    objective_function = np.empty((nb_iter,3))
 
     # Loop for the maximum number of iterations
     i_iter = 0
@@ -120,19 +122,32 @@ def qmeans(X_data, K_nb_cluster, nb_iter, nb_factors, params_palm4msa, initializ
         # set it as first factor
         lst_factors[0] = diag_counts_normalized
 
-        # init_factor = copy.deepcopy(lst_factors) # for visual evaluation
+        objective_function[i_iter, 2] = compute_objective(X_data, X_centroids_hat, indicator_vector)
 
+        computed_loss_palm_after = compute_objective_function(diag_counts @ X_centroids_hat, _lambda_tmp, lst_factors)
+        logger.info("Computed loss reconstruction (with diag) before: {}".format(computed_loss_palm_after))
+
+        loss_reconstruction_before_palm = compute_objective_function(X_centroids_hat, _lambda, lst_factors[1:])
+        logger.info("Loss reconstruction (centroids_matrix) before: {}".format(loss_reconstruction_before_palm))
+        # init_factor = copy.deepcopy(lst_factors) # for visual evaluation
+        # todo verifier que l'objectif diminue avant et apres hierarchical
         _lambda_tmp, lst_factors, _, nb_iter_by_factor, objective_palm = HierarchicalPALM4MSA(
             arr_X_target=diag_counts @ X_centroids_hat,
             lst_S_init=lst_factors,
             lst_dct_projection_function=lst_proj_op_by_fac_step,
-            f_lambda_init=diag_counts_norm,
+            f_lambda_init=_lambda_tmp,
             nb_iter=nb_iter_palm,
             update_right_to_left=True,
             residual_on_right=True,
             graphical_display=False)
 
         _lambda = _lambda_tmp / diag_counts_norm
+        loss_reconstruction_after_palm = compute_objective_function(X_centroids_hat, _lambda, lst_factors[1:])
+        logger.info("Loss reconstruction (centroids_matrix) after: {}".format(loss_reconstruction_after_palm))
+
+        computed_loss_palm_after = compute_objective_function(diag_counts @ X_centroids_hat, _lambda_tmp, lst_factors)
+        logger.info("Computed loss reconstruction (with diag) after: {}".format(computed_loss_palm_after))
+        logger.info("Returned loss (with diag) palm: {}".format(objective_palm[-1, 0]))
 
         # U_centroids = X_centroids_hat
 
@@ -293,8 +308,9 @@ if __name__ == '__main__':
 
     plt.scatter(np.arange(len(objective_values_q)), objective_values_q[:, 0], marker="x", label="qmeans after t (0)", color="r")
     plt.scatter((2*np.arange(len(objective_values_q))+1)/2, objective_values_q[:, 1], marker="x", label="qmeans after palm (1)", color="b")
+    plt.scatter((2*np.arange(len(objective_values_q))+1)/2, objective_values_q[:, 2], marker="x", label="qmeans x_hat (2)", color="y")
     plt.plot(np.arange(len(objective_values_k)), objective_values_k, label="kmeans", color="g", marker="x")
-    plt.plot(np.arange(len(objective_values_q.flatten()))/2, objective_values_q.flatten(), color="k", label="qmeans")
+    plt.plot(np.arange(len(objective_values_q[:, :2].flatten()))/2, objective_values_q[:, :2].flatten(), color="k", label="qmeans")
 
     handles, labels = plt.gca().get_legend_handles_labels()
     by_label = OrderedDict(zip(labels, handles))
