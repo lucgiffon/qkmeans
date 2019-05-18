@@ -5,6 +5,7 @@ import logging
 import daiquiri
 import copy
 from collections import OrderedDict
+from pprint import pformat
 
 import numpy as np
 from numpy.linalg import multi_dot
@@ -82,9 +83,11 @@ def qmeans(X_data, K_nb_cluster, nb_iter, nb_factors, params_palm4msa, initializ
         residual_on_right=True,
         graphical_display=False)
 
+    lst_factors_bis = copy.deepcopy(lst_factors)
     _lambda_tmp = _lambda
+    _lambda_bis = _lambda
 
-    objective_function = np.empty((nb_iter,3))
+    objective_function = np.empty((nb_iter,4))
 
     # Loop for the maximum number of iterations
     i_iter = 0
@@ -98,6 +101,7 @@ def qmeans(X_data, K_nb_cluster, nb_iter, nb_factors, params_palm4msa, initializ
 
         if i_iter > 0:
             objective_function[i_iter, 1] = compute_objective(X_data, U_centroids, indicator_vector)
+            objective_function[i_iter, 3] = compute_objective(X_data, _lambda_bis * multi_dot(lst_factors_bis), indicator_vector)
 
         # Assign all points to the nearest centroid
         # first get distance from all points to all centroids
@@ -130,12 +134,21 @@ def qmeans(X_data, K_nb_cluster, nb_iter, nb_factors, params_palm4msa, initializ
         loss_reconstruction_before_palm = compute_objective_function(X_centroids_hat, _lambda, lst_factors[1:])
         logger.info("Loss reconstruction (centroids_matrix) before: {}".format(loss_reconstruction_before_palm))
         # init_factor = copy.deepcopy(lst_factors) # for visual evaluation
-        # todo verifier que l'objectif diminue avant et apres hierarchical
         _lambda_tmp, lst_factors, _, nb_iter_by_factor, objective_palm = HierarchicalPALM4MSA(
             arr_X_target=diag_counts @ X_centroids_hat,
             lst_S_init=lst_factors,
             lst_dct_projection_function=lst_proj_op_by_fac_step,
             f_lambda_init=_lambda_tmp,
+            nb_iter=nb_iter_palm,
+            update_right_to_left=True,
+            residual_on_right=True,
+            graphical_display=False)
+
+        _lambda_bis, lst_factors_bis, _, nb_iter_by_factor_bis, objective_palm_bis = HierarchicalPALM4MSA(
+            arr_X_target=np.eye(K_nb_cluster) @ X_centroids_hat,
+            lst_S_init=lst_factors_bis,
+            lst_dct_projection_function=lst_proj_op_by_fac_step,
+            f_lambda_init=_lambda_bis,
             nb_iter=nb_iter_palm,
             update_right_to_left=True,
             residual_on_right=True,
@@ -274,7 +287,8 @@ if __name__ == '__main__':
     sparsity_factor = 10
     nb_iter_palm = 300
 
-    lst_constraints, _ = build_constraint_sets(U_centroids_hat.shape[0], U_centroids_hat.shape[1], nb_factors, sparsity_factor=sparsity_factor)
+    lst_constraints, lst_constraints_vals = build_constraint_sets(U_centroids_hat.shape[0], U_centroids_hat.shape[1], nb_factors, sparsity_factor=sparsity_factor)
+    logger.info("constraints: {}".format(pformat(lst_constraints_vals)))
 
     hierarchical_palm_init = {
         "init_lambda": 1.,
@@ -309,6 +323,7 @@ if __name__ == '__main__':
     plt.scatter(np.arange(len(objective_values_q)), objective_values_q[:, 0], marker="x", label="qmeans after t (0)", color="r")
     plt.scatter((2*np.arange(len(objective_values_q))+1)/2, objective_values_q[:, 1], marker="x", label="qmeans after palm (1)", color="b")
     plt.scatter((2*np.arange(len(objective_values_q))+1)/2, objective_values_q[:, 2], marker="x", label="qmeans x_hat (2)", color="y")
+    plt.scatter((2*np.arange(len(objective_values_q))+1)/2, objective_values_q[:, 3], marker="x", label="qmeans after palm without diag (3)", color="c")
     plt.plot(np.arange(len(objective_values_k)), objective_values_k, label="kmeans", color="g", marker="x")
     plt.plot(np.arange(len(objective_values_q[:, :2].flatten()))/2, objective_values_q[:, :2].flatten(), color="k", label="qmeans")
 
