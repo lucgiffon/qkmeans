@@ -54,10 +54,7 @@ def get_distances(X_data, U_centroids):
 def compute_objective(X_data, U_centroids, indicator_vector):
     return np.linalg.norm(X_data - U_centroids[indicator_vector]) ** 2
 
-def qmeans(X_data, K_nb_cluster, nb_iter, nb_factors, params_palm4msa, initialization):
-
-    plt.figure()
-    # plt.yscale("log")
+def qmeans(X_data, K_nb_cluster, nb_iter, nb_factors, params_palm4msa, initialization, track_objective=False, graphical_display=False):
 
     init_lambda = params_palm4msa["init_lambda"]
     nb_iter_palm = params_palm4msa["nb_iter"]
@@ -83,11 +80,9 @@ def qmeans(X_data, K_nb_cluster, nb_iter, nb_factors, params_palm4msa, initializ
         residual_on_right=True,
         graphical_display=False)
 
-    lst_factors_bis = copy.deepcopy(lst_factors)
     _lambda_tmp = _lambda
-    _lambda_bis = _lambda
 
-    objective_function = np.empty((nb_iter,4))
+    objective_function = np.empty((nb_iter,2))
 
     # Loop for the maximum number of iterations
     i_iter = 0
@@ -100,8 +95,7 @@ def qmeans(X_data, K_nb_cluster, nb_iter, nb_factors, params_palm4msa, initializ
         U_centroids = _lambda * multi_dot(lst_factors[1:])
 
         if i_iter > 0:
-            objective_function[i_iter, 1] = compute_objective(X_data, U_centroids, indicator_vector)
-            objective_function[i_iter, 3] = compute_objective(X_data, _lambda_bis * multi_dot(lst_factors_bis), indicator_vector)
+            objective_function[i_iter, 0] = compute_objective(X_data, U_centroids, indicator_vector)
 
         # Assign all points to the nearest centroid
         # first get distance from all points to all centroids
@@ -110,7 +104,7 @@ def qmeans(X_data, K_nb_cluster, nb_iter, nb_factors, params_palm4msa, initializ
         # by picking the closest centroid
         indicator_vector = np.argmin(distances, axis=1)
 
-        objective_function[i_iter, 0] = compute_objective(X_data, U_centroids, indicator_vector)
+        objective_function[i_iter, 1] = compute_objective(X_data, U_centroids, indicator_vector)
 
         # Update centroid location using the newly
         # assigned data point classes
@@ -120,57 +114,48 @@ def qmeans(X_data, K_nb_cluster, nb_iter, nb_factors, params_palm4msa, initializ
         # get the number of observation in each cluster
         cluster_names, counts = np.unique(indicator_vector, return_counts=True)
         cluster_names_sorted = np.argsort(cluster_names)
-        diag_counts = np.diag(np.sqrt(counts[cluster_names_sorted])) # todo use sparse matrix object
-        diag_counts_norm = np.linalg.norm(diag_counts)
-        diag_counts_normalized = diag_counts / diag_counts_norm
+
+        if len(counts) < K_nb_cluster:
+            raise ValueError("Some clusters have no point. Aborting iteration {}".format(i_iter))
+
+        diag_counts_sqrt = np.diag(np.sqrt(counts[cluster_names_sorted])) # todo use sparse matrix object
+        diag_counts_sqrt_norm = np.linalg.norm(diag_counts_sqrt) # todo analytic sqrt n instead of cumputing it
+        diag_counts_sqrt_normalized = diag_counts_sqrt / diag_counts_sqrt_norm
         # set it as first factor
-        lst_factors[0] = diag_counts_normalized
+        lst_factors[0] = diag_counts_sqrt_normalized
 
-        objective_function[i_iter, 2] = compute_objective(X_data, X_centroids_hat, indicator_vector)
+        if graphical_display:
+            lst_factors_init = copy.deepcopy(lst_factors)
 
-        computed_loss_palm_after = compute_objective_function(diag_counts @ X_centroids_hat, _lambda_tmp, lst_factors)
-        logger.info("Computed loss reconstruction (with diag) before: {}".format(computed_loss_palm_after))
+        loss_palm_before = compute_objective_function(diag_counts_sqrt @ X_centroids_hat,
+                                                                             _lambda * diag_counts_sqrt_norm,
+                                                                             lst_factors)
+        logger.info("Loss palm before: {}".format(loss_palm_before))
 
-        loss_reconstruction_before_palm = compute_objective_function(X_centroids_hat, _lambda, lst_factors[1:])
-        logger.info("Loss reconstruction (centroids_matrix) before: {}".format(loss_reconstruction_before_palm))
-        # init_factor = copy.deepcopy(lst_factors) # for visual evaluation
         _lambda_tmp, lst_factors, _, nb_iter_by_factor, objective_palm = HierarchicalPALM4MSA(
-            arr_X_target=diag_counts @ X_centroids_hat,
+            arr_X_target=diag_counts_sqrt @ X_centroids_hat,
             lst_S_init=lst_factors,
             lst_dct_projection_function=lst_proj_op_by_fac_step,
-            f_lambda_init=_lambda_tmp,
+            f_lambda_init=_lambda * diag_counts_sqrt_norm,
             nb_iter=nb_iter_palm,
             update_right_to_left=True,
             residual_on_right=True,
             graphical_display=False)
 
-        _lambda_bis, lst_factors_bis, _, nb_iter_by_factor_bis, objective_palm_bis = HierarchicalPALM4MSA(
-            arr_X_target=np.eye(K_nb_cluster) @ X_centroids_hat,
-            lst_S_init=lst_factors_bis,
-            lst_dct_projection_function=lst_proj_op_by_fac_step,
-            f_lambda_init=_lambda_bis,
-            nb_iter=nb_iter_palm,
-            update_right_to_left=True,
-            residual_on_right=True,
-            graphical_display=False)
+        loss_palm_after = compute_objective_function(diag_counts_sqrt @ X_centroids_hat,
+                                                                            _lambda_tmp,
+                                                                             lst_factors)
+        logger.info("Loss palm after: {}".format(loss_palm_after))
+        logger.info("Loss palm inside: {}".format(objective_palm[-1, 0]))
 
-        _lambda = _lambda_tmp / diag_counts_norm
-        loss_reconstruction_after_palm = compute_objective_function(X_centroids_hat, _lambda, lst_factors[1:])
-        logger.info("Loss reconstruction (centroids_matrix) after: {}".format(loss_reconstruction_after_palm))
+        if graphical_display:
+            visual_evaluation_palm4msa(diag_counts_sqrt @ X_centroids_hat, lst_factors_init, lst_factors, _lambda_tmp * multi_dot(lst_factors))
 
-        computed_loss_palm_after = compute_objective_function(diag_counts @ X_centroids_hat, _lambda_tmp, lst_factors)
-        logger.info("Computed loss reconstruction (with diag) after: {}".format(computed_loss_palm_after))
-        logger.info("Returned loss (with diag) palm: {}".format(objective_palm[-1, 0]))
+        _lambda = _lambda_tmp / diag_counts_sqrt_norm
+        # _lambda = _lambda_tmp
 
-        # U_centroids = X_centroids_hat
+        logger.debug("Returned loss (with diag) palm: {}".format(objective_palm[-1, 0]))
 
-        # visual_evaluation_palm4msa(diag_counts @ X_centroids_hat, init_factor, lst_factors, U_centroids)
-
-        if np.isnan(X_centroids_hat).any():
-            exit("Some clusters have no point. Aborting iteration {}".format(i_iter))
-
-        # plt.scatter(i_iter, objective_function[i_iter])
-        # plt.pause(1)
         if i_iter >= 1:
             delta_objective_error = np.abs(objective_function[i_iter, 0] - objective_function[i_iter-1, 0]) / objective_function[i_iter-1, 0] # todo vérifier que l'erreur absolue est plus petite que le threshold plusieurs fois d'affilée
 
@@ -194,8 +179,7 @@ def kmeans(X_data, K_nb_cluster, nb_iter, initialization):
     i_iter = 0
     delta_objective_error_threshold = 1e-6
     delta_objective_error = np.inf
-    # while (i_iter == 0) or ((i_iter < nb_iter) and (delta_objective_error > delta_objective_error_threshold)):
-    while (i_iter == 0) or ((i_iter < nb_iter) ):
+    while (i_iter == 0) or ((i_iter < nb_iter) and (delta_objective_error > delta_objective_error_threshold)):
 
         logger.info("Iteration Kmeans {}".format(i_iter))
 
@@ -218,8 +202,6 @@ def kmeans(X_data, K_nb_cluster, nb_iter, initialization):
         if np.isnan(U_centroids_hat).any():
             exit("Some clusters have no point. Aborting iteration {}".format(i_iter))
 
-        # plt.scatter(i_iter, objective_function[i_iter])
-        # plt.pause(1)
         if i_iter >= 1:
             delta_objective_error = np.abs(objective_function[i_iter] - objective_function[i_iter-1]) / objective_function[i_iter-1] # todo vérifier que l'erreur absolue est plus petite que le threshold plusieurs fois d'affilée
 
@@ -276,7 +258,6 @@ def init_factors(left_dim, right_dim, nb_factors):
     return lst_factors
 
 if __name__ == '__main__':
-    # np.random.seed(3)
 
     nb_clusters = 10
     nb_iter_kmeans = 10
@@ -284,8 +265,8 @@ if __name__ == '__main__':
     U_centroids_hat = X[np.random.permutation(X.shape[0])[:nb_clusters]] # kmeans++ initialization is not feasible because complexity is O(ndk)...
 
     nb_factors = 5
-    sparsity_factor = 10
-    nb_iter_palm = 300
+    sparsity_factor = 5
+    nb_iter_palm = 1000
 
     lst_constraints, lst_constraints_vals = build_constraint_sets(U_centroids_hat.shape[0], U_centroids_hat.shape[1], nb_factors, sparsity_factor=sparsity_factor)
     logger.info("constraints: {}".format(pformat(lst_constraints_vals)))
@@ -296,7 +277,7 @@ if __name__ == '__main__':
         "lst_constraint_sets": lst_constraints}
 
     try:
-        objective_values_q = qmeans(X, nb_clusters, nb_iter_kmeans, nb_factors, hierarchical_palm_init, initialization=U_centroids_hat)
+        objective_values_q = qmeans(X, nb_clusters, nb_iter_kmeans, nb_factors, hierarchical_palm_init, initialization=U_centroids_hat, graphical_display=False)
     except Exception as e:
         logger.info("There have been a problem in qmeans: {}".format(str(e)))
     try:
@@ -304,28 +285,14 @@ if __name__ == '__main__':
     except SystemExit as e:
         logger.info("There have been a problem in kmeans: {}".format(str(e)))
 
-    # todo tracer la valeur objectif avec la decomposition des centroides donnés par kmeans
-    # lst_S_init = init_factors(U_centroids_hat.shape[0], U_centroids_hat.shape[1])
-    # _lambda, lst_factors, _, nb_iter_by_factor = HierarchicalPALM4MSA(
-    #     arr_X_target=centroids_finaux,
-    #     lst_S_init=lst_S_init,
-    #     lst_dct_projection_function=lst_constraints,
-    #     f_lambda_init=1.,
-    #     nb_iter=nb_iter_palm,
-    #     update_right_to_left=True,
-    #     residual_on_right=True,
-    #     graphical_display=False)
-
     plt.figure()
     # plt.yscale("log")
-    # plt.plot(objective_values_q, label="qmeans")
 
-    plt.scatter(np.arange(len(objective_values_q)), objective_values_q[:, 0], marker="x", label="qmeans after t (0)", color="r")
-    plt.scatter((2*np.arange(len(objective_values_q))+1)/2, objective_values_q[:, 1], marker="x", label="qmeans after palm (1)", color="b")
-    plt.scatter((2*np.arange(len(objective_values_q))+1)/2, objective_values_q[:, 2], marker="x", label="qmeans x_hat (2)", color="y")
-    plt.scatter((2*np.arange(len(objective_values_q))+1)/2, objective_values_q[:, 3], marker="x", label="qmeans after palm without diag (3)", color="c")
+    plt.scatter(np.arange(len(objective_values_q)-1)+0.5, objective_values_q[1:, 0], marker="x", label="qmeans after palm(0)", color="b")
+    plt.scatter((2*np.arange(len(objective_values_q))+1)/2-0.5, objective_values_q[:, 1], marker="x", label="qmeans after t (1)", color="r")
+    plt.plot(np.arange(len(objective_values_q[:, :2].flatten())-1)/2, np.vstack([np.array([objective_values_q[0, 1]])[:, np.newaxis], objective_values_q[1:, :2].flatten()[:, np.newaxis]]), color="k", label="qmeans")
+
     plt.plot(np.arange(len(objective_values_k)), objective_values_k, label="kmeans", color="g", marker="x")
-    plt.plot(np.arange(len(objective_values_q[:, :2].flatten()))/2, objective_values_q[:, :2].flatten(), color="k", label="qmeans")
 
     handles, labels = plt.gca().get_legend_handles_labels()
     by_label = OrderedDict(zip(labels, handles))
