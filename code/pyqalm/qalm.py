@@ -19,6 +19,7 @@ def compute_objective_function(arr_X_target, _f_lambda, _lst_S):
     reconstruct = _f_lambda * multi_dot(_lst_S)
     return np.linalg.norm(arr_X_target - reconstruct, ord='fro') ** 2
 
+
 def PALM4MSA(arr_X_target: np.array,
              lst_S_init: list,
              nb_factors: int,
@@ -324,8 +325,8 @@ def HierarchicalPALM4MSA(arr_X_target: np.array,
     return f_lambda, lst_S, arr_X_curr, lst_nb_iter_by_factor, objective_function
 
 
-def palm4msa_fast1(arr_X_target: np.array,
-                  lst_S_init: list,
+def palm4msa_fast0(arr_X_target: np.array,
+                   lst_S_init: list,
                    nb_factors: int,
                    lst_projection_functions: list,
                    f_lambda_init: float,
@@ -444,3 +445,126 @@ def palm4msa_fast1(arr_X_target: np.array,
         plt.show()
 
     return f_lambda, lst_S, arr_X_curr, lst_nb_iter_by_factor, objective_function
+
+
+def palm4msa_fast1(arr_X_target: np.array,
+                   lst_S_init: list,
+                   nb_factors: int,
+                   lst_projection_functions: list,
+                   f_lambda_init: float,
+                   nb_iter: int,
+                   update_right_to_left=True,
+                   graphical_display=False):
+    """
+    lst S init contains factors in decreasing indexes (e.g: the order along which they are multiplied in the product).
+        example: S5 S4 S3 S2 S1
+
+    lst S [-j] = Sj
+
+    """
+
+    def update_S(S_old, _left_side, _right_side, _c, _lambda, projection_function):
+        """
+        Return the new factor value.
+
+        - Compute gradient
+        - Do gradient step
+        - Project data on _nb_keep_values highest entries
+        - Normalize data
+        """
+        # compute gradient of the distance metric (with 1/_c gradient step size)
+        grad_step = 1. / _c * _lambda * _left_side.T @ ((_lambda * _left_side @ S_old @ _right_side) - arr_X_target) @ _right_side.T
+
+        # grad_step[np.abs(grad_step) < np.finfo(float).eps] = 0.
+        # 1 step for minimizing + flatten necessary for the upcoming projection
+        S_tmp = S_old - grad_step
+
+        # normalize because all factors must have norm 1
+        S_proj = projection_function(S_tmp)
+        S_proj = S_proj / norm(S_proj, ord="fro")
+        return S_proj
+
+    def update_scaling_factor(X, X_est):
+        return np.sum(X * X_est) / np.sum(X_est ** 2)
+
+
+
+    logger.debug('Norme de arr_X_target: {}'.format(np.linalg.norm(arr_X_target, ord='fro')))
+    assert len(lst_S_init) > 0
+    assert get_side_prod(lst_S_init).shape == arr_X_target.shape
+    assert len(lst_S_init) == nb_factors
+    # initialization
+    f_lambda = f_lambda_init
+    lst_S = deepcopy(lst_S_init) # todo may not be necessary; check this ugliness
+
+    objective_function = np.empty((nb_iter, nb_factors + 1))
+
+    if update_right_to_left:
+         # range arguments: start, stop, step
+        factor_number_generator = range(-1, -(nb_factors + 1), -1)
+    else:
+        factor_number_generator = range(0, nb_factors, 1)
+    # main loop
+    i_iter = 0
+    delta_objective_error_threshold = 1e-6
+    delta_objective_error = np.inf
+    while i_iter == 0 or ((i_iter < nb_iter) and (delta_objective_error > delta_objective_error_threshold)):
+
+
+        for j in factor_number_generator:
+            if lst_projection_functions[j].__name__ == "constant_proj":
+                continue
+
+            left_side = get_side_prod(lst_S[:j], (arr_X_target.shape[0], arr_X_target.shape[0]))  # L
+            index_value_for_right_factors_selection = (nb_factors + j + 1) % (nb_factors + 1) # trust me, I am a scientist.
+            right_side = get_side_prod(lst_S[index_value_for_right_factors_selection:], (arr_X_target.shape[1], arr_X_target.shape[1]))  # R
+
+            # compute minimum c value (according to paper)
+            min_c_value = (f_lambda * norm(right_side, ord=2) * norm(left_side, ord=2)) ** 2
+            # add epsilon because it is exclusive minimum
+            c = min_c_value * 1.001
+            logger.debug("Lipsitchz constant value: {}; c value: {}".format(min_c_value, c))
+            # compute new factor value
+            lst_S[j] = update_S(lst_S[j], left_side, right_side, c, f_lambda,
+                                lst_projection_functions[j])
+
+            if graphical_display:
+                objective_function[i_iter, j - 1] = \
+                    compute_objective_function(arr_X_target, _f_lambda=f_lambda, _lst_S=lst_S)
+
+        # re-compute the full factorisation
+        if len(lst_S) == 1:
+            arr_X_curr = lst_S[0]
+        else:
+            arr_X_curr = multi_dot(lst_S)
+        # update lambda
+        f_lambda = update_scaling_factor(arr_X_target, arr_X_curr)
+        logger.debug("Lambda value: {}".format(f_lambda))
+
+        objective_function[i_iter, -1] = \
+            compute_objective_function(arr_X_target, _f_lambda=f_lambda, _lst_S=lst_S)
+
+        logger.debug("Iteration {}; Objective value: {}".format(i_iter, objective_function[i_iter, -1]))
+
+        if i_iter >= 1:
+            delta_objective_error = np.abs(objective_function[i_iter, -1] - objective_function[i_iter-1, -1]) / objective_function[i_iter-1, -1] # todo vérifier que l'erreur absolue est plus petite que le threshold plusieurs fois d'affilée
+
+        i_iter += 1
+
+
+    objective_function = objective_function[:i_iter, :]
+
+    if graphical_display:
+        plt.figure()
+        plt.title("n factors {}".format(nb_factors))
+        for j in range(nb_factors + 1):
+            plt.semilogy(objective_function[:, j], label=str(j))
+        plt.legend()
+        plt.show()
+
+        plt.figure()
+        plt.semilogy(objective_function.flat)
+        plt.legend()
+        plt.show()
+
+    return f_lambda, lst_S, arr_X_curr, objective_function, i_iter

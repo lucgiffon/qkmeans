@@ -2,10 +2,11 @@ import unittest
 import numpy as np
 from scipy.linalg import hadamard
 from pyqalm.qalm import PALM4MSA, HierarchicalPALM4MSA, palm4msa_fast1
-from pyqalm.utils import get_lambda_proxsplincol, get_lambda_proxsplincol_fast
+from pyqalm.utils import get_lambda_proxsplincol
+#  , get_lambda_proxsplincol_fast
 
 
-class MyTestCase(unittest.TestCase):
+class TestPalm4Msa(unittest.TestCase):
     def setUp(self):
         self.data = dict()
         self.data['hadamard'] = hadamard(32)
@@ -49,14 +50,15 @@ class MyTestCase(unittest.TestCase):
                          update_right_to_left=update_right_to_left,
                          graphical_display=graphical_display)
 
-            lst_projection_functions_fast = \
-                [get_lambda_proxsplincol_fast(nb_keep_values)] * nb_factors \
-                + [get_lambda_proxsplincol_fast(nb_values_residual)]
+            # lst_projection_functions_fast = \
+            #     [get_lambda_proxsplincol_fast(nb_keep_values)] * nb_factors \
+            #     + [get_lambda_proxsplincol_fast(nb_values_residual)]
             f_lambda, lst_S, arr_X_curr, objective_function, i_iter = \
                 palm4msa_fast1(X,
                          lst_S_init=lst_S_init,
                          nb_factors=nb_factors,
-                         lst_projection_functions=lst_projection_functions_fast,
+                         lst_projection_functions=lst_projection_functions,
+                         # lst_projection_functions=lst_projection_functions_fast,
                          f_lambda_init=f_lambda_init,
                          nb_iter=nb_iter,
                          update_right_to_left=update_right_to_left,

@@ -9,7 +9,7 @@ from numpy import eye
 import numpy as np
 from numpy.linalg import multi_dot
 import daiquiri
-from pyqalm.projection_operators import prox_splincol, prox_splincol_fast
+from pyqalm.projection_operators import prox_splincol  #, prox_splincol_fast
 
 daiquiri.setup(level=logging.DEBUG)
 logger = daiquiri.getLogger("pyqalm")
@@ -42,8 +42,8 @@ def get_lambda_proxsplincol(nb_keep_values):
     return lambda mat: prox_splincol(mat, nb_keep_values)
 
 
-def get_lambda_proxsplincol_fast(nb_keep_values):
-    return lambda mat: prox_splincol_fast(mat, nb_keep_values)
+# def get_lambda_proxsplincol_fast(nb_keep_values):
+#     return lambda mat: prox_splincol_fast(mat, nb_keep_values)
 
 
 def constant_proj(mat):
@@ -111,6 +111,7 @@ class ResultPrinter:
                 if self.__header:
                     out_f.write(s_headers + "\n")
                 out_f.write(s_values + "\n")
+
 
 class ObjectiveFunctionPrinter:
     def __init__(self, output_file:Path=None):
@@ -219,6 +220,7 @@ class ParameterManagerQmeans(ParameterManager):
         self["--sparsity-factor"] = int(self["--sparsity-factor"])
         self["--nb-factors"] = int(self["--nb-factors"])
         self["--nb-iteration-palm"] = int(self["--nb-iteration-palm"])
+
 
 def blobs_dataset():
     X, _ = datasets.make_blobs(n_samples=1000, n_features=20, centers=50)
