@@ -16,26 +16,7 @@ import matplotlib.pyplot as plt
 
 from pyqalm.utils import get_side_prod, logger, get_lambda_proxsplincol, constant_proj
 
-daiquiri.setup(level=logging.INFO)
-
-def initialize_clusters(K_nb_clusters, d_dimension, nb_factors):
-    """
-    Initialize clusters as a product of sparse matrices.
-
-    :return: The list of the sparse matrices whose product gives the initial clusters
-    """
-    min_K_d = min([K_nb_clusters, d_dimension])
-
-    lst_factors = [np.eye(min_K_d) for i in range(nb_factors) ]
-    lst_factors[-1] = np.random.rand(min_K_d, d_dimension)
-    lst_factors[0] = np.zeros((K_nb_clusters, min_K_d))
-    lst_factors[0][np.diag_indices(min_K_d)] = np.random.rand(min_K_d)
-    # dansle papier gribonval le facteur de droite est initialisé "full zero"
-    # mais ça marche aussi avec n'importe quelle valeur...ce qui serait nécessaire dans notre cas
-    # todo pourquoi voulaient-ils mettre des zéros?
-
-    U_centroids = get_side_prod(lst_factors)
-    return lst_factors, U_centroids
+daiquiri.setup(level=logging.DEBUG)
 
 def get_distances(X_data, U_centroids):
     """
@@ -70,7 +51,10 @@ def qmeans(X_data, K_nb_cluster, nb_iter, nb_factors, params_palm4msa, initializ
     lst_factors[1] = np.eye(K_nb_cluster, min_K_d)
     lst_factors[-1] = np.zeros((min_K_d, X_centroids_hat.shape[1]))
 
-    _lambda, lst_factors, U_centroids, nb_iter_by_factor, _ = HierarchicalPALM4MSA(
+    if graphical_display:
+        lst_factors_init = copy.deepcopy(lst_factors)
+
+    _lambda, lst_factors, U_centroids, nb_iter_by_factor, objective_palm = HierarchicalPALM4MSA(
         arr_X_target=np.eye(K_nb_cluster) @ X_centroids_hat,
         lst_S_init=lst_factors,
         lst_dct_projection_function=lst_proj_op_by_fac_step,
@@ -79,6 +63,18 @@ def qmeans(X_data, K_nb_cluster, nb_iter, nb_factors, params_palm4msa, initializ
         update_right_to_left=True,
         residual_on_right=True,
         graphical_display=False)
+
+    if graphical_display:
+        plt.figure()
+        plt.yscale("log")
+        plt.scatter(np.arange(len(objective_palm) * 3, step=3), objective_palm[:, 0], marker="x", label="before split")
+        plt.scatter(np.arange(len(objective_palm) * 3, step=3) + 1, objective_palm[:, 1], marker="x", label="between")
+        plt.scatter(np.arange(len(objective_palm) * 3, step=3) + 2, objective_palm[:, 2], marker="x", label="after finetune")
+        plt.plot(np.arange(len(objective_palm) * 3), objective_palm.flatten(), color="k")
+        plt.legend()
+        plt.show()
+
+        visual_evaluation_palm4msa(np.eye(K_nb_cluster) @ X_centroids_hat, lst_factors_init, lst_factors, _lambda * multi_dot(lst_factors))
 
     _lambda_tmp = _lambda
 
@@ -149,6 +145,15 @@ def qmeans(X_data, K_nb_cluster, nb_iter, nb_factors, params_palm4msa, initializ
         logger.info("Loss palm inside: {}".format(objective_palm[-1, 0]))
 
         if graphical_display:
+            plt.figure()
+            plt.yscale("log")
+            plt.scatter(np.arange(len(objective_palm) * 3, step=3), objective_palm[:, 0], marker="x", label="before split")
+            plt.scatter(np.arange(len(objective_palm) * 3, step=3) + 1, objective_palm[:, 1], marker="x", label="between")
+            plt.scatter(np.arange(len(objective_palm) * 3, step=3) + 2, objective_palm[:, 2], marker="x", label="after finetune")
+            plt.plot(np.arange(len(objective_palm) * 3), objective_palm.flatten(), color="k")
+            plt.legend()
+            plt.show()
+
             visual_evaluation_palm4msa(diag_counts_sqrt @ X_centroids_hat, lst_factors_init, lst_factors, _lambda_tmp * multi_dot(lst_factors))
 
         _lambda = _lambda_tmp / diag_counts_sqrt_norm
@@ -265,8 +270,8 @@ if __name__ == '__main__':
     U_centroids_hat = X[np.random.permutation(X.shape[0])[:nb_clusters]] # kmeans++ initialization is not feasible because complexity is O(ndk)...
 
     nb_factors = 5
-    sparsity_factor = 5
-    nb_iter_palm = 1000
+    sparsity_factor = 3
+    nb_iter_palm = 10
 
     lst_constraints, lst_constraints_vals = build_constraint_sets(U_centroids_hat.shape[0], U_centroids_hat.shape[1], nb_factors, sparsity_factor=sparsity_factor)
     logger.info("constraints: {}".format(pformat(lst_constraints_vals)))
@@ -277,7 +282,7 @@ if __name__ == '__main__':
         "lst_constraint_sets": lst_constraints}
 
     try:
-        objective_values_q = qmeans(X, nb_clusters, nb_iter_kmeans, nb_factors, hierarchical_palm_init, initialization=U_centroids_hat, graphical_display=False)
+        objective_values_q = qmeans(X, nb_clusters, nb_iter_kmeans, nb_factors, hierarchical_palm_init, initialization=U_centroids_hat, graphical_display=True)
     except Exception as e:
         logger.info("There have been a problem in qmeans: {}".format(str(e)))
     try:
