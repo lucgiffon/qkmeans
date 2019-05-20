@@ -3,8 +3,10 @@
 
 .. moduleauthor:: Valentin Emiya
 """
+import numpy as np
 from scipy.sparse.linalg import LinearOperator
 from scipy.sparse import csr_matrix
+from scipy.sparse.linalg import eigs, svds
 
 
 class SparseFactors(LinearOperator):
@@ -34,7 +36,7 @@ class SparseFactors(LinearOperator):
         -------
 
         """
-        return type(np.prod([x[0, 0] for x in self._lst_factors]))
+        return np.dtype(np.prod([x[0, 0] for x in self._lst_factors]))
 
     def set_factor(self, index, x):
         self._lst_factors[index] = csr_matrix(x)
@@ -114,6 +116,20 @@ class SparseFactors(LinearOperator):
             return [x.copy() for x in self._lst_factors]
         else:
             return self._lst_factors
+
+    def compute_spectral_norm(self, method='svds'):
+        if method == 'svds':
+            a = svds(A=self, k=1, return_singular_vectors=False)
+            return a[0]
+        elif method == 'eigs':
+            if self.shape[0] > self.shape[1]:
+                SS = SparseFactors(self.adjoint().get_list_of_factors()
+                                   + self.get_list_of_factors())
+            else:
+                SS = SparseFactors(self.get_list_of_factors()
+                                   + self.adjoint().get_list_of_factors())
+            a = eigs(A=SS, k=1, return_eigenvectors=False)
+            return np.sqrt(np.real(a[0]))
 
 
 if __name__ == '__main__':

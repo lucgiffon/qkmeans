@@ -551,7 +551,6 @@ def palm4msa_fast1(arr_X_target: np.array,
 
         i_iter += 1
 
-
     objective_function = objective_function[:i_iter, :]
 
     if graphical_display:
