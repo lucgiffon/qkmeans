@@ -1,3 +1,8 @@
+.kile/*
+.kilepr
+.bakdir
+results/*
+
 *.pdf
 *.synctex.gz
 *.aux
