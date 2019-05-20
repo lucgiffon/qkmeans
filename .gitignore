@@ -1,5 +1,5 @@
 .kile/*
-.kilepr
+*.kilepr*
 .bakdir
 results/*
 
