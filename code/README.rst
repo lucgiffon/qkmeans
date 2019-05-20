@@ -31,17 +31,22 @@ Status
 ------
 This documentation is not up to date:
 
-* Installation with ``pip`` is not available yet
+* Installation with ``pip`` is not available yet (from pypi repo)
 * Documentation is not online yet
 * Gitlab project is not public
+
+Todos
+-----
+
+* Installation with check environment
 
 Install
 -------
 
 Currently, install with ``pip`` from a git copy by running the following
-command in directory ``[root]/qalm_qmeans/code``::
+command in directory ``[root]/qalm_qmeans/``::
 
-    pip install -e .
+    make install
 
 !!ALL WHAT REMAINS IS NOT UP TO DATE!!
 

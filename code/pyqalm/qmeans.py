@@ -35,15 +35,22 @@ def get_distances(X_data, U_centroids):
 def compute_objective(X_data, U_centroids, indicator_vector):
     return np.linalg.norm(X_data - U_centroids[indicator_vector]) ** 2
 
-def qmeans(X_data, K_nb_cluster, nb_iter, nb_factors, params_palm4msa, initialization, hierarchical_inside=False, graphical_display=False):
+def qmeans(X_data:np.ndarray,
+           K_nb_cluster:int,
+           nb_iter:int,
+           nb_factors:int,
+           params_palm4msa:dict,
+           initialization:np.ndarray,
+           hierarchical_inside=False,
+           graphical_display=False):
+
+    assert K_nb_cluster == initialization.shape[0]
 
     init_lambda = params_palm4msa["init_lambda"]
     nb_iter_palm = params_palm4msa["nb_iter"]
     lst_proj_op_by_fac_step = params_palm4msa["lst_constraint_sets"]
 
-    # Initialize our centroids by picking random data points
     X_centroids_hat = copy.deepcopy(initialization)
-    # lst_factors, U_centroids = initialize_clusters(K_nb_cluster, X_data.shape[1], nb_factors)
     min_K_d = min(X_centroids_hat.shape)
 
     lst_factors = [np.eye(min_K_d) for _ in range(nb_factors)]
@@ -117,7 +124,7 @@ def qmeans(X_data, K_nb_cluster, nb_iter, nb_factors, params_palm4msa, initializ
             raise ValueError("Some clusters have no point. Aborting iteration {}".format(i_iter))
 
         diag_counts_sqrt = np.diag(np.sqrt(counts[cluster_names_sorted])) # todo use sparse matrix object
-        diag_counts_sqrt_norm = np.linalg.norm(diag_counts_sqrt) # todo analytic sqrt n instead of cumputing it
+        diag_counts_sqrt_norm = np.linalg.norm(diag_counts_sqrt) # todo analytic sqrt(n) instead of cumputing it with norm
         diag_counts_sqrt_normalized = diag_counts_sqrt / diag_counts_sqrt_norm
         # set it as first factor
         lst_factors[0] = diag_counts_sqrt_normalized
@@ -235,9 +242,18 @@ def kmeans(X_data, K_nb_cluster, nb_iter, initialization):
 
 
 
-def build_constraint_sets(right_dim, left_dim, nb_factors, sparsity_factor):
+def build_constraint_sets(left_dim, right_dim, nb_factors, sparsity_factor):
+    """
+    Build constraint set for factors with first factor constant.
 
-    inner_factor_dim = min(right_dim, left_dim)
+    :param left_dim:
+    :param right_dim:
+    :param nb_factors:
+    :param sparsity_factor:
+    :return:
+    """
+
+    inner_factor_dim = min(left_dim, right_dim)
 
     lst_proj_op_by_fac_step = []
     lst_proj_op_desc_by_fac_step = []
