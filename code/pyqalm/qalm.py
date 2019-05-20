@@ -15,6 +15,10 @@ from pyqalm.projection_operators import prox_splincol, inplace_hardthreshold
 from pyqalm.utils import get_side_prod, logger
 
 
+def compute_objective_function(arr_X_target, _f_lambda, _lst_S):
+    reconstruct = _f_lambda * multi_dot(_lst_S)
+    return np.linalg.norm(arr_X_target - reconstruct, ord='fro') ** 2
+
 def PALM4MSA(arr_X_target: np.array,
              lst_S_init: list,
              nb_factors: int,
@@ -55,8 +59,7 @@ def PALM4MSA(arr_X_target: np.array,
     def update_scaling_factor(X, X_est):
         return np.sum(X * X_est) / np.sum(X_est ** 2)
 
-    def compute_objective_function(_f_lambda, _lst_S):
-        return np.linalg.norm(arr_X_target - _f_lambda * multi_dot(_lst_S), ord='fro')
+
 
     logger.debug('Norme de arr_X_target: {}'.format(np.linalg.norm(arr_X_target, ord='fro')))
     assert len(lst_S_init) > 0
@@ -99,7 +102,7 @@ def PALM4MSA(arr_X_target: np.array,
 
             if graphical_display:
                 objective_function[i_iter, j - 1] = \
-                    compute_objective_function(_f_lambda=f_lambda, _lst_S=lst_S)
+                    compute_objective_function(arr_X_target, _f_lambda=f_lambda, _lst_S=lst_S)
 
         # re-compute the full factorisation
         if len(lst_S) == 1:
@@ -111,7 +114,7 @@ def PALM4MSA(arr_X_target: np.array,
         logger.debug("Lambda value: {}".format(f_lambda))
 
         objective_function[i_iter, -1] = \
-            compute_objective_function(_f_lambda=f_lambda, _lst_S=lst_S)
+            compute_objective_function(arr_X_target, _f_lambda=f_lambda, _lst_S=lst_S)
 
         logger.debug("Iteration {}; Objective value: {}".format(i_iter, objective_function[i_iter, -1]))
 
@@ -181,7 +184,7 @@ def HierarchicalPALM4MSA(arr_X_target: np.array,
 
     f_lambda = f_lambda_init
 
-    objective_function = np.empty((nb_factors,))
+    objective_function = np.empty((nb_factors,3))
 
     # main loop
     for k in range(nb_factors - 1):
@@ -189,6 +192,8 @@ def HierarchicalPALM4MSA(arr_X_target: np.array,
 
         logger.info("Working on factor: {}".format(k))
         logger.info("Step split")
+
+        objective_function[k, 0] = compute_objective_function(arr_X_target, f_lambda, lst_S)
 
         # calcule decomposition en 2 du résidu précédent
         func_split_step_palm4msa = lambda lst_S_init: PALM4MSA(
@@ -254,6 +259,8 @@ def HierarchicalPALM4MSA(arr_X_target: np.array,
         # get the k first elements [:k+1] and the next one (k+1)th as arr_residual (depend on the residual_on_right option)
         logger.info("Step finetuning")
 
+        objective_function[k, 1] = compute_objective_function(arr_X_target, f_lambda, lst_S)
+
         func_fine_tune_step_palm4msa = lambda lst_S_init: PALM4MSA(
             arr_X_target=arr_X_target,
             lst_S_init=lst_S_init,
@@ -271,6 +278,7 @@ def HierarchicalPALM4MSA(arr_X_target: np.array,
 
         lst_nb_iter_by_factor.append(nb_iter_this_factor + nb_iter_this_factor_bis)
 
+        objective_function[k, 2] = compute_objective_function(arr_X_target, f_lambda, lst_S)
 
         if graphical_display:
             plt.figure()
@@ -305,13 +313,15 @@ def HierarchicalPALM4MSA(arr_X_target: np.array,
     else:
         lst_S[0] = arr_residual
 
+    objective_function[nb_factors-1, :] = np.array([compute_objective_function(arr_X_target, f_lambda, lst_S)] * 3)
+
 
     if len(lst_S) == 1:
         arr_X_curr = f_lambda * lst_S[0]
     else:
         arr_X_curr = f_lambda * multi_dot(lst_S)
 
-    return f_lambda, lst_S, arr_X_curr, lst_nb_iter_by_factor
+    return f_lambda, lst_S, arr_X_curr, lst_nb_iter_by_factor, objective_function
 
 
 def palm4msa_fast1(arr_X_target: np.array,
@@ -433,5 +443,4 @@ def palm4msa_fast1(arr_X_target: np.array,
         plt.legend()
         plt.show()
 
-    return f_lambda, lst_S, arr_X_curr, objective_function, i_iter
-
+    return f_lambda, lst_S, arr_X_curr, lst_nb_iter_by_factor, objective_function

@@ -1,7 +1,20 @@
+reports.bakdir/*
+
+
+.kile/*
+*.kilepr*
+.bakdir
+results/*
+
 *.pdf
 *.synctex.gz
 *.aux
 *.log
+*.bbl
+*.blg
+*.dvi
+*.out
+*.ps
 
 
 *.py[co]
