@@ -59,8 +59,6 @@ def PALM4MSA(arr_X_target: np.array,
     def update_scaling_factor(X, X_est):
         return np.sum(X * X_est) / np.sum(X_est ** 2)
 
-
-
     logger.debug('Norme de arr_X_target: {}'.format(np.linalg.norm(arr_X_target, ord='fro')))
     assert len(lst_S_init) > 0
     assert get_side_prod(lst_S_init).shape == arr_X_target.shape
@@ -270,7 +268,6 @@ def HierarchicalPALM4MSA(arr_X_target: np.array,
         logger.info("Step finetuning")
 
         objective_function[k, 1] = compute_objective_function(arr_X_target, f_lambda, lst_S)
-
 
         func_fine_tune_step_palm4msa = lambda lst_S_init: PALM4MSA(
             arr_X_target=arr_X_target,

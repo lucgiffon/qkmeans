@@ -2,14 +2,15 @@
 Analysis of objective function during qmeans execution
 
 Usage:
-  qmeans_objective_function_analysis kmeans [-h] [-v] [--output-file=str] (--blobs) --nb-cluster=int --initialization=str [--seed=int] [--nb-iteration=int]
-  qmeans_objective_function_analysis qmeans [-h] [-v] [--output-file=str] (--blobs) --nb-cluster=int --initialization=str --nb-factors=int --sparsity-factor=int [--hierarchical] [--nb-iteration-palm=int]
+  qmeans_objective_function_analysis kmeans [-h] [-v] [--output-file=str] [--seed=int] (--blobs) --nb-cluster=int --initialization=str [--nb-iteration=int]
+  qmeans_objective_function_analysis qmeans [-h] [-v] [--output-file=str] [--seed=int] (--blobs) --nb-cluster=int --initialization=str --nb-factors=int --sparsity-factor=int [--hierarchical] [--nb-iteration-palm=int]
 
 Options:
   -h --help                             Show this screen.
   -v --verbose                          Set verbosity to debug.
   --output-file=str                     Tell if the results should be written to some file and give the path to the file.
                                         The file name must be given without ext.
+  --seed=int                            The seed to use for numpy random module.
 
 Dataset:
   --blobs                               Use blobs dataset from sklearn.
@@ -19,7 +20,6 @@ Non-specific options:
   --nb-iteration=int                    Number of iterations in the main algorithm. [default: 20]
   --initialization=str                  Desired type of initialization ('random', 'uniform_sampling'). For Qmeans, the initialized
                                         centroids are approximated by some sparse factors first using the HierarchicalPalm4msa algorithm..
-  --seed=int                            The seed to use for numpy random module.
 
 Qmeans-Specifc options:
   --nb-factors=int                      Number of factors in the decomposition (without the extra upfront diagonal matrix).
@@ -35,29 +35,40 @@ from pathlib import Path
 import docopt
 import logging
 import daiquiri
+import time
 import numpy as np
 from pyqalm.utils import ResultPrinter, ParameterManager, ParameterManagerQmeans, ObjectiveFunctionPrinter
 # todo graphical evaluation option
-# todo other projection strategies (taking into account the difference in size between factors)
-from pyqalm.qmeans import kmeans, qmeans, build_constraint_sets
+from pyqalm.qmeans import kmeans, qmeans, build_constraint_set_smart
 
 
 def main_kmeans():
     X = paraman.get_dataset()
     U_init = paraman.get_initialization_centroids(X)
-    kmeans(X_data=X,
+    start_kmeans = time.time()
+    objective_values_k, final_centroids = kmeans(X_data=X,
            K_nb_cluster=paraman["--nb-cluster"],
            nb_iter=paraman["--nb-iteration"],
            initialization=U_init)
+    stop_kmeans = time.time()
+    kmeans_traintime = stop_kmeans - start_kmeans
+
+    kmeans_results = {
+        "traintime": kmeans_traintime
+    }
+
+    objprinter.add("kmeans_objective", ("after t"), objective_values_k)
+    resprinter.add(kmeans_results)
+
 
 def main_qmeans():
     X = paraman.get_dataset()
     U_init = paraman.get_initialization_centroids(X)
 
-    lst_constraint_sets, lst_constraint_sets_desc = build_constraint_sets(left_dim=U_init.shape[0],
-                                                                          right_dim=U_init.shape[1],
-                                                                          nb_factors=paraman["--nb-factors"] + 1,
-                                                                          sparsity_factor=paraman["--sparsity-factor"])
+    lst_constraint_sets, lst_constraint_sets_desc = build_constraint_set_smart(left_dim=U_init.shape[0],
+                                                                               right_dim=U_init.shape[1],
+                                                                               nb_factors=paraman["--nb-factors"] + 1,
+                                                                               sparsity_factor=paraman["--sparsity-factor"])
 
     parameters_palm4msa = {
         "init_lambda": 1.,
@@ -66,17 +77,24 @@ def main_qmeans():
 
     }
 
-    objective_values_q = qmeans(X_data=X,
-                                K_nb_cluster=paraman["--nb-cluster"],
-                                nb_iter=paraman["--nb-iteration"],
-                                nb_factors=paraman["--nb-factors"] + 1,
-                                params_palm4msa=parameters_palm4msa,
-                                initialization=U_init,
-                                hierarchical_inside=paraman["--hierarchical"],
-                                )
+    start_qmeans = time.time()
+    objective_values_q, centroid_factors, centroid_lambda = qmeans(X_data=X,
+                                                                   K_nb_cluster=paraman["--nb-cluster"],
+                                                                   nb_iter=paraman["--nb-iteration"],
+                                                                   nb_factors=paraman["--nb-factors"] + 1,
+                                                                   params_palm4msa=parameters_palm4msa,
+                                                                   initialization=U_init,
+                                                                   hierarchical_inside=paraman["--hierarchical"],
+                                                                   )
+    stop_qmeans = time.time()
+    qmeans_traintime = stop_qmeans - start_qmeans
+    qmeans_results = {
+        "traintime": qmeans_traintime
+    }
+
 
     objprinter.add("qmeans_objective", ("after palm", "after t"), objective_values_q)
-
+    resprinter.add(qmeans_results)
 
 
 if __name__ == "__main__":
