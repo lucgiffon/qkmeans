@@ -66,6 +66,9 @@ class TestPalm4Msa(unittest.TestCase):
 
             np.testing.assert_almost_equal(f_lambda, f_lambda_ref)
             np.testing.assert_array_almost_equal(arr_X_curr, arr_X_curr_ref)
+            np.testing.assert_equal(i_iter, i_iter_ref)
+            np.testing.assert_array_almost_equal(objective_function,
+                                                 objective_function_ref)
 
 
 if __name__ == '__main__':

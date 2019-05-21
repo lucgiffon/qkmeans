@@ -51,8 +51,11 @@ def PALM4MSA(arr_X_target: np.array,
         - Normalize data
         """
         # compute gradient of the distance metric (with 1/_c gradient step size)
-        grad_step = 1. / _c * _lambda * _left_side.T @ ((
-                                                                _lambda * _left_side @ S_old @ _right_side) - arr_X_target) @ _right_side.T
+        grad_step = 1. / _c * _lambda \
+                    * _left_side.T \
+                    @ ((_lambda * _left_side @ S_old @ _right_side)
+                       - arr_X_target) \
+                    @ _right_side.T
 
         # grad_step[np.abs(grad_step) < np.finfo(float).eps] = 0.
         # 1 step for minimizing + flatten necessary for the upcoming projection
@@ -103,8 +106,8 @@ def PALM4MSA(arr_X_target: np.array,
                 (arr_X_target.shape[1], arr_X_target.shape[1]))  # R
 
             # compute minimum c value (according to paper)
-            min_c_value = (f_lambda * norm(right_side, ord=2) * norm(left_side,
-                                                                     ord=2)) ** 2
+            min_c_value = (f_lambda * norm(right_side, ord=2)
+                           * norm(left_side, ord=2)) ** 2
             # add epsilon because it is exclusive minimum
             c = min_c_value * 1.001
             logger.debug(
@@ -133,15 +136,16 @@ def PALM4MSA(arr_X_target: np.array,
             compute_objective_function(arr_X_target, _f_lambda=f_lambda,
                                        _lst_S=lst_S)
 
-        logger.debug("Iteration {}; Objective value: {}".format(i_iter,
-                                                                objective_function[
-                                                                    i_iter, -1]))
+        logger.debug("Iteration {}; Objective value: {}"
+                     .format(i_iter, objective_function[i_iter, -1]))
 
         if i_iter >= 1:
             delta_objective_error = np.abs(
                 objective_function[i_iter, -1] - objective_function[
                     i_iter - 1, -1]) / objective_function[
-                                        i_iter - 1, -1]  # todo vérifier que l'erreur absolue est plus petite que le threshold plusieurs fois d'affilée
+                                        i_iter - 1, -1]
+            # TODO vérifier que l'erreur absolue est plus petite que le
+            # threshold plusieurs fois d'affilée
 
         i_iter += 1
 
@@ -430,17 +434,14 @@ def palm4msa_fast1(arr_X_target: np.array,
             if lst_projection_functions[j].__name__ == "constant_proj":
                 continue
 
-            # left_side = get_side_prod(S_factors_op[:j], (arr_X_target.shape[0], arr_X_target.shape[0]))  # L
             index_value_for_right_factors_selection = (nb_factors + j + 1) % (
                     nb_factors + 1)  # trust me, I am a scientist.
-            # right_side = get_side_prod(S_factors_op[index_value_for_right_factors_selection:], (arr_X_target.shape[1], arr_X_target.shape[1]))  # R
             lst_factors = S_factors_op.get_list_of_factors()
             L = SparseFactors(lst_factors[:j])
             R = SparseFactors(
                 lst_factors[index_value_for_right_factors_selection:])
 
             # compute minimum c value (according to paper)
-            # min_c_value = (f_lambda * norm(right_side, ord=2) * norm(left_side, ord=2)) ** 2
             L_norm = L.compute_spectral_norm() if L.n_factors > 0 else 1
             R_norm = R.compute_spectral_norm() if R.n_factors > 0 else 1
             min_c_value = (f_lambda * L_norm * R_norm) ** 2
@@ -473,15 +474,15 @@ def palm4msa_fast1(arr_X_target: np.array,
             compute_objective_function(arr_X_target, _f_lambda=f_lambda,
                                        _lst_S=S_factors_op)
 
-        logger.debug("Iteration {}; Objective value: {}".format(i_iter,
-                                                                objective_function[
-                                                                    i_iter, -1]))
+        logger.debug("Iteration {}; Objective value: {}"
+                     .format(i_iter, objective_function[i_iter, -1]))
 
         if i_iter >= 1:
             delta_objective_error = np.abs(
                 objective_function[i_iter, -1] - objective_function[
-                    i_iter - 1, -1]) / objective_function[
-                                        i_iter - 1, -1]  # todo vérifier que l'erreur absolue est plus petite que le threshold plusieurs fois d'affilée
+                    i_iter - 1, -1]) / objective_function[i_iter - 1, -1]
+            # TODO vérifier que l'erreur absolue est plus petite que le
+            # threshold plusieurs fois d'affilée
 
         i_iter += 1
 
@@ -547,9 +548,6 @@ if __name__ == '__main__':
                      update_right_to_left=update_right_to_left,
                      graphical_display=graphical_display)
 
-        # lst_projection_functions_fast = \
-        #     [get_lambda_proxsplincol_fast(nb_keep_values)] * nb_factors \
-        #     + [get_lambda_proxsplincol_fast(nb_values_residual)]
         f_lambda, lst_S, arr_X_curr, objective_function, i_iter = \
             palm4msa_fast1(X,
                            lst_S_init=lst_S_init,
