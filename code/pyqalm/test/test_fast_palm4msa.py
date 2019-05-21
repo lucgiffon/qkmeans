@@ -55,14 +55,14 @@ class TestPalm4Msa(unittest.TestCase):
             #     + [get_lambda_proxsplincol_fast(nb_values_residual)]
             f_lambda, lst_S, arr_X_curr, objective_function, i_iter = \
                 palm4msa_fast1(X,
-                         lst_S_init=lst_S_init,
-                         nb_factors=nb_factors,
-                         lst_projection_functions=lst_projection_functions,
-                         # lst_projection_functions=lst_projection_functions_fast,
-                         f_lambda_init=f_lambda_init,
-                         nb_iter=nb_iter,
-                         update_right_to_left=update_right_to_left,
-                         graphical_display=graphical_display)
+                               lst_S_init=lst_S_init,
+                               nb_factors=nb_factors,
+                               lst_projection_functions=lst_projection_functions,
+                               # lst_projection_functions=lst_projection_functions_fast,
+                               f_lambda_init=f_lambda_init,
+                               nb_iter=nb_iter,
+                               update_right_to_left=update_right_to_left,
+                               graphical_display=graphical_display)
 
             np.testing.assert_almost_equal(f_lambda, f_lambda_ref)
             np.testing.assert_array_almost_equal(arr_X_curr, arr_X_curr_ref)

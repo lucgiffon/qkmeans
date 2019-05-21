@@ -16,9 +16,11 @@ class TestSparseFactors(unittest.TestCase):
         self.P = np.linalg.multi_dot(self.A)
         self.S = SparseFactors(self.A)
 
-    def test_init_empty(self):
+    def test_empty(self):
         S = SparseFactors([])
-        np.testing.assert_array_equal(S.shape, np.array([]).shape)
+        np.testing.assert_array_equal(S.shape, np.array([[]]).shape)
+        print(S)
+        # TODO test other methods and parameters
 
     def test_shape(self):
         np.testing.assert_array_equal(

@@ -25,7 +25,7 @@ class SparseFactors(LinearOperator):
     @property
     def shape(self):
         if len(self._lst_factors) == 0:
-            return 0,
+            return 0, 0
         return self._lst_factors[0].shape[0], self._lst_factors[-1].shape[-1]
 
     @property
@@ -40,6 +40,8 @@ class SparseFactors(LinearOperator):
 
     def set_factor(self, index, x):
         self._lst_factors[index] = csr_matrix(x)
+        if index < 0:
+            index += self.n_factors
         if index > 0:
             assert self._lst_factors[index].shape[0] \
                    == self._lst_factors[index - 1].shape[1]
@@ -103,7 +105,7 @@ class SparseFactors(LinearOperator):
         Y = self._lst_factors[-1]
         for X in reversed(self._lst_factors[:-1]):
             Y = X.dot(Y)
-        return Y
+        return Y.toarray()
 
     def get_factor(self, index, copy=False):
         if copy:
@@ -117,7 +119,7 @@ class SparseFactors(LinearOperator):
         else:
             return self._lst_factors
 
-    def compute_spectral_norm(self, method='svds'):
+    def compute_spectral_norm(self, method='eigs'):
         if method == 'svds':
             a = svds(A=self, k=1, return_singular_vectors=False)
             return a[0]
