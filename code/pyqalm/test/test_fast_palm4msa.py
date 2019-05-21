@@ -1,7 +1,7 @@
 import unittest
 import numpy as np
 from scipy.linalg import hadamard
-from pyqalm.qalm import PALM4MSA, palm4msa_fast1
+from pyqalm.qalm import PALM4MSA, palm4msa_fast1, palm4msa_fast2
 from pyqalm.utils import get_lambda_proxsplincol
 
 

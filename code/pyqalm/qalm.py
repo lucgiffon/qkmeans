@@ -10,6 +10,7 @@ import numpy as np
 from numpy.linalg import norm
 from numpy.linalg import multi_dot
 import matplotlib.pyplot as plt
+from scipy.sparse import coo_matrix
 
 from pyqalm.projection_operators import prox_splincol, inplace_hardthreshold
 from pyqalm.utils import get_side_prod, logger
@@ -475,6 +476,128 @@ def palm4msa_fast1(arr_X_target: np.array,
             arr_X_curr = S_factors_op.compute_product()
         # update lambda
         f_lambda = update_scaling_factor(arr_X_target, arr_X_curr)
+        logger.debug("Lambda value: {}".format(f_lambda))
+
+        objective_function[i_iter, -1] = \
+            compute_objective_function(arr_X_target, _f_lambda=f_lambda,
+                                       _lst_S=S_factors_op)
+
+        logger.debug("Iteration {}; Objective value: {}"
+                     .format(i_iter, objective_function[i_iter, -1]))
+
+        if i_iter >= 1:
+            delta_objective_error = np.abs(
+                objective_function[i_iter, -1] - objective_function[
+                    i_iter - 1, -1]) / objective_function[i_iter - 1, -1]
+            # TODO vérifier que l'erreur absolue est plus petite que le
+            # threshold plusieurs fois d'affilée
+
+        i_iter += 1
+
+    objective_function = objective_function[:i_iter, :]
+
+    if graphical_display:
+        plt.figure()
+        plt.title("n factors {}".format(nb_factors))
+        for j in range(nb_factors + 1):
+            plt.semilogy(objective_function[:, j], label=str(j))
+        plt.legend()
+        plt.show()
+
+        plt.figure()
+        plt.semilogy(objective_function.flat)
+        plt.legend()
+        plt.show()
+
+    return f_lambda, S_factors_op, arr_X_curr, objective_function, i_iter
+
+
+def palm4msa_fast2(arr_X_target: np.array,
+                   lst_S_init: list,
+                   nb_factors: int,
+                   lst_projection_functions: list,
+                   f_lambda_init: float,
+                   nb_iter: int,
+                   update_right_to_left=True,
+                   graphical_display=False):
+    """
+    lst S init contains factors in decreasing indexes (e.g: the order along which they are multiplied in the product).
+        example: S5 S4 S3 S2 S1
+
+    lst S [-j] = Sj
+
+    """
+    logger.debug('Norme de arr_X_target: {}'.format(
+        np.linalg.norm(arr_X_target, ord='fro')))
+    assert len(lst_S_init) > 0
+    assert get_side_prod(lst_S_init).shape == arr_X_target.shape
+    assert len(lst_S_init) == nb_factors
+    # initialization
+    f_lambda = f_lambda_init
+    S_factors_op = SparseFactors(lst_S_init)
+
+    objective_function = np.empty((nb_iter, nb_factors + 1))
+
+    if update_right_to_left:
+        # range arguments: start, stop, step
+        factor_number_generator = range(-1, -(nb_factors + 1), -1)
+    else:
+        factor_number_generator = range(0, nb_factors, 1)
+    # main loop
+    i_iter = 0
+    delta_objective_error_threshold = 1e-6
+    delta_objective_error = np.inf
+    while i_iter == 0 or ((i_iter < nb_iter) and (
+            delta_objective_error > delta_objective_error_threshold)):
+
+        for j in factor_number_generator:
+            if lst_projection_functions[j].__name__ == "constant_proj":
+                continue
+
+            index_value_for_right_factors_selection = (nb_factors + j + 1) % (
+                    nb_factors + 1)  # trust me, I am a scientist.
+            lst_factors = S_factors_op.get_list_of_factors()
+            L = SparseFactors(lst_factors[:j])
+            R = SparseFactors(
+                lst_factors[index_value_for_right_factors_selection:])
+
+            # compute minimum c value (according to paper)
+            L_norm = L.compute_spectral_norm() if L.n_factors > 0 else 1
+            R_norm = R.compute_spectral_norm() if R.n_factors > 0 else 1
+            min_c_value = (f_lambda * L_norm * R_norm) ** 2
+            # add epsilon because it is exclusive minimum
+            c = min_c_value * 1.001
+            logger.debug(
+                "Lipsitchz constant value: {}; c value: {}".format(min_c_value,
+                                                                   c))
+            # compute new factor value
+            res = f_lambda * S_factors_op.compute_product() - arr_X_target
+            res_RT = R.dot(res.T).T if R.n_factors > 0 else res
+            LT_res_RT = L.transpose().dot(res_RT) if L.n_factors > 0 else res_RT
+            grad_step = 1. / c * f_lambda * LT_res_RT
+
+            Sj = S_factors_op.get_factor(j)
+
+            # normalize because all factors must have norm 1
+            S_proj = coo_matrix(lst_projection_functions[j](Sj - grad_step))
+            S_proj /= np.sqrt(S_proj.power(2).sum())
+
+            S_factors_op.set_factor(j, S_proj)
+
+            if graphical_display:
+                objective_function[i_iter, j - 1] = \
+                    compute_objective_function(arr_X_target,
+                                               _f_lambda=f_lambda,
+                                               _lst_S=S_factors_op)
+
+        # re-compute the full factorisation
+        if S_factors_op.n_factors == 1:
+            arr_X_curr = S_factors_op.get_factor(0)
+        else:
+            arr_X_curr = S_factors_op.compute_product()
+        # update lambda
+        f_lambda = np.sum(arr_X_target * arr_X_curr) / np.sum(arr_X_curr ** 2)
+
         logger.debug("Lambda value: {}".format(f_lambda))
 
         objective_function[i_iter, -1] = \
