@@ -1,4 +1,8 @@
 import logging
+import os
+import urllib
+
+import pathlib
 from copy import deepcopy
 
 from pathlib import Path
@@ -215,3 +219,40 @@ class ParameterManagerQmeans(ParameterManager):
 def blobs_dataset():
     X, _ = datasets.make_blobs(n_samples=1000, n_features=20, centers=50)
     return X
+
+
+def create_directory(_dir, parents=True, exist_ok=True):
+    """
+    Try to create the directory if it does not exist.
+
+    :param dir: the path to the directory to be created
+    :return: None
+    """
+    logger.debug("Creating directory {} if needed".format(_dir))
+    pathlib.Path(_dir).mkdir(parents=parents, exist_ok=exist_ok)
+
+
+def download_data(url, directory, name=None):
+    """
+    Download the file at the specified url
+
+    :param url: the end-point url of the need file
+    :type url: str
+    :param directory: the target directory where to download the file
+    :type directory: str
+    :param name: the name of the target file downloaded
+    :type name: str
+    :return: The destination path of the downloaded file
+    """
+    create_directory(directory)
+    logger.debug(f"Download file at {url}")
+    if name is None:
+        name = os.path.basename(os.path.normpath(url))
+    s_file_path = os.path.join(directory, name)
+    if not os.path.exists(s_file_path):
+        urllib.request.urlretrieve(url, s_file_path)
+        logger.debug("File {} has been downloaded to {}.".format(url, s_file_path))
+    else:
+        logger.debug("File {} already exists and doesn't need to be donwloaded".format(s_file_path))
+
+    return s_file_path
