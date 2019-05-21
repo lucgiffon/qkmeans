@@ -164,6 +164,7 @@ def PALM4MSA(arr_X_target: np.array,
         plt.legend()
         plt.show()
 
+    # todo maybe change arrX_curr by lambda * arrX_curr
     return f_lambda, lst_S, arr_X_curr, objective_function, i_iter
 
 
@@ -209,7 +210,7 @@ def HierarchicalPALM4MSA(arr_X_target: np.array,
 
     lst_nb_iter_by_factor = []
 
-    f_lambda = f_lambda_init
+    f_lambda = f_lambda_init # todo enlever?
 
     objective_function = np.empty((nb_factors, 3))
 
@@ -224,13 +225,17 @@ def HierarchicalPALM4MSA(arr_X_target: np.array,
                                                               f_lambda, lst_S)
 
         # calcule decomposition en 2 du résidu précédent
+        if k == 0:
+            f_lambda_init_split = f_lambda_init
+        else:
+            f_lambda_init_split = 1.
+
         func_split_step_palm4msa = lambda lst_S_init: PALM4MSA(
             arr_X_target=arr_residual,
             lst_S_init=lst_S_init,  # eye for factor and zeros for residual
             nb_factors=2,
-            lst_projection_functions=lst_dct_projection_function[k]["split"],
-            # define constraints: ||0 = d pour T1; relaxed constraint on ||0 for T2
-            f_lambda_init=1.,
+            lst_projection_functions=lst_dct_projection_function[k]["split"], #define constraints: ||0 = d pour T1; relaxed constraint on ||0 for T2
+            f_lambda_init=f_lambda_init_split,
             nb_iter=nb_iter,
             update_right_to_left=update_right_to_left,
             graphical_display=graphical_display)
@@ -246,15 +251,16 @@ def HierarchicalPALM4MSA(arr_X_target: np.array,
             lst_S_init_split_step = [residual_init, S_init]
 
         if residual_on_right:
-            f_lambda_prime, (new_factor,
-                             new_residual), _, _, nb_iter_this_factor = func_split_step_palm4msa(
-                lst_S_init=lst_S_init_split_step)
+            f_lambda_prime, (new_factor, new_residual), unscaled_residual_reconstruction, _, nb_iter_this_factor = func_split_step_palm4msa(lst_S_init=lst_S_init_split_step)
         else:
-            f_lambda_prime, (new_residual,
-                             new_factor), _, _, nb_iter_this_factor = func_split_step_palm4msa(
-                lst_S_init=lst_S_init_split_step)
+            f_lambda_prime, (new_residual, new_factor), unscaled_residual_reconstruction, _, nb_iter_this_factor = func_split_step_palm4msa(lst_S_init=lst_S_init_split_step)
 
-        f_lambda *= f_lambda_prime
+        if k == 0:
+            f_lambda = f_lambda_prime
+            # f_lambda = f_lambda
+        else:
+            f_lambda *= f_lambda_prime
+
         if residual_on_right:
             lst_S[k] = new_factor
         else:
@@ -293,6 +299,7 @@ def HierarchicalPALM4MSA(arr_X_target: np.array,
 
         objective_function[k, 1] = compute_objective_function(arr_X_target,
                                                               f_lambda, lst_S)
+
 
         func_fine_tune_step_palm4msa = lambda lst_S_init: PALM4MSA(
             arr_X_target=arr_X_target,
