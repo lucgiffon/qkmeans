@@ -50,9 +50,6 @@ class TestPalm4Msa(unittest.TestCase):
                          update_right_to_left=update_right_to_left,
                          graphical_display=graphical_display)
 
-            # lst_projection_functions_fast = \
-            #     [get_lambda_proxsplincol_fast(nb_keep_values)] * nb_factors \
-            #     + [get_lambda_proxsplincol_fast(nb_values_residual)]
             f_lambda, lst_S, arr_X_curr, objective_function, i_iter = \
                 palm4msa_fast1(X,
                                lst_S_init=lst_S_init,
@@ -67,6 +64,7 @@ class TestPalm4Msa(unittest.TestCase):
             np.testing.assert_almost_equal(f_lambda, f_lambda_ref)
             np.testing.assert_array_almost_equal(arr_X_curr, arr_X_curr_ref)
             np.testing.assert_equal(i_iter, i_iter_ref)
+            # FIXME the test on the objective function values fails
             np.testing.assert_array_almost_equal(objective_function,
                                                  objective_function_ref)
 

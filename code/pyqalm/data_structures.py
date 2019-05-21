@@ -132,19 +132,3 @@ class SparseFactors(LinearOperator):
                                    + self.adjoint().get_list_of_factors())
             a = eigs(A=SS, k=1, return_eigenvectors=False)
             return np.sqrt(np.real(a[0]))
-
-
-if __name__ == '__main__':
-    import numpy as np
-    A = [np.random.randint(0, 3, size=(4, 4)) for _ in range(2)]
-    A += [np.random.randint(0, 3, size=(4, 5))]
-    P = np.linalg.multi_dot(A)
-    print(A)
-    O = SparseFactors(A)
-    print(O.dtype)
-    print(O.adjoint())
-    x = np.random.randn(O.shape[1])[:, None]
-    print(P @ x - O @ x)
-    print(P - O.compute_product())
-    print(P.T - O.transpose().compute_product())
-    print(np.conjugate(P).T-O.adjoint().get_product())
