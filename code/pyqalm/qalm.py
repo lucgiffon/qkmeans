@@ -395,11 +395,11 @@ def palm4msa_fast1(arr_X_target: np.array,
         - Normalize data
         """
         # compute gradient of the distance metric (with 1/_c gradient step size)
-        # TODO change input parameters to S,j instead of S_old, _L, _R
-        S = SparseFactors(_L.get_list_of_factors() + [S_old] + R.get_list_of_factors())
+        S = SparseFactors(_L.get_list_of_factors() + [S_old]
+                          + _R.get_list_of_factors())
         res = _lambda * S.compute_product() - arr_X_target
-        res_RT = R.dot(res.T).T if R.n_factors > 0 else res
-        LT_res_RT = _L.transpose().dot(res_RT) if L.n_factors > 0 else res_RT
+        res_RT = _R.dot(res.T).T if _R.n_factors > 0 else res
+        LT_res_RT = _L.transpose().dot(res_RT) if _L.n_factors > 0 else res_RT
         grad_step = 1. / _c * _lambda * LT_res_RT
 
         # grad_step[np.abs(grad_step) < np.finfo(float).eps] = 0.
