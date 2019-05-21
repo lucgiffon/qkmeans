@@ -48,22 +48,25 @@ def qmeans(X_data, K_nb_cluster, nb_iter, nb_factors, params_palm4msa, initializ
 
     lst_factors = [np.eye(min_K_d) for _ in range(nb_factors)]
 
-    lst_factors[0] = np.eye(K_nb_cluster)
+    eye_norm = np.sqrt(K_nb_cluster)
+    lst_factors[0] = np.eye(K_nb_cluster) / eye_norm
     lst_factors[1] = np.eye(K_nb_cluster, min_K_d)
     lst_factors[-1] = np.zeros((min_K_d, X_centroids_hat.shape[1]))
 
     if graphical_display:
         lst_factors_init = copy.deepcopy(lst_factors)
 
-    _lambda, lst_factors, U_centroids, nb_iter_by_factor, objective_palm = HierarchicalPALM4MSA(
+    _lambda_tmp, lst_factors, U_centroids, nb_iter_by_factor, objective_palm = HierarchicalPALM4MSA(
         arr_X_target=np.eye(K_nb_cluster) @ X_centroids_hat,
         lst_S_init=lst_factors,
         lst_dct_projection_function=lst_proj_op_by_fac_step,
-        f_lambda_init=init_lambda,
+        f_lambda_init=init_lambda * eye_norm,
         nb_iter=nb_iter_palm,
         update_right_to_left=True,
         residual_on_right=True,
         graphical_display=False)
+
+    _lambda = _lambda_tmp / eye_norm
 
     if graphical_display:
         if hierarchical_inside:
@@ -78,7 +81,6 @@ def qmeans(X_data, K_nb_cluster, nb_iter, nb_factors, params_palm4msa, initializ
 
         visual_evaluation_palm4msa(np.eye(K_nb_cluster) @ X_centroids_hat, lst_factors_init, lst_factors, _lambda * multi_dot(lst_factors))
 
-    _lambda_tmp = _lambda
 
     objective_function = np.empty((nb_iter,2))
 
@@ -136,7 +138,8 @@ def qmeans(X_data, K_nb_cluster, nb_iter, nb_factors, params_palm4msa, initializ
                 arr_X_target=diag_counts_sqrt @ X_centroids_hat,
                 lst_S_init=lst_factors,
                 lst_dct_projection_function=lst_proj_op_by_fac_step,
-                f_lambda_init=_lambda * diag_counts_sqrt_norm,
+                # f_lambda_init=_lambda,
+                f_lambda_init=_lambda*diag_counts_sqrt_norm,
                 nb_iter=nb_iter_palm,
                 update_right_to_left=True,
                 residual_on_right=True,
@@ -289,7 +292,7 @@ if __name__ == '__main__':
 
     nb_factors = 5
     sparsity_factor = 3
-    nb_iter_palm = 10
+    nb_iter_palm = 300
 
     lst_constraints, lst_constraints_vals = build_constraint_sets(U_centroids_hat.shape[0], U_centroids_hat.shape[1], nb_factors, sparsity_factor=sparsity_factor)
     logger.info("constraints: {}".format(pformat(lst_constraints_vals)))
@@ -301,7 +304,7 @@ if __name__ == '__main__':
 
     # try:
     objective_values_q_hier = qmeans(X, nb_clusters, nb_iter_kmeans, nb_factors, hierarchical_palm_init, initialization=U_centroids_hat, graphical_display=True, hierarchical_inside=True)
-    objective_values_q = qmeans(X, nb_clusters, nb_iter_kmeans, nb_factors, hierarchical_palm_init, initialization=U_centroids_hat, graphical_display=True)
+    objective_values_q = qmeans(X, nb_clusters, nb_iter_kmeans, nb_factors, hierarchical_palm_init, initialization=U_centroids_hat, graphical_display=False)
     # except Exception as e:
     #     logger.info("There have been a problem in qmeans: {}".format(str(e)))
     try:
@@ -315,6 +318,8 @@ if __name__ == '__main__':
     plt.scatter(np.arange(len(objective_values_q)-1)+0.5, objective_values_q[1:, 0], marker="x", label="qmeans after palm(0)", color="b")
     plt.scatter((2*np.arange(len(objective_values_q))+1)/2-0.5, objective_values_q[:, 1], marker="x", label="qmeans after t (1)", color="r")
     plt.plot(np.arange(len(objective_values_q[:, :2].flatten())-1)/2, np.vstack([np.array([objective_values_q[0, 1]])[:, np.newaxis], objective_values_q[1:, :2].flatten()[:, np.newaxis]]), color="k", label="qmeans")
+    plt.scatter(np.arange(len(objective_values_q_hier) - 1) + 0.5, objective_values_q_hier[1:, 0], marker="x", label="qmeans after palm(0)", color="b")
+    plt.scatter((2 * np.arange(len(objective_values_q_hier)) + 1) / 2 - 0.5, objective_values_q_hier[:, 1], marker="x", label="qmeans after t (1)", color="r")
     plt.plot(np.arange(len(objective_values_q_hier[:, :2].flatten())-1)/2, np.vstack([np.array([objective_values_q_hier[0, 1]])[:, np.newaxis], objective_values_q_hier[1:, :2].flatten()[:, np.newaxis]]), color="c", label="qmeans hier")
 
     plt.plot(np.arange(len(objective_values_k)), objective_values_k, label="kmeans", color="g", marker="x")
