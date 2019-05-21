@@ -210,7 +210,7 @@ def HierarchicalPALM4MSA(arr_X_target: np.array,
 
     lst_nb_iter_by_factor = []
 
-    f_lambda = f_lambda_init # todo enlever?
+    f_lambda = f_lambda_init  # todo enlever?
 
     objective_function = np.empty((nb_factors, 3))
 
@@ -234,7 +234,8 @@ def HierarchicalPALM4MSA(arr_X_target: np.array,
             arr_X_target=arr_residual,
             lst_S_init=lst_S_init,  # eye for factor and zeros for residual
             nb_factors=2,
-            lst_projection_functions=lst_dct_projection_function[k]["split"], #define constraints: ||0 = d pour T1; relaxed constraint on ||0 for T2
+            lst_projection_functions=lst_dct_projection_function[k]["split"],
+            # define constraints: ||0 = d pour T1; relaxed constraint on ||0 for T2
             f_lambda_init=f_lambda_init_split,
             nb_iter=nb_iter,
             update_right_to_left=update_right_to_left,
@@ -251,9 +252,13 @@ def HierarchicalPALM4MSA(arr_X_target: np.array,
             lst_S_init_split_step = [residual_init, S_init]
 
         if residual_on_right:
-            f_lambda_prime, (new_factor, new_residual), unscaled_residual_reconstruction, _, nb_iter_this_factor = func_split_step_palm4msa(lst_S_init=lst_S_init_split_step)
+            f_lambda_prime, (new_factor,
+                             new_residual), unscaled_residual_reconstruction, _, nb_iter_this_factor = func_split_step_palm4msa(
+                lst_S_init=lst_S_init_split_step)
         else:
-            f_lambda_prime, (new_residual, new_factor), unscaled_residual_reconstruction, _, nb_iter_this_factor = func_split_step_palm4msa(lst_S_init=lst_S_init_split_step)
+            f_lambda_prime, (new_residual,
+                             new_factor), unscaled_residual_reconstruction, _, nb_iter_this_factor = func_split_step_palm4msa(
+                lst_S_init=lst_S_init_split_step)
 
         if k == 0:
             f_lambda = f_lambda_prime
@@ -299,7 +304,6 @@ def HierarchicalPALM4MSA(arr_X_target: np.array,
 
         objective_function[k, 1] = compute_objective_function(arr_X_target,
                                                               f_lambda, lst_S)
-
 
         func_fine_tune_step_palm4msa = lambda lst_S_init: PALM4MSA(
             arr_X_target=arr_X_target,
@@ -570,7 +574,8 @@ def palm4msa_fast2(arr_X_target: np.array,
             # compute new factor value
             res = f_lambda * S_factors_op.compute_product() - arr_X_target
             res_RT = R.dot(res.T).T if R.n_factors > 0 else res
-            LT_res_RT = L.transpose().dot(res_RT) if L.n_factors > 0 else res_RT
+            LT_res_RT = L.transpose().dot(
+                res_RT) if L.n_factors > 0 else res_RT
             grad_step = 1. / c * f_lambda * LT_res_RT
 
             Sj = S_factors_op.get_factor(j)
@@ -696,7 +701,8 @@ def palm4msa_fast3(arr_X_target: np.array,
             # compute new factor value
             res = f_lambda * S_factors_op.compute_product() - arr_X_target
             res_RT = R.dot(res.T).T if R.n_factors > 0 else res
-            LT_res_RT = L.transpose().dot(res_RT) if L.n_factors > 0 else res_RT
+            LT_res_RT = \
+                L.transpose().dot(res_RT) if L.n_factors > 0 else res_RT
             grad_step = 1. / c * f_lambda * LT_res_RT
 
             Sj = S_factors_op.get_factor(j)
@@ -716,6 +722,7 @@ def palm4msa_fast3(arr_X_target: np.array,
         # re-compute the full factorisation
         if S_factors_op.n_factors == 1:
             arr_X_curr = S_factors_op.get_factor(0)
+            raise ValueError  # VE: is this statement ever reached?
         else:
             arr_X_curr = S_factors_op.compute_product()
         # update lambda
@@ -770,7 +777,7 @@ if __name__ == '__main__':
     from pyqalm.utils import get_lambda_proxsplincol
 
     data = dict()
-    data['hadamard'] = hadamard(32)
+    data['hadamard'] = hadamard(2048)
 
     # n_rows = 64
     # n_cols = 77
@@ -809,15 +816,12 @@ if __name__ == '__main__':
         #              update_right_to_left=update_right_to_left,
         #              graphical_display=graphical_display)
 
-        f_lambda, lst_S, arr_X_curr, objective_function, i_iter = \
-            palm4msa_fast1(X,
-                           lst_S_init=lst_S_init,
-                           nb_factors=nb_factors,
-                           lst_projection_functions=lst_projection_functions,
-                           # lst_projection_functions=lst_projection_functions_fast,
-                           f_lambda_init=f_lambda_init,
-                           nb_iter=nb_iter,
-                           update_right_to_left=update_right_to_left,
-                           graphical_display=graphical_display)
-        print(objective_function)
-
+        out = palm4msa_fast3(X,
+                             lst_S_init=lst_S_init,
+                             nb_factors=nb_factors,
+                             lst_projection_functions=lst_projection_functions,
+                             # lst_projection_functions=lst_projection_functions_fast,
+                             f_lambda_init=f_lambda_init,
+                             nb_iter=nb_iter,
+                             update_right_to_left=update_right_to_left,
+                             graphical_display=graphical_display)
