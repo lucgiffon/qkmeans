@@ -3,6 +3,8 @@
 
 .. moduleauthor:: Valentin Emiya
 """
+import warnings
+
 import numpy as np
 from scipy.sparse.linalg import LinearOperator
 from scipy.sparse import csr_matrix
@@ -133,5 +135,9 @@ class SparseFactors(LinearOperator):
             else:
                 SS = SparseFactors(self.get_list_of_factors()
                                    + self.adjoint().get_list_of_factors())
-            a = eigs(A=SS, k=1, return_eigenvectors=False)
+            try:
+                a = eigs(A=SS, k=1, return_eigenvectors=False)
+            except Exception as e:
+                warnings.warn(str(e))
+                return self.compute_spectral_norm(method='svds')
             return np.sqrt(np.real(a[0]))
