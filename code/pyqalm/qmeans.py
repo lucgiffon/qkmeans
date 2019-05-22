@@ -46,8 +46,6 @@ def qmeans(X_data:np.ndarray,
 
     assert K_nb_cluster == initialization.shape[0]
 
-    data_dim = X_data.shape[1]
-
     init_lambda = params_palm4msa["init_lambda"]
     nb_iter_palm = params_palm4msa["nb_iter"]
     lst_proj_op_by_fac_step = params_palm4msa["lst_constraint_sets"]
@@ -61,19 +59,13 @@ def qmeans(X_data:np.ndarray,
     eye_norm = np.sqrt(K_nb_cluster)
     lst_factors[0] = np.eye(K_nb_cluster) / eye_norm
     lst_factors[1] = np.eye(K_nb_cluster, min_K_d)
-    lst_factors[-1] = np.random.rand(min_K_d, X_centroids_hat.shape[1])
+    lst_factors[-1] = np.zeros((min_K_d, X_centroids_hat.shape[1]))
 
     if graphical_display:
         lst_factors_init = copy.deepcopy(lst_factors)
 
-    target_palm = np.eye(K_nb_cluster) @ X_centroids_hat
-    if data_dim < K_nb_cluster:
-        target_palm = target_palm.transpose()
-        lst_factors = [fac.transpose() for fac in lst_factors[::-1]]
-
-
     _lambda_tmp, lst_factors, U_centroids, nb_iter_by_factor, objective_palm = HierarchicalPALM4MSA(
-        arr_X_target=target_palm,
+        arr_X_target=np.eye(K_nb_cluster) @ X_centroids_hat,
         lst_S_init=lst_factors,
         lst_dct_projection_function=lst_proj_op_by_fac_step,
         f_lambda_init=init_lambda * eye_norm,
@@ -83,9 +75,6 @@ def qmeans(X_data:np.ndarray,
         graphical_display=False)
 
     _lambda = _lambda_tmp / eye_norm
-
-    if data_dim < K_nb_cluster:
-        lst_factors = [fac.transpose() for fac in lst_factors[::-1]]
 
     if graphical_display:
         if hierarchical_inside:
@@ -146,14 +135,9 @@ def qmeans(X_data:np.ndarray,
         if graphical_display:
             lst_factors_init = copy.deepcopy(lst_factors)
 
-        target_palm = diag_counts_sqrt @ X_centroids_hat
-        if data_dim < K_nb_cluster:
-            target_palm = target_palm.transpose()
-            lst_factors = [fac.transpose() for fac in lst_factors[::-1]]
-
         if hierarchical_inside:
             _lambda_tmp, lst_factors, _, nb_iter_by_factor, objective_palm = HierarchicalPALM4MSA(
-                arr_X_target=target_palm,
+                arr_X_target=diag_counts_sqrt @ X_centroids_hat,
                 lst_S_init=lst_factors,
                 lst_dct_projection_function=lst_proj_op_by_fac_step,
                 # f_lambda_init=_lambda,
@@ -168,7 +152,7 @@ def qmeans(X_data:np.ndarray,
 
         else:
             _lambda_tmp, lst_factors, _, objective_palm, nb_iter_palm = PALM4MSA(
-                arr_X_target=target_palm,
+                arr_X_target=diag_counts_sqrt @ X_centroids_hat,
                 lst_S_init=lst_factors,
                 nb_factors=len(lst_factors),
                 lst_projection_functions=lst_proj_op_by_fac_step[-1]["finetune"],
@@ -183,7 +167,6 @@ def qmeans(X_data:np.ndarray,
         logger.debug("Loss palm before: {}".format(loss_palm_before))
         logger.debug("Loss palm after: {}".format(loss_palm_after))
 
-
         if graphical_display:
             if hierarchical_inside:
                 plt.figure()
@@ -195,10 +178,7 @@ def qmeans(X_data:np.ndarray,
                 plt.legend()
                 plt.show()
 
-            visual_evaluation_palm4msa(target_palm, lst_factors_init, lst_factors, _lambda_tmp * multi_dot(lst_factors))
-
-        if data_dim < K_nb_cluster:
-            lst_factors = [fac.transpose() for fac in lst_factors[::-1]]
+            visual_evaluation_palm4msa(diag_counts_sqrt @ X_centroids_hat, lst_factors_init, lst_factors, _lambda_tmp * multi_dot(lst_factors))
 
         _lambda = _lambda_tmp / diag_counts_sqrt_norm
         # _lambda = _lambda_tmp
@@ -346,12 +326,6 @@ def build_constraint_set_smart(left_dim, right_dim, nb_factors, sparsity_factor,
         constraints_split, constraints_split_desc = build_constraint_split(nb_keep_values, nb_values_residual, k, nb_keep_values_left_most, nb_keep_values_right_most)
         constraints_finetune, constraints_finetune_desc = build_constraint_finetune(nb_keep_values, nb_values_residual, k, nb_keep_values_left_most, nb_keep_values_right_most)
 
-        if left_dim > right_dim:
-            constraints_split = constraints_split[::-1]
-            constraints_split_desc = constraints_split_desc[::-1]
-            constraints_finetune = constraints_finetune[::-1]
-            constraints_finetune_desc = constraints_finetune_desc[::-1]
-
         dct_step_lst_proj_op = {
             "split": constraints_split,
             "finetune": constraints_finetune
@@ -424,46 +398,34 @@ def init_factors(left_dim, right_dim, nb_factors):
 
 if __name__ == '__main__':
 
-    nb_clusters = 100
+    nb_clusters = 10
     nb_iter_kmeans = 10
-    X, _ = datasets.make_blobs(n_samples=100000, n_features=200, centers=5000)
+    X, _ = datasets.make_blobs(n_samples=1000, n_features=20, centers=50)
     U_centroids_hat = X[np.random.permutation(X.shape[0])[:nb_clusters]] # kmeans++ initialization is not feasible because complexity is O(ndk)...
 
     nb_factors = 5
     sparsity_factor = 2
     nb_iter_palm = 300
 
-
     # lst_constraints, lst_constraints_vals = build_constraint_sets(U_centroids_hat.shape[0], U_centroids_hat.shape[1], nb_factors, sparsity_factor=sparsity_factor)
     K = U_centroids_hat.shape[0]
     d = U_centroids_hat.shape[1]
-
-    residual_on_right = True
-
-    if K > d:
-        lst_constraints, lst_constraints_vals = build_constraint_set_smart(K, d, nb_factors, sparsity_factor=sparsity_factor, residual_on_right=False)
-
-    else:
-        lst_constraints, lst_constraints_vals = build_constraint_set_smart(K, d, nb_factors, sparsity_factor=sparsity_factor, residual_on_right=True)
-    # if K <= d:
-
-    # else:
-    #     lst_constraints, lst_constraints_vals = build_constraint_set_smart(d, K, nb_factors, sparsity_factor=sparsity_factor, residual_on_right=residual_on_right)
+    lst_constraints, lst_constraints_vals = build_constraint_set_smart(K, d, nb_factors, sparsity_factor=sparsity_factor, residual_on_right=True)
     logger.info("constraints: {}".format(pformat(lst_constraints_vals)))
 
     hierarchical_palm_init = {
         "init_lambda": 1.,
         "nb_iter": nb_iter_palm,
         "lst_constraint_sets": lst_constraints,
-        "residual_on_right": residual_on_right}
+        "residual_on_right": False}
 
     # try:
-    objective_values_q_hier, centroids_finaux_q_hier, indicator_vec_hier = qmeans(X, nb_clusters, nb_iter_kmeans, nb_factors, hierarchical_palm_init, initialization=U_centroids_hat, graphical_display=True, hierarchical_inside=True)
-    objective_values_q, centroids_finaux_q, indicator_vec = qmeans(X, nb_clusters, nb_iter_kmeans, nb_factors, hierarchical_palm_init, initialization=U_centroids_hat, graphical_display=False)
+    objective_values_q_hier, centroids_finaux_q_hier, indicator = qmeans(X, nb_clusters, nb_iter_kmeans, nb_factors, hierarchical_palm_init, initialization=U_centroids_hat, graphical_display=True, hierarchical_inside=True)
+    objective_values_q, centroids_finaux_q, indicator = qmeans(X, nb_clusters, nb_iter_kmeans, nb_factors, hierarchical_palm_init, initialization=U_centroids_hat, graphical_display=False)
     # except Exception as e:
     #     logger.info("There have been a problem in qmeans: {}".format(str(e)))
     try:
-        objective_values_k, centroids_finaux, indicator_vec_kmeans = kmeans(X, nb_clusters, nb_iter_kmeans, initialization=U_centroids_hat)
+        objective_values_k, centroids_finaux, indicator = kmeans(X, nb_clusters, nb_iter_kmeans, initialization=U_centroids_hat)
     except SystemExit as e:
         logger.info("There have been a problem in kmeans: {}".format(str(e)))
 
