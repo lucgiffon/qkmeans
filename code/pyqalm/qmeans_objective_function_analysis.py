@@ -2,8 +2,8 @@
 Analysis of objective function during qmeans execution
 
 Usage:
-  qmeans_objective_function_analysis kmeans [-h] [-v] [--output-file=str] [--seed=int] (--blobs|--census|--kddcup|--plants|--mnist|--fashion-mnist) --nb-cluster=int --initialization=str [--nb-iteration=int] [--assignation-time]
-  qmeans_objective_function_analysis qmeans [-h] [-v] [--output-file=str] [--seed=int] (--blobs|--census|--kddcup|--plants|--mnist|--fashion-mnist) --nb-cluster=int --initialization=str --nb-factors=int --sparsity-factor=int [--hierarchical] [--nb-iteration-palm=int] [--residual-on-right] [--assignation-time]
+  qmeans_objective_function_analysis kmeans [-h] [-v] --output-file=str [--seed=int] (--blobs|--census|--kddcup|--plants|--mnist|--fashion-mnist) --nb-cluster=int --initialization=str [--nb-iteration=int] [--assignation-time]
+  qmeans_objective_function_analysis qmeans [-h] [-v] --output-file=str [--seed=int] (--blobs|--census|--kddcup|--plants|--mnist|--fashion-mnist) --nb-cluster=int --initialization=str --nb-factors=int --sparsity-factor=int [--hierarchical] [--nb-iteration-palm=int] [--residual-on-right] [--assignation-time]
 
 Options:
   -h --help                             Show this screen.
