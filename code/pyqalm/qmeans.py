@@ -398,34 +398,36 @@ def init_factors(left_dim, right_dim, nb_factors):
 
 if __name__ == '__main__':
 
-    nb_clusters = 10
+    nb_clusters = 100
     nb_iter_kmeans = 10
-    X, _ = datasets.make_blobs(n_samples=1000, n_features=20, centers=50)
+    X, _ = datasets.make_blobs(n_samples=100000, n_features=20, centers=5000)
     U_centroids_hat = X[np.random.permutation(X.shape[0])[:nb_clusters]] # kmeans++ initialization is not feasible because complexity is O(ndk)...
 
     nb_factors = 5
     sparsity_factor = 2
     nb_iter_palm = 300
 
+    residual_on_right = False
+
     # lst_constraints, lst_constraints_vals = build_constraint_sets(U_centroids_hat.shape[0], U_centroids_hat.shape[1], nb_factors, sparsity_factor=sparsity_factor)
     K = U_centroids_hat.shape[0]
     d = U_centroids_hat.shape[1]
-    lst_constraints, lst_constraints_vals = build_constraint_set_smart(K, d, nb_factors, sparsity_factor=sparsity_factor, residual_on_right=True)
+    lst_constraints, lst_constraints_vals = build_constraint_set_smart(K, d, nb_factors, sparsity_factor=sparsity_factor, residual_on_right=residual_on_right)
     logger.info("constraints: {}".format(pformat(lst_constraints_vals)))
 
     hierarchical_palm_init = {
         "init_lambda": 1.,
         "nb_iter": nb_iter_palm,
         "lst_constraint_sets": lst_constraints,
-        "residual_on_right": False}
+        "residual_on_right": residual_on_right}
 
     # try:
-    objective_values_q_hier, centroids_finaux_q_hier = qmeans(X, nb_clusters, nb_iter_kmeans, nb_factors, hierarchical_palm_init, initialization=U_centroids_hat, graphical_display=True, hierarchical_inside=True)
-    objective_values_q, centroids_finaux_q = qmeans(X, nb_clusters, nb_iter_kmeans, nb_factors, hierarchical_palm_init, initialization=U_centroids_hat, graphical_display=False)
+    objective_values_q_hier, centroids_finaux_q_hier, indicator_hier = qmeans(X, nb_clusters, nb_iter_kmeans, nb_factors, hierarchical_palm_init, initialization=U_centroids_hat, graphical_display=True, hierarchical_inside=True)
+    objective_values_q, centroids_finaux_q, indicator = qmeans(X, nb_clusters, nb_iter_kmeans, nb_factors, hierarchical_palm_init, initialization=U_centroids_hat, graphical_display=False)
     # except Exception as e:
     #     logger.info("There have been a problem in qmeans: {}".format(str(e)))
     try:
-        objective_values_k, centroids_finaux = kmeans(X, nb_clusters, nb_iter_kmeans, initialization=U_centroids_hat)
+        objective_values_k, centroids_finaux, indicator_k = kmeans(X, nb_clusters, nb_iter_kmeans, initialization=U_centroids_hat)
     except SystemExit as e:
         logger.info("There have been a problem in kmeans: {}".format(str(e)))
 
