@@ -6,7 +6,7 @@ import numpy as np
 import pandas
 from pathlib import Path
 from dotenv import find_dotenv, load_dotenv
-# from keras.datasets import cifar10, cifar100, mnist
+# from keras.datasets import mnist, fashion_mnist
 
 # from skluc.main.utils import read_matfile, logger, download_data
 from pyqalm.utils import download_data, logger
@@ -20,15 +20,30 @@ def load_kddcup04bio():
         matfile_path = download_data(data_url, d_tmp)
         data = pandas.read_csv(matfile_path, delim_whitespace=True)
 
-    return data
+    return data.values
 
+def load_census1990():
+    data_url = "https://archive.ics.uci.edu/ml/machine-learning-databases/census1990-mld/USCensus1990.data.txt"
+
+    with tempfile.TemporaryDirectory() as d_tmp:
+        logger.debug(f"Downloading file from url {data_url} to temporary directory {d_tmp}")
+        matfile_path = download_data(data_url, d_tmp)
+        data = pandas.read_csv(matfile_path)
+
+    return data.values[1:] # remove the `caseId` attribute
 
 MAP_NAME_DATASET = {
-    "kddcup": load_kddcup04bio
+    "kddcup": load_kddcup04bio,
+    # "mnist": mnist.load_data,
+    # "fashion_mnist": fashion_mnist.load_data,
+    "census": load_census1990
 }
 
 MAP_NAME_CLASSES_PRESENCE = {
-    "kddcup": False
+    "kddcup": False,
+    # "mnist": True,
+    # "fashion_mnist": True,
+    "census": False,
 }
 
 def _download_all_data(output_dirpath):
