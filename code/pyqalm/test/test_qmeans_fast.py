@@ -47,6 +47,5 @@ class TestCompareQmeans(unittest.TestCase):
                                                  objective_values_q_slow)
 
 
-
 if __name__ == '__main__':
     unittest.main()

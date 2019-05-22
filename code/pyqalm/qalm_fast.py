@@ -565,7 +565,8 @@ def palm4msa_fast3(arr_X_target: np.array,
     # initialization
     f_lambda = f_lambda_init
     S_factors_op = SparseFactors(lst_S_init)
-    assert S_factors_op.shape == arr_X_target.shape
+
+    assert np.all(S_factors_op.shape == arr_X_target.shape)
     assert S_factors_op.n_factors > 0
     assert S_factors_op.n_factors == nb_factors
 

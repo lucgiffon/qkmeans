@@ -92,6 +92,7 @@ def qmeans(X_data:np.ndarray,
 
 
     objective_function = np.empty((nb_iter,2))
+    objective_function[0, 0] = np.nan
 
     # Loop for the maximum number of iterations
     i_iter = 0
@@ -331,11 +332,11 @@ if __name__ == '__main__':
         "lst_constraint_sets": lst_constraints}
 
     # try:
-    objective_values_q_hier = qmeans(X, nb_clusters, nb_iter_kmeans,
-                                     nb_factors, hierarchical_palm_init,
-                                     initialization=U_centroids_hat,
-                                     graphical_display=False,
-                                     hierarchical_inside=True)
+    # objective_values_q_hier = qmeans(X, nb_clusters, nb_iter_kmeans,
+    #                                  nb_factors, hierarchical_palm_init,
+    #                                  initialization=U_centroids_hat,
+    #                                  graphical_display=False,
+    #                                  hierarchical_inside=True)
 
     # raise ValueError
     objective_values_q = qmeans(X, nb_clusters, nb_iter_kmeans, nb_factors, hierarchical_palm_init, initialization=U_centroids_hat, graphical_display=False)

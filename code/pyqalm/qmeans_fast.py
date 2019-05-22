@@ -12,7 +12,7 @@ from collections import OrderedDict
 from pprint import pformat
 
 import numpy as np
-from numpy.linalg import multi_dot
+from scipy.sparse import csr_matrix
 from sklearn import datasets
 import matplotlib.pyplot as plt
 
@@ -44,7 +44,7 @@ def get_distances(X_data, centroids):
     else:
         centroid_norms = np.linalg.norm(centroids, axis=1) ** 2
 
-    centroid_distances = -2 * centroids @ X_data.T + centroid_norms[:, None]
+    centroid_distances = centroid_norms[:, None] - 2 * centroids @ X_data.T
 
     return centroid_distances.T
 
@@ -68,6 +68,26 @@ def compute_objective(X_data, centroids, indicator_vector):
     return np.linalg.norm(X_data - centroids[indicator_vector, :]) ** 2
 
 
+def assign_points_to_clusters(X, centroids):
+    """
+
+    Parameters
+    ----------
+    X : np.ndarray [n, d]
+    centroids : np.ndarray or SparseFactors [k, d]
+
+    Returns
+    -------
+    np.ndarray [n]
+        indicator_vector
+    """
+    distances = get_distances(X, centroids)
+    # then, Determine class membership of each point
+    # by picking the closest centroid
+    indicator_vector = np.argmin(distances, axis=1)
+    return indicator_vector
+
+
 def qmeans(X_data: np.ndarray,
            K_nb_cluster: int,
            nb_iter: int,
@@ -78,6 +98,8 @@ def qmeans(X_data: np.ndarray,
            graphical_display=False,
            return_objective_function=False):
     assert K_nb_cluster == initialization.shape[0]
+
+    nb_examples = X_data.shape[0]
 
     logger.info("Initializing Qmeans")
 
@@ -138,6 +160,7 @@ def qmeans(X_data: np.ndarray,
 
     if return_objective_function:
         objective_function = np.empty((nb_iter, 2))
+        objective_function[0, 0] = np.nan
 
     # Loop for the maximum number of iterations
     i_iter = 0
@@ -158,12 +181,13 @@ def qmeans(X_data: np.ndarray,
             objective_function[i_iter, 0] = \
                 compute_objective(X_data, op_centroids, indicator_vector)
 
-        # Assign all points to the nearest centroid
-        # first get distance from all points to all centroids
-        distances = get_distances(X_data, op_centroids)
-        # then, Determine class membership of each point
-        # by picking the closest centroid
-        indicator_vector = np.argmin(distances, axis=1)
+        # # Assign all points to the nearest centroid
+        # # first get distance from all points to all centroids
+        # distances = get_distances(X_data, op_centroids)
+        # # then, Determine class membership of each point
+        # # by picking the closest centroid
+        # indicator_vector = np.argmin(distances, axis=1)
+        indicator_vector = assign_points_to_clusters(X_data, op_centroids)
 
         if return_objective_function:
             objective_function[i_iter, 1] = compute_objective(X_data,
@@ -182,13 +206,16 @@ def qmeans(X_data: np.ndarray,
         if len(counts) < K_nb_cluster:
             raise ValueError(
                 "Some clusters have no point. Aborting iteration {}"
-                    .format(i_iter))
+                .format(i_iter))
 
-        diag_counts_sqrt = np.diag(np.sqrt(
-            counts[cluster_names_sorted]))  # todo use sparse matrix object
-        diag_counts_sqrt_norm = np.linalg.norm(
-            diag_counts_sqrt)  # todo analytic sqrt(n) instead of cumputing it with norm
-        diag_counts_sqrt_normalized = diag_counts_sqrt / diag_counts_sqrt_norm
+        # diag_counts_sqrt = np.diag(np.sqrt(counts[cluster_names_sorted]))  # todo use sparse matrix object
+        # diag_counts_sqrt_norm = np.linalg.norm(diag_counts_sqrt)  # todo analytic sqrt(n) instead of cumputing it with norm
+        # diag_counts_sqrt_normalized = diag_counts_sqrt / diag_counts_sqrt_norm
+        # analytic sqrt(n) instead of cumputing it with norm
+        diag_counts_sqrt_normalized = csr_matrix(
+            (np.sqrt(counts[cluster_names_sorted] / nb_examples),
+             (np.arange(K_nb_cluster), np.arange(K_nb_cluster))))
+        diag_counts_sqrt = np.sqrt(counts[cluster_names_sorted])
         # set it as first factor
         # lst_factors[0] = diag_counts_sqrt_normalized
         op_factors.set_factor(0, diag_counts_sqrt_normalized)
@@ -200,19 +227,19 @@ def qmeans(X_data: np.ndarray,
 
         if return_objective_function:
             loss_palm_before = compute_objective_function(
-                diag_counts_sqrt @ X_centroids_hat,
-                _lambda * diag_counts_sqrt_norm,
+                diag_counts_sqrt[:, None,] * X_centroids_hat,
+                _lambda * np.sqrt(nb_examples),
                 op_factors)
             logger.info("Loss palm before: {}".format(loss_palm_before))
 
         if hierarchical_inside:
             _lambda_tmp, op_factors, _, nb_iter_by_factor, objective_palm = \
                 hierarchical_palm4msa(
-                    arr_X_target=diag_counts_sqrt @ X_centroids_hat,
+                    arr_X_target=diag_counts_sqrt[:, None,] *  X_centroids_hat,
                     lst_S_init=op_factors.get_list_of_factors(),
                     lst_dct_projection_function=lst_proj_op_by_fac_step,
                     # f_lambda_init=_lambda,
-                    f_lambda_init=_lambda * diag_counts_sqrt_norm,
+                    f_lambda_init=_lambda * np.sqrt(nb_examples),
                     nb_iter=nb_iter_palm,
                     update_right_to_left=True,
                     residual_on_right=True,
@@ -221,12 +248,12 @@ def qmeans(X_data: np.ndarray,
 
         else:
             _lambda_tmp, op_factors, _, objective_palm, nb_iter_palm = \
-                palm4msa(arr_X_target=diag_counts_sqrt @ X_centroids_hat,
+                palm4msa(arr_X_target=diag_counts_sqrt[:, None,] *  X_centroids_hat,
                          lst_S_init=op_factors.get_list_of_factors(),
                          nb_factors=op_factors.n_factors,
                          lst_projection_functions=lst_proj_op_by_fac_step[-1][
                              "finetune"],
-                         f_lambda_init=_lambda * diag_counts_sqrt_norm,
+                         f_lambda_init=_lambda * np.sqrt(nb_examples),
                          nb_iter=nb_iter_palm,
                          update_right_to_left=True,
                          graphical_display=False,
@@ -234,7 +261,7 @@ def qmeans(X_data: np.ndarray,
 
         if return_objective_function:
             loss_palm_after = compute_objective_function(
-                diag_counts_sqrt @ X_centroids_hat, _lambda_tmp, op_factors)
+                diag_counts_sqrt[:, None,] * X_centroids_hat, _lambda_tmp, op_factors)
             logger.info("Loss palm after: {}".format(loss_palm_after))
             logger.info("Loss palm inside: {}".format(objective_palm[-1, 0]))
 
@@ -257,7 +284,7 @@ def qmeans(X_data: np.ndarray,
 
             # FIXME
             visual_evaluation_palm4msa(
-                diag_counts_sqrt @ X_centroids_hat,
+                diag_counts_sqrt[:, None,] * X_centroids_hat,
                 lst_factors_init,
                 [x.toarray() for x in op_factors.get_list_of_factors()],
                 _lambda_tmp * op_factors.compute_product())
@@ -265,7 +292,7 @@ def qmeans(X_data: np.ndarray,
             #                            lst_factors_init, lst_factors,
             #                            _lambda_tmp * multi_dot(lst_factors))
 
-        _lambda = _lambda_tmp / diag_counts_sqrt_norm
+        _lambda = _lambda_tmp / np.sqrt(nb_examples)
         # _lambda = _lambda_tmp
 
         if return_objective_function:
@@ -290,7 +317,7 @@ def qmeans(X_data: np.ndarray,
     if return_objective_function:
         return op_centroids, objective_function[:i_iter]
     else:
-        return op_centroids
+        return op_centroids, None
 
 
 def kmeans(X_data, K_nb_cluster, nb_iter, initialization):
@@ -407,14 +434,29 @@ def init_factors(left_dim, right_dim, nb_factors):
 if __name__ == '__main__':
     np.random.seed(0)
     daiquiri.setup(level=logging.INFO)
-    nb_clusters = 10
-    nb_iter_kmeans = 10
-    X, _ = datasets.make_blobs(n_samples=1000, n_features=20, centers=50)
+    small_dim = True
+    if small_dim:
+        nb_clusters = 10
+        nb_iter_kmeans = 10
+        n_samples = 1000
+        n_features = 20
+        n_centers = 50
+        nb_factors = 5
+    else:
+        nb_clusters = 1024
+        nb_iter_kmeans = 10
+        n_samples = 10000
+        n_features = 64
+        n_centers = 4096
+        nb_factors = int(np.log2(min(nb_clusters, n_features)))
+    X, _ = datasets.make_blobs(n_samples=n_samples,
+                               n_features=n_features,
+                               centers=n_centers)
+
     U_centroids_hat = X[np.random.permutation(X.shape[0])[:nb_clusters]]
     # kmeans++ initialization is not feasible because complexity is O(ndk)...
 
-    nb_factors = 5
-    sparsity_factor = 3
+    sparsity_factor = 2
     nb_iter_palm = 300
 
     lst_constraints, lst_constraints_vals = build_constraint_sets(
