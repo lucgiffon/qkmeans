@@ -102,7 +102,8 @@ def hierarchical_palm4msa(arr_X_target: np.array,
             f_lambda_init=f_lambda_init_split,
             nb_iter=nb_iter,
             update_right_to_left=update_right_to_left,
-            graphical_display=graphical_display)
+            graphical_display=graphical_display,
+            debug=return_objective_function)
 
         if residual_on_right:
             # residual_init = get_side_prod(lst_S_init[nb_factors_so_far:])
@@ -192,7 +193,8 @@ def hierarchical_palm4msa(arr_X_target: np.array,
             f_lambda_init=f_lambda,
             nb_iter=nb_iter,
             update_right_to_left=update_right_to_left,
-            graphical_display=graphical_display)
+            graphical_display=graphical_display,
+            debug=return_objective_function)
 
         if residual_on_right:
             # f_lambda, (*lst_S[:nb_factors_so_far], arr_residual), _, _, \
@@ -637,7 +639,7 @@ def palm4msa_fast3(arr_X_target: np.array,
                 compute_objective_function(arr_X_target, _f_lambda=f_lambda,
                                            _lst_S=S_factors_op)
 
-        if debug:
+        if debug and track_objective:
             logger.debug("Iteration {}; Objective value: {}"
                          .format(i_iter, objective_function[i_iter, -1]))
 

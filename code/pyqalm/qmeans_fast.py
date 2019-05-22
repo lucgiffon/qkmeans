@@ -151,8 +151,8 @@ def qmeans(X_data: np.ndarray,
 
         # U_centroids = _lambda * multi_dot(lst_factors[1:])
         lst_factors_ = op_factors.get_list_of_factors()
-        op_centroids = SparseFactors([lst_factors_[0] * _lambda]
-                                     + lst_factors_[1:])
+        op_centroids = SparseFactors([lst_factors_[1] * _lambda]
+                                     + lst_factors_[2:])
 
         if i_iter > 0 and return_objective_function:
             objective_function[i_iter, 0] = \
@@ -405,6 +405,7 @@ def init_factors(left_dim, right_dim, nb_factors):
 
 
 if __name__ == '__main__':
+    np.random.seed(0)
     daiquiri.setup(level=logging.INFO)
     nb_clusters = 10
     nb_iter_kmeans = 10
@@ -436,6 +437,7 @@ if __name__ == '__main__':
                graphical_display=graphical_display,
                hierarchical_inside=True,
                return_objective_function=True)
+
     logger.info('Running QuicK-means with Palm')
     op_centroids_palm, objective_function_palm = \
         qmeans(X, nb_clusters, nb_iter_kmeans, nb_factors,

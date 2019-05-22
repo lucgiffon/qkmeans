@@ -311,7 +311,8 @@ def init_factors(left_dim, right_dim, nb_factors):
 
 
 if __name__ == '__main__':
-
+    np.random.seed(0)
+    daiquiri.setup(level=logging.INFO)
     nb_clusters = 10
     nb_iter_kmeans = 10
     X, _ = datasets.make_blobs(n_samples=1000, n_features=20, centers=50)
@@ -330,7 +331,13 @@ if __name__ == '__main__':
         "lst_constraint_sets": lst_constraints}
 
     # try:
-    objective_values_q_hier = qmeans(X, nb_clusters, nb_iter_kmeans, nb_factors, hierarchical_palm_init, initialization=U_centroids_hat, graphical_display=True, hierarchical_inside=True)
+    objective_values_q_hier = qmeans(X, nb_clusters, nb_iter_kmeans,
+                                     nb_factors, hierarchical_palm_init,
+                                     initialization=U_centroids_hat,
+                                     graphical_display=False,
+                                     hierarchical_inside=True)
+
+    # raise ValueError
     objective_values_q = qmeans(X, nb_clusters, nb_iter_kmeans, nb_factors, hierarchical_palm_init, initialization=U_centroids_hat, graphical_display=False)
     # except Exception as e:
     #     logger.info("There have been a problem in qmeans: {}".format(str(e)))
