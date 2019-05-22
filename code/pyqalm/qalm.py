@@ -720,11 +720,7 @@ def palm4msa_fast3(arr_X_target: np.array,
                                                _lst_S=S_factors_op)
 
         # re-compute the full factorisation
-        if S_factors_op.n_factors == 1:
-            arr_X_curr = S_factors_op.get_factor(0)
-            raise ValueError  # VE: is this statement ever reached?
-        else:
-            arr_X_curr = S_factors_op.compute_product()
+        arr_X_curr = S_factors_op.compute_product()
         # update lambda
         f_lambda = np.sum(arr_X_target * arr_X_curr) / np.sum(arr_X_curr ** 2)
 
