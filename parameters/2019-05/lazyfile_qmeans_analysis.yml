@@ -6,7 +6,6 @@ all:
 
 base:
   seed: {"--seed": "range(3)"}
-  output_file: {"--output-file": ["!!hash!!"]}
   nystrom: ["--nystrom"]
   assignation: ["--assignation-time"]
   1nn: ["--1-nn"]
@@ -15,12 +14,12 @@ base:
 base_little:
   base:
   dataset: ["--mnist","--fashion-mnist"]
-  nb_clusters: ["10", "16"]
+  nb_clusters: ["10", "16", "30"]
 
 base_big:
   base:
   nb_clusters: ["64", "512", "1024", "2048"]
-  dataset: ["--census", "--kddcup", "--blobs", "--plants"]
+  dataset: ["--census", "--kddcup", "--blobs"]
 
 qmeans:
   qmeans: ["qmeans"]
