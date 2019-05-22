@@ -9,7 +9,7 @@ from pprint import pformat
 
 import numpy as np
 from numpy.linalg import multi_dot
-from pyqalm.qalm import HierarchicalPALM4MSA, compute_objective_function, PALM4MSA
+from pyqalm.qalm import hierarchical_palm4msa, compute_objective_function, palm4msa
 from pyqalm.test.test_qalm import visual_evaluation_palm4msa
 from sklearn import datasets
 import matplotlib.pyplot as plt
@@ -17,6 +17,7 @@ import matplotlib.pyplot as plt
 from pyqalm.utils import get_side_prod, logger, get_lambda_proxsplincol, constant_proj
 
 daiquiri.setup(level=logging.DEBUG)
+
 
 def get_distances(X_data, U_centroids):
     """
@@ -34,6 +35,7 @@ def get_distances(X_data, U_centroids):
 
 def compute_objective(X_data, U_centroids, indicator_vector):
     return np.linalg.norm(X_data - U_centroids[indicator_vector]) ** 2
+
 
 def qmeans(X_data:np.ndarray,
            K_nb_cluster:int,
@@ -63,7 +65,7 @@ def qmeans(X_data:np.ndarray,
     if graphical_display:
         lst_factors_init = copy.deepcopy(lst_factors)
 
-    _lambda_tmp, lst_factors, U_centroids, nb_iter_by_factor, objective_palm = HierarchicalPALM4MSA(
+    _lambda_tmp, lst_factors, U_centroids, nb_iter_by_factor, objective_palm = hierarchical_palm4msa(
         arr_X_target=np.eye(K_nb_cluster) @ X_centroids_hat,
         lst_S_init=lst_factors,
         lst_dct_projection_function=lst_proj_op_by_fac_step,
@@ -141,7 +143,7 @@ def qmeans(X_data:np.ndarray,
 
 
         if hierarchical_inside:
-            _lambda_tmp, lst_factors, _, nb_iter_by_factor, objective_palm = HierarchicalPALM4MSA(
+            _lambda_tmp, lst_factors, _, nb_iter_by_factor, objective_palm = hierarchical_palm4msa(
                 arr_X_target=diag_counts_sqrt @ X_centroids_hat,
                 lst_S_init=lst_factors,
                 lst_dct_projection_function=lst_proj_op_by_fac_step,
@@ -153,7 +155,7 @@ def qmeans(X_data:np.ndarray,
                 graphical_display=False)
 
         else:
-            _lambda_tmp, lst_factors, _, objective_palm, nb_iter_palm = PALM4MSA(
+            _lambda_tmp, lst_factors, _, objective_palm, nb_iter_palm = palm4msa(
                 arr_X_target=diag_counts_sqrt @ X_centroids_hat,
                 lst_S_init=lst_factors,
                 nb_factors=len(lst_factors),
@@ -298,6 +300,7 @@ def init_factors(left_dim, right_dim, nb_factors):
     lst_factors[1] = np.eye(left_dim, inner_factor_dim)
     lst_factors[-1] = np.zeros((inner_factor_dim, right_dim))
     return lst_factors
+
 
 if __name__ == '__main__':
 

@@ -56,5 +56,12 @@ class TestSparseFactors(unittest.TestCase):
             self.S.compute_spectral_norm(method='svds'),
             np.linalg.norm(self.P, ord=2))
 
+    def test_io(self):
+        np.save('tmp.npy', self.S, allow_pickle=True)
+        S_loaded = np.load('tmp.npy', allow_pickle=True)
+        print(self.S)
+        print(S_loaded)
+        # TODO test equality
+
 if __name__ == '__main__':
     unittest.main()

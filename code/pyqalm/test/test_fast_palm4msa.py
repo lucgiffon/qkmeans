@@ -1,12 +1,12 @@
 import unittest
 import numpy as np
 from scipy.linalg import hadamard
-from pyqalm.qalm import PALM4MSA as palm4msa_fast0
-from pyqalm.qalm import palm4msa_fast1, palm4msa_fast2, palm4msa_fast3
+from pyqalm.qalm import palm4msa as palm4msa_fast0
+from pyqalm.qalm import hierarchical_palm4msa as hierarchical_palm4msa_slow
+from pyqalm.qalm_fast import palm4msa_fast1, palm4msa_fast2, palm4msa_fast3
+from pyqalm.qalm_fast import hierarchical_palm4msa as \
+    hierarchical_palm4msa_fast
 from pyqalm.utils import get_lambda_proxsplincol
-
-
-#  , get_lambda_proxsplincol_fast
 
 
 class TestPalm4Msa(unittest.TestCase):
@@ -216,6 +216,68 @@ class TestPalm4Msa(unittest.TestCase):
             np.testing.assert_equal(out3[4], out2[4], err_msg='i_iter')
             np.testing.assert_array_almost_equal(out3[3], out2[3],
                                                  err_msg='objective_function')
+
+    def test_hierarchical_palm4msa_compare(self):
+        d = 32
+        nb_iter = 300
+        nb_factors = 5
+
+        lst_factors = [np.eye(d) for _ in range(nb_factors)]
+        lst_factors[-1] = np.zeros((d, d))  # VE
+        _lambda = 1.
+        had = hadamard(d)
+        # H =  had / norm(had, ord='fro')
+        H = had / np.sqrt(32)
+
+        lst_proj_op_by_fac_step = []
+        nb_keep_values = 2 * d
+        for k in range(nb_factors - 1):
+            nb_values_residual = int(d / 2 ** (k + 1)) * d
+            dct_step_lst_nb_keep_values = {
+                "split": [get_lambda_proxsplincol(nb_keep_values),
+                          get_lambda_proxsplincol(nb_values_residual)],
+                "finetune": [get_lambda_proxsplincol(nb_keep_values)] * (
+                        k + 1) + [
+                                get_lambda_proxsplincol(nb_values_residual)]
+            }
+            lst_proj_op_by_fac_step.append(dct_step_lst_nb_keep_values)
+
+        out1 = hierarchical_palm4msa_fast(
+            arr_X_target=H,
+            lst_S_init=lst_factors,
+            lst_dct_projection_function=lst_proj_op_by_fac_step,
+            f_lambda_init=_lambda,
+            nb_iter=nb_iter,
+            update_right_to_left=True,
+            residual_on_right=True,
+            graphical_display=False,
+            return_objective_function=True)
+
+        out0 = hierarchical_palm4msa_slow(
+            arr_X_target=H,
+            lst_S_init=lst_factors,
+            lst_dct_projection_function=lst_proj_op_by_fac_step,
+            f_lambda_init=_lambda,
+            nb_iter=nb_iter,
+            update_right_to_left=True,
+            residual_on_right=True,
+            graphical_display=False)
+
+        np.testing.assert_almost_equal(out1[0], out0[0],
+                                       err_msg='lambda')
+
+        self.assertEqual(out1[1].n_factors, nb_factors, msg='nb factors')
+        for j in range(nb_factors):
+            np.testing.assert_array_almost_equal(
+                out1[1].get_factor(j).toarray(), out0[1][j],
+                err_msg='Factor {}'.format(j))
+        np.testing.assert_array_almost_equal(out1[2], out0[2], err_msg='X')
+        np.testing.assert_equal(out1[3], out0[3], err_msg='nb_iter_by_factor')
+        np.testing.assert_array_almost_equal(out1[4], out0[4],
+                                             err_msg='objective_function')
+        # print(out0[4])
+        # np.testing.assert_array_equal(out1[3], out0[3],
+        #                               err_msg='nb_iter_by_factor')
 
 
 if __name__ == '__main__':
