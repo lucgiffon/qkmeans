@@ -3,7 +3,7 @@ Analysis of objective function during qmeans execution
 
 Usage:
   qmeans_objective_function_analysis kmeans [-h] [-v] --output-file=str [--seed=int] (--blobs|--census|--kddcup|--plants|--mnist|--fashion-mnist) --nb-cluster=int --initialization=str [--nb-iteration=int] [--assignation-time] [--1-nn] [--nystrom]
-  qmeans_objective_function_analysis qmeans [-h] [-v] --output-file=str [--seed=int] (--blobs|--census|--kddcup|--plants|--mnist|--fashion-mnist) --nb-cluster=int --initialization=str --nb-factors=int --sparsity-factor=int [--hierarchical] [--nb-iteration-palm=int] [--residual-on-right] [--assignation-time] [--1-nn] [--nystrom]
+  qmeans_objective_function_analysis qmeans [-h] [-v] --output-file=str [--seed=int] (--blobs|--census|--kddcup|--plants|--mnist|--fashion-mnist) [--nb-cluster=int] --initialization=str --nb-factors=int --sparsity-factor=int [--hierarchical] [--nb-iteration-palm=int] [--assignation-time] [--1-nn] [--nystrom]
 
 Options:
   -h --help                             Show this screen.
@@ -34,12 +34,11 @@ Non-specific options:
 Qmeans-Specifc options:
   --nb-factors=int                      Number of factors in the decomposition (without the extra upfront diagonal matrix).
   --sparsity-factor=int                 Integer coefficient from which is computed the number of value in each factor.
-  --nb-iteration-palm=int               Number of iterations in the inner palm4msa calls. [default: 100]
-  --residual-on-right                   Tells if the residual should be computed as right factor in each loop of hierarchical palm4msa.
-  --update-right-to-left                Tells if the factors should be updated from right to left in each iteration of palm4msa.
+  --nb-iteration-palm=int               Number of iterations in the inner palm4msa calls. [default: 300]
   --hierarchical                        Uses the Hierarchical version of palm4msa inside the training loop
-
 """
+# todo add   --update-right-to-left                Tells if the factors should be updated from right to left in each iteration of palm4msa.
+# todo --residual-on-right                   Tells if the residual should be computed as right factor in each loop of hierarchical palm4msa.
 from pathlib import Path
 import signal
 import docopt
@@ -288,6 +287,9 @@ if __name__ == "__main__":
     elif paraman["qmeans"]:
         paraman_q = ParameterManagerQmeans(arguments)
         paraman.update(paraman_q)
+        if paraman["--nb-factors"] is None:
+            paraman["--nb-factors"] = int(np.log2(min(U_init.shape)))
+        paraman["--residual-on-right"] = True if U_init.shape[1] >= U_init.shape[0] else False
         U_final, indicator_vector_final = main_qmeans(dataset["x_train"], U_init)
     else:
         raise NotImplementedError("Unknown method.")
@@ -298,7 +300,7 @@ if __name__ == "__main__":
         logger.info("Start assignation time evaluation")
         make_assignation_evaluation(dataset["x_train"], U_final)
 
-    if paraman["--1-nn"]:
+    if paraman["--1-nn"] and "x_test" in dataset.keys():
         logger.info("Start 1 nearest neighbor evaluation")
         make_1nn_evaluation(x_train=dataset["x_train"],
                             y_train=dataset["y_train"],

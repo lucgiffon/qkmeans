@@ -203,7 +203,7 @@ class ParameterManager(dict):
         elif self["--mnist"]:
             return mnist_dataset()
         elif self["--fashion-mnist"]:
-            return fastion_mnist_dataset()
+            return fashion_mnist_dataset()
         else:
             raise NotImplementedError("Unknown dataset.")
 
@@ -251,27 +251,45 @@ class ParameterManagerQmeans(ParameterManager):
     def __init__(self, dct_params, **kwargs):
         super().__init__(self, **dct_params, **kwargs)
         self["--sparsity-factor"] = int(self["--sparsity-factor"])
-        self["--nb-factors"] = int(self["--nb-factors"])
+
         self["--nb-iteration-palm"] = int(self["--nb-iteration-palm"])
 
+        self.__init_nb_factors()
+
+    def __init_nb_factors(self):
+        if self["--nb-factors"] is not None:
+            self["--nb-factors"] = int(self["--nb-factors"])
+
+
 def blobs_dataset():
-    X, _ = datasets.make_blobs(n_samples=1000, n_features=20, centers=50)
-    return {"x_train": X}
+    blob_size = 1000000
+    blob_features = 2000
+    blob_centers = 5000
+    X, y = datasets.make_blobs(n_samples=blob_size, n_features=blob_features, centers=blob_centers)
+    test_size = 1000
+    X_train, X_test = X[:-test_size], X[-test_size:]
+    y_train, y_test = y[:-test_size], y[-test_size:]
+    return {
+        "x_train": X_train.reshape(X_train.shape[0], -1),
+        # "y_train": y_train,
+        # "x_test": X_test.reshape(X_test.shape[0], -1),
+        # "y_test": y_test
+    }
 
 def census_dataset():
     data_dir = project_dir / "data/external" / "census.npz"
     loaded_npz = np.load(data_dir)
-    return loaded_npz
+    return {"x_train": loaded_npz["x_train"]}
 
 def kddcup_dataset():
     data_dir = project_dir / "data/external" / "kddcup.npz"
     loaded_npz = np.load(data_dir)
-    return loaded_npz
+    return {"x_train": loaded_npz["x_train"]}
 
 def plants_dataset():
     data_dir = project_dir / "data/external" / "plants.npz"
     loaded_npz = np.load(data_dir)
-    return loaded_npz
+    return {"x_train": loaded_npz["x_train"]}
 
 def mnist_dataset():
     (X_train, y_train), (X_test, y_test) = mnist.load_data()
@@ -282,7 +300,7 @@ def mnist_dataset():
         "y_test": y_test
     }
 
-def fastion_mnist_dataset():
+def fashion_mnist_dataset():
     (X_train, y_train), (X_test, y_test) = fashion_mnist.load_data()
     return {
         "x_train": X_train.reshape(X_train.shape[0], -1),

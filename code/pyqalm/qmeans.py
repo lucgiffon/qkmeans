@@ -426,7 +426,7 @@ if __name__ == '__main__':
 
     nb_clusters = 100
     nb_iter_kmeans = 10
-    X, _ = datasets.make_blobs(n_samples=100000, n_features=20, centers=5000)
+    X, _ = datasets.make_blobs(n_samples=100000, n_features=200, centers=5000)
     U_centroids_hat = X[np.random.permutation(X.shape[0])[:nb_clusters]] # kmeans++ initialization is not feasible because complexity is O(ndk)...
 
     nb_factors = 5
