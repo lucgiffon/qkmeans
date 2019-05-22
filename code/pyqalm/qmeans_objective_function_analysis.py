@@ -2,8 +2,8 @@
 Analysis of objective function during qmeans execution
 
 Usage:
-  qmeans_objective_function_analysis kmeans [-h] [-v] [--output-file=str] [--seed=int] (--blobs) --nb-cluster=int --initialization=str [--nb-iteration=int]
-  qmeans_objective_function_analysis qmeans [-h] [-v] [--output-file=str] [--seed=int] (--blobs) --nb-cluster=int --initialization=str --nb-factors=int --sparsity-factor=int [--hierarchical] [--nb-iteration-palm=int]
+  qmeans_objective_function_analysis kmeans [-h] [-v] [--output-file=str] [--seed=int] (--blobs|--census|--kddcup|--plants|--mnist|--fashion-mnist) --nb-cluster=int --initialization=str [--nb-iteration=int]
+  qmeans_objective_function_analysis qmeans [-h] [-v] [--output-file=str] [--seed=int] (--blobs|--census|--kddcup|--plants|--mnist|--fashion-mnist) --nb-cluster=int --initialization=str --nb-factors=int --sparsity-factor=int [--hierarchical] [--nb-iteration-palm=int] [--residual-on-right]
 
 Options:
   -h --help                             Show this screen.
@@ -13,7 +13,12 @@ Options:
   --seed=int                            The seed to use for numpy random module.
 
 Dataset:
-  --blobs                               Use blobs dataset from sklearn.
+  --blobs                               Use blobs dataset from sklearn. # todo blobs dataset with K > d and d < K
+  --census                              Use census dataset. # todo add description for all those datasets
+  --kddcup                              Use Kddcupbio dataset.
+  --plants                              Use plants dataset.
+  --mnist                               Use mnist dataset.
+  --fashion-mnist                       Use fasion-mnist dataset. # todo add writer for centroids result
 
 Non-specific options:
   --nb-cluster=int                      Number of cluster to look for.
@@ -68,13 +73,14 @@ def main_qmeans():
     lst_constraint_sets, lst_constraint_sets_desc = build_constraint_set_smart(left_dim=U_init.shape[0],
                                                                                right_dim=U_init.shape[1],
                                                                                nb_factors=paraman["--nb-factors"] + 1,
-                                                                               sparsity_factor=paraman["--sparsity-factor"])
+                                                                               sparsity_factor=paraman["--sparsity-factor"],
+                                                                               residual_on_right=paraman["--residual-on-right"])
 
     parameters_palm4msa = {
         "init_lambda": 1.,
         "nb_iter": paraman["--nb-iteration-palm"],
-        "lst_constraint_sets": lst_constraint_sets
-
+        "lst_constraint_sets": lst_constraint_sets,
+        "residual_on_right": paraman["--residual-on-right"]
     }
 
     start_qmeans = time.time()

@@ -49,6 +49,7 @@ def qmeans(X_data:np.ndarray,
     init_lambda = params_palm4msa["init_lambda"]
     nb_iter_palm = params_palm4msa["nb_iter"]
     lst_proj_op_by_fac_step = params_palm4msa["lst_constraint_sets"]
+    residual_on_right = params_palm4msa["residual_on_right"]
 
     X_centroids_hat = copy.deepcopy(initialization)
     min_K_d = min(X_centroids_hat.shape)
@@ -70,7 +71,7 @@ def qmeans(X_data:np.ndarray,
         f_lambda_init=init_lambda * eye_norm,
         nb_iter=nb_iter_palm,
         update_right_to_left=True,
-        residual_on_right=True,
+        residual_on_right=residual_on_right,
         graphical_display=False)
 
     _lambda = _lambda_tmp / eye_norm
@@ -143,7 +144,7 @@ def qmeans(X_data:np.ndarray,
                 f_lambda_init=_lambda*diag_counts_sqrt_norm,
                 nb_iter=nb_iter_palm,
                 update_right_to_left=True,
-                residual_on_right=True,
+                residual_on_right=residual_on_right,
                 graphical_display=False)
 
             loss_palm_before = objective_palm[0, 0]

@@ -8,12 +8,14 @@ from copy import deepcopy
 from pathlib import Path
 
 from sklearn import datasets
+from keras.datasets import mnist, fashion_mnist
 
 from numpy import eye
 import numpy as np
 from numpy.linalg import multi_dot
 import daiquiri
 from pyqalm.projection_operators import prox_splincol
+from pyqalm import project_dir
 
 daiquiri.setup(level=logging.DEBUG)
 logger = daiquiri.getLogger("pyqalm")
@@ -192,7 +194,17 @@ class ParameterManager(dict):
         :return:
         """
         if self["--blobs"]:
-            return blobs_dataset()
+            return blobs_dataset()["x_train"]
+        elif self["--census"]:
+            return census_dataset()["x_train"]
+        elif self["--kddcup"]:
+            return kddcup_dataset()["x_train"]
+        elif self["--plants"]:
+            return plants_dataset()["x_train"]
+        elif self["--mnist"]:
+            return mnist_dataset()["x_train"]
+        elif self["--fashion-mnist"]:
+            return fastion_mnist_dataset()["x_train"]
         else:
             raise NotImplementedError("Unknown dataset.")
 
@@ -218,8 +230,40 @@ class ParameterManagerQmeans(ParameterManager):
 
 def blobs_dataset():
     X, _ = datasets.make_blobs(n_samples=1000, n_features=20, centers=50)
-    return X
+    return {"x_train": X}
 
+def census_dataset():
+    data_dir = project_dir / "data/external" / "census.npz"
+    loaded_npz = np.load(data_dir)
+    return loaded_npz
+
+def kddcup_dataset():
+    data_dir = project_dir / "data/external" / "kddcup.npz"
+    loaded_npz = np.load(data_dir)
+    return loaded_npz
+
+def plants_dataset():
+    data_dir = project_dir / "data/external" / "plants.npz"
+    loaded_npz = np.load(data_dir)
+    return loaded_npz
+
+def mnist_dataset():
+    (X_train, y_train), (X_test, y_test) = mnist.load_data()
+    return {
+        "x_train": X_train,
+        "y_train": y_train,
+        "x_test": X_test,
+        "y_test": y_test
+    }
+
+def fastion_mnist_dataset():
+    (X_train, y_train), (X_test, y_test) = fashion_mnist.load_data()
+    return {
+        "x_train": X_train,
+        "y_train": y_train,
+        "x_test": X_test,
+        "y_test": y_test
+    }
 
 def create_directory(_dir, parents=True, exist_ok=True):
     """
