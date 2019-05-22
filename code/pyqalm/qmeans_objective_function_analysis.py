@@ -151,6 +151,7 @@ if __name__ == "__main__":
     else:
         raise NotImplementedError("Unknown method.")
 
+    np.save(paraman["--output-file_centroidprinter"], U_final, allow_pickle=True)
 
     if paraman["--assignation-time"]:
         make_assignation_evaluation(X, U_final)

@@ -179,6 +179,7 @@ class ParameterManager(dict):
         if out_file is not None:
             self["--output-file_resprinter"] = Path(out_file + "_results.csv")
             self["--output-file_objprinter"] = Path(out_file + "_objective.csv")
+            self["--output-file_centroidprinter"] = Path(out_file + "_centroids.npy")
 
     def __init_seed(self):
         if self["--seed"] is not None:
