@@ -190,7 +190,9 @@ def qmeans(X_data:np.ndarray,
 
         i_iter += 1
 
-    return objective_function[:i_iter], lst_factors, _lambda
+    U_centroids = _lambda * multi_dot(lst_factors[1:])
+
+    return objective_function[:i_iter], U_centroids
 
 
 def kmeans(X_data, K_nb_cluster, nb_iter, initialization):
@@ -412,11 +414,12 @@ if __name__ == '__main__':
     hierarchical_palm_init = {
         "init_lambda": 1.,
         "nb_iter": nb_iter_palm,
-        "lst_constraint_sets": lst_constraints}
+        "lst_constraint_sets": lst_constraints,
+        "residual_on_right": False}
 
     # try:
-    objective_values_q_hier, lst_factors_centroids_hier, lambda_centroids_hier = qmeans(X, nb_clusters, nb_iter_kmeans, nb_factors, hierarchical_palm_init, initialization=U_centroids_hat, graphical_display=True, hierarchical_inside=True)
-    objective_values_q, lst_factors_centroids, lambda_centroids = qmeans(X, nb_clusters, nb_iter_kmeans, nb_factors, hierarchical_palm_init, initialization=U_centroids_hat, graphical_display=False)
+    objective_values_q_hier, centroids_finaux_q_hier = qmeans(X, nb_clusters, nb_iter_kmeans, nb_factors, hierarchical_palm_init, initialization=U_centroids_hat, graphical_display=True, hierarchical_inside=True)
+    objective_values_q, centroids_finaux_q = qmeans(X, nb_clusters, nb_iter_kmeans, nb_factors, hierarchical_palm_init, initialization=U_centroids_hat, graphical_display=False)
     # except Exception as e:
     #     logger.info("There have been a problem in qmeans: {}".format(str(e)))
     try:

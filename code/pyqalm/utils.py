@@ -250,18 +250,18 @@ def plants_dataset():
 def mnist_dataset():
     (X_train, y_train), (X_test, y_test) = mnist.load_data()
     return {
-        "x_train": X_train,
+        "x_train": X_train.reshape(X_train.shape[0], -1),
         "y_train": y_train,
-        "x_test": X_test,
+        "x_test": X_test.reshape(X_test.shape[0], -1),
         "y_test": y_test
     }
 
 def fastion_mnist_dataset():
     (X_train, y_train), (X_test, y_test) = fashion_mnist.load_data()
     return {
-        "x_train": X_train,
+        "x_train": X_train.reshape(X_train.shape[0], -1),
         "y_train": y_train,
-        "x_test": X_test,
+        "x_test": X_test.reshape(X_test.shape[0], -1),
         "y_test": y_test
     }
 

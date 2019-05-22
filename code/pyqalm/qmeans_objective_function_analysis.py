@@ -2,8 +2,8 @@
 Analysis of objective function during qmeans execution
 
 Usage:
-  qmeans_objective_function_analysis kmeans [-h] [-v] [--output-file=str] [--seed=int] (--blobs|--census|--kddcup|--plants|--mnist|--fashion-mnist) --nb-cluster=int --initialization=str [--nb-iteration=int]
-  qmeans_objective_function_analysis qmeans [-h] [-v] [--output-file=str] [--seed=int] (--blobs|--census|--kddcup|--plants|--mnist|--fashion-mnist) --nb-cluster=int --initialization=str --nb-factors=int --sparsity-factor=int [--hierarchical] [--nb-iteration-palm=int] [--residual-on-right]
+  qmeans_objective_function_analysis kmeans [-h] [-v] [--output-file=str] [--seed=int] (--blobs|--census|--kddcup|--plants|--mnist|--fashion-mnist) --nb-cluster=int --initialization=str [--nb-iteration=int] [--assignation-time]
+  qmeans_objective_function_analysis qmeans [-h] [-v] [--output-file=str] [--seed=int] (--blobs|--census|--kddcup|--plants|--mnist|--fashion-mnist) --nb-cluster=int --initialization=str --nb-factors=int --sparsity-factor=int [--hierarchical] [--nb-iteration-palm=int] [--residual-on-right] [--assignation-time]
 
 Options:
   -h --help                             Show this screen.
@@ -19,6 +19,9 @@ Dataset:
   --plants                              Use plants dataset.
   --mnist                               Use mnist dataset.
   --fashion-mnist                       Use fasion-mnist dataset. # todo add writer for centroids result
+
+Tasks:
+  --assignation-time                    Evaluate assignation time for a single points when clusters have been defined.
 
 Non-specific options:
   --nb-cluster=int                      Number of cluster to look for.
@@ -44,12 +47,14 @@ import time
 import numpy as np
 from pyqalm.utils import ResultPrinter, ParameterManager, ParameterManagerQmeans, ObjectiveFunctionPrinter
 # todo graphical evaluation option
-from pyqalm.qmeans import kmeans, qmeans, build_constraint_set_smart
+from pyqalm.qmeans import kmeans, qmeans, build_constraint_set_smart, get_distances
 
-
-def main_kmeans():
-    X = paraman.get_dataset()
-    U_init = paraman.get_initialization_centroids(X)
+lst_results_header = [
+    "traintime",
+    "assignation_mean_time",
+    "assignation_std_time"
+]
+def main_kmeans(X, U_init):
     start_kmeans = time.time()
     objective_values_k, final_centroids = kmeans(X_data=X,
            K_nb_cluster=paraman["--nb-cluster"],
@@ -65,11 +70,10 @@ def main_kmeans():
     objprinter.add("kmeans_objective", ("after t"), objective_values_k)
     resprinter.add(kmeans_results)
 
+    return final_centroids
 
-def main_qmeans():
-    X = paraman.get_dataset()
-    U_init = paraman.get_initialization_centroids(X)
 
+def main_qmeans(X, U_init):
     lst_constraint_sets, lst_constraint_sets_desc = build_constraint_set_smart(left_dim=U_init.shape[0],
                                                                                right_dim=U_init.shape[1],
                                                                                nb_factors=paraman["--nb-factors"] + 1,
@@ -84,14 +88,14 @@ def main_qmeans():
     }
 
     start_qmeans = time.time()
-    objective_values_q, centroid_factors, centroid_lambda = qmeans(X_data=X,
-                                                                   K_nb_cluster=paraman["--nb-cluster"],
-                                                                   nb_iter=paraman["--nb-iteration"],
-                                                                   nb_factors=paraman["--nb-factors"] + 1,
-                                                                   params_palm4msa=parameters_palm4msa,
-                                                                   initialization=U_init,
-                                                                   hierarchical_inside=paraman["--hierarchical"],
-                                                                   )
+    objective_values_q, final_centroids = qmeans(X_data=X,
+                                                 K_nb_cluster=paraman["--nb-cluster"],
+                                                 nb_iter=paraman["--nb-iteration"],
+                                                 nb_factors=paraman["--nb-factors"] + 1,
+                                                 params_palm4msa=parameters_palm4msa,
+                                                 initialization=U_init,
+                                                 hierarchical_inside=paraman["--hierarchical"],
+                                                 )
     stop_qmeans = time.time()
     qmeans_traintime = stop_qmeans - start_qmeans
     qmeans_results = {
@@ -102,11 +106,32 @@ def main_qmeans():
     objprinter.add("qmeans_objective", ("after palm", "after t"), objective_values_q)
     resprinter.add(qmeans_results)
 
+    return final_centroids
+
+def make_assignation_evaluation(X, centroids):
+    nb_eval = 100
+    times = []
+    for i in np.random.permutation(X.shape[0])[:nb_eval]:
+        start_time = time.time()
+        get_distances(X[i].reshape(1, -1), centroids)
+        stop_time = time.time()
+        times.append(stop_time - start_time)
+
+    mean_time = np.mean(times)
+    std_time = np.std(times)
+
+    resprinter.add({
+        "assignation_mean_time": mean_time,
+        "assignation_std_time": std_time
+    })
+
 
 if __name__ == "__main__":
     arguments = docopt.docopt(__doc__)
     paraman = ParameterManager(arguments)
-    resprinter = ResultPrinter(output_file=paraman["--output-file_resprinter"])
+    initialized_results = dict((v, None) for v in lst_results_header)
+    resprinter = ResultPrinter(initialized_results, output_file=paraman["--output-file_resprinter"])
+    resprinter.add(paraman)
     objprinter = ObjectiveFunctionPrinter(output_file=paraman["--output-file_objprinter"])
 
     if paraman["--verbose"]:
@@ -114,16 +139,22 @@ if __name__ == "__main__":
     else:
         daiquiri.setup(level=logging.INFO)
 
+    X = paraman.get_dataset()
+    U_init = paraman.get_initialization_centroids(X)
+
     if paraman["kmeans"]:
-        main_kmeans()
+        U_final = main_kmeans(X, U_init)
     elif paraman["qmeans"]:
-        paraman = ParameterManagerQmeans(paraman)
-        main_qmeans()
-        resprinter.add(paraman)
-
-
+        paraman_q = ParameterManagerQmeans(arguments)
+        paraman.update(paraman_q)
+        U_final = main_qmeans(X, U_init)
     else:
         raise NotImplementedError("Unknown method.")
+
+
+    if paraman["--assignation-time"]:
+        make_assignation_evaluation(X, U_final)
+
 
     resprinter.print()
     objprinter.print()
