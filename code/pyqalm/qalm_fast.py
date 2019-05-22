@@ -731,16 +731,30 @@ if __name__ == '__main__':
                                  update_right_to_left=update_right_to_left,
                                  graphical_display=graphical_display)
     else:
-        d = 32
-        nb_iter = 300
-        nb_factors = 5
+        data = dict()
+        data['hadamard'] = hadamard(32)
 
-        lst_factors = [np.eye(d) for _ in range(nb_factors)]
-        lst_factors[-1] = np.zeros((d, d))  # VE
+        n_rows = 64
+        n_cols = 77
+        X = np.random.randn(n_rows, n_cols)
+        data['random matrix'] = X
+
+        X = data['hadamard']
+        X = data['random matrix']
+        d = np.min(X.shape)
+        if X.shape[1] == d:
+            X = X.T
+        nb_factors = int(np.log2(d))
+
+        nb_iter = 300
+
+        # lst_factors = [np.eye(d) for _ in range(nb_factors)]
+        # lst_factors[-1] = np.zeros((d, d))  # VE
+        lst_factors = []
+        for _ in range(nb_factors - 1):
+            lst_factors.append(np.eye(d))
+        lst_factors.append(np.zeros(X.shape))
         _lambda = 1.
-        had = hadamard(d)
-        # H =  had / norm(had, ord='fro')
-        H = had / np.sqrt(32)
 
         lst_proj_op_by_fac_step = []
         nb_keep_values = 2 * d
@@ -757,7 +771,7 @@ if __name__ == '__main__':
             lst_proj_op_by_fac_step.append(dct_step_lst_nb_keep_values)
 
         # out0 = hierarchical_palm4msa_slow(
-        #     arr_X_target=H,
+        #     arr_X_target=X,
         #     lst_S_init=lst_factors,
         #     lst_dct_projection_function=lst_proj_op_by_fac_step,
         #     f_lambda_init=_lambda,
@@ -768,7 +782,7 @@ if __name__ == '__main__':
 
         hierarchical_palm4msa_fast = hierarchical_palm4msa
         out1 = hierarchical_palm4msa_fast(
-            arr_X_target=H,
+            arr_X_target=X,
             lst_S_init=lst_factors,
             lst_dct_projection_function=lst_proj_op_by_fac_step,
             f_lambda_init=_lambda,
