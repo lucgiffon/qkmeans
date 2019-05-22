@@ -191,8 +191,10 @@ def qmeans(X_data:np.ndarray,
         i_iter += 1
 
     U_centroids = _lambda * multi_dot(lst_factors[1:])
+    distances = get_distances(X_data, U_centroids)
+    indicator_vector = np.argmin(distances, axis=1)
 
-    return objective_function[:i_iter], U_centroids
+    return objective_function[:i_iter], U_centroids, indicator_vector
 
 
 def kmeans(X_data, K_nb_cluster, nb_iter, initialization):
@@ -239,7 +241,7 @@ def kmeans(X_data, K_nb_cluster, nb_iter, initialization):
 
         i_iter += 1
 
-    return objective_function[:i_iter], U_centroids
+    return objective_function[:i_iter], U_centroids, indicator_vector
 
 def build_constraint_set_smart(left_dim, right_dim, nb_factors, sparsity_factor, residual_on_right):
     """

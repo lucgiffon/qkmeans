@@ -58,29 +58,9 @@ class ResultPrinter:
         :param header: tells if you want to print the header
         :param output_file: path to the outputfile. If None, no outputfile is written on ResultPrinter.print()
         """
-        self.__dicts = []
-        self.__dicts.extend(args)
+        self.__dict = dict()
         self.__header = header
         self.__output_file = output_file
-
-    def _get_ordered_items(self):
-        all_keys = []
-        all_values = []
-        for d in self.__dicts:
-            keys, values = zip(*d.items())
-            all_keys.extend(keys)
-            all_values.extend(values)
-        arr_keys, arr_values = np.array(all_keys), np.array(all_values)
-        indexes_sort = np.argsort(arr_keys)
-        return list(arr_keys[indexes_sort]), list(arr_values[indexes_sort])
-
-    def _get_values_ordered_by_keys(self):
-        _, values = self._get_ordered_items()
-        return values
-
-    def _get_ordered_keys(self):
-        keys, _ = self._get_ordered_items()
-        return keys
 
     def add(self, d):
         """
@@ -89,14 +69,14 @@ class ResultPrinter:
         :param d: the dictionnary object you want to add.
         :return:
         """
-        self.__dicts.append(d)
+        self.__dict.update(d)
 
     def print(self):
         """
         Call this function whener you want to print/write to file the content of the dictionnaires.
         :return:
         """
-        headers, values = self._get_ordered_items()
+        headers, values = zip(*self.__dict.items())
         headers = [str(h) for h in headers]
         s_headers = ",".join(headers)
         values = [str(v) for v in values]
@@ -109,6 +89,9 @@ class ResultPrinter:
                 if self.__header:
                     out_f.write(s_headers + "\n")
                 out_f.write(s_values + "\n")
+
+def timeout_signal_handler(signum, frame):
+    raise TimeoutError("More than 10 times slower than kmean")
 
 class ObjectiveFunctionPrinter:
     def __init__(self, output_file:Path=None):
@@ -131,7 +114,7 @@ class ObjectiveFunctionPrinter:
         if len(arr.shape) > 2:
             raise ValueError("Trying to add a {}-D array to ObjectiveFunctionPrinter. Maximum dim accepted is 2.".format(len(arr.shape)))
 
-        assert len(cols) == len(arr[0]) or (len(arr.shape) == 1 and len(cols) == 1)
+        assert (len(arr.shape) == 1 and len(cols) == 1) or len(cols) == len(arr[0])
 
         self.objectives[name] = (cols, arr)
 
@@ -195,17 +178,17 @@ class ParameterManager(dict):
         :return:
         """
         if self["--blobs"]:
-            return blobs_dataset()["x_train"]
+            return blobs_dataset()
         elif self["--census"]:
-            return census_dataset()["x_train"]
+            return census_dataset()
         elif self["--kddcup"]:
-            return kddcup_dataset()["x_train"]
+            return kddcup_dataset()
         elif self["--plants"]:
-            return plants_dataset()["x_train"]
+            return plants_dataset()
         elif self["--mnist"]:
-            return mnist_dataset()["x_train"]
+            return mnist_dataset()
         elif self["--fashion-mnist"]:
-            return fastion_mnist_dataset()["x_train"]
+            return fastion_mnist_dataset()
         else:
             raise NotImplementedError("Unknown dataset.")
 
