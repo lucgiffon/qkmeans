@@ -72,6 +72,8 @@ def hierarchical_palm4msa(arr_X_target: np.array,
 
     if return_objective_function:
         objective_function = np.empty((nb_factors, 3))
+    else:
+        objective_function = None
 
     # main loop
     for k in range(nb_factors - 1):
@@ -120,15 +122,15 @@ def hierarchical_palm4msa(arr_X_target: np.array,
                                      lst_S_init[-nb_factors_so_far]]
 
         if residual_on_right:
-            f_lambda_prime, S_out, unscaled_residual_reconstruction, \
-                nb_iter_this_factor = \
-                    func_split_step_palm4msa(lst_S_init=lst_S_init_split_step)
+            f_lambda_prime, S_out, unscaled_residual_reconstruction, _, \
+            nb_iter_this_factor = \
+                func_split_step_palm4msa(lst_S_init=lst_S_init_split_step)
             new_factor = S_out.get_factor(0)
             new_residual = S_out.get_factor(1)
         else:
-            f_lambda_prime, S_out, unscaled_residual_reconstruction, \
-                nb_iter_this_factor = \
-                    func_split_step_palm4msa(lst_S_init=lst_S_init_split_step)
+            f_lambda_prime, S_out, unscaled_residual_reconstruction, _, \
+            nb_iter_this_factor = \
+                func_split_step_palm4msa(lst_S_init=lst_S_init_split_step)
             new_residual = S_out.get_factor(0)
             new_factor = S_out.get_factor(1)
 
@@ -197,7 +199,7 @@ def hierarchical_palm4msa(arr_X_target: np.array,
             #     nb_iter_this_factor_bis = func_fine_tune_step_palm4msa(
             #         lst_S_init=lst_S[:nb_factors_so_far] + [new_residual])
             lst_S_in = op_S_factors.get_list_of_factors()[:nb_factors_so_far]
-            f_lambda, lst_S_out, _, nb_iter_this_factor_bis = \
+            f_lambda, lst_S_out, _, _, nb_iter_this_factor_bis = \
                 func_fine_tune_step_palm4msa(
                     lst_S_init=lst_S_in + [new_residual])
             for i in range(nb_factors_so_far):
@@ -215,9 +217,8 @@ def hierarchical_palm4msa(arr_X_target: np.array,
             # TODO remove .toarray()?
             arr_residual = lst_S_out.get_factor(0).toarray()
             for i in range(nb_factors_so_far):
-                op_S_factors.set_factor(-nb_factors_so_far+i,
-                                        lst_S_out.get_factor(i+1))
-        print('Fast', k, nb_iter_this_factor, nb_iter_this_factor_bis)
+                op_S_factors.set_factor(-nb_factors_so_far + i,
+                                        lst_S_out.get_factor(i + 1))
         lst_nb_iter_by_factor.append(
             nb_iter_this_factor + nb_iter_this_factor_bis)
 
@@ -271,11 +272,8 @@ def hierarchical_palm4msa(arr_X_target: np.array,
     # arr_X_curr = f_lambda * multi_dot(lst_S)
     arr_X_curr = f_lambda * op_S_factors.compute_product()
 
-    if return_objective_function:
-        return f_lambda, op_S_factors, arr_X_curr, lst_nb_iter_by_factor, \
-               objective_function
-    else:
-        return f_lambda, op_S_factors, arr_X_curr, lst_nb_iter_by_factor
+    return f_lambda, op_S_factors, arr_X_curr, lst_nb_iter_by_factor, \
+           objective_function
 
 
 def palm4msa_fast1(arr_X_target: np.array,
@@ -433,6 +431,7 @@ def palm4msa_fast2(arr_X_target: np.array,
     lst S [-j] = Sj
 
     """
+
     logger.debug('Norme de arr_X_target: {}'.format(
         np.linalg.norm(arr_X_target, ord='fro')))
     assert len(lst_S_init) > 0
@@ -557,6 +556,7 @@ def palm4msa_fast3(arr_X_target: np.array,
     lst S [-j] = Sj
 
     """
+
     if debug:
         logger.debug('Norme de arr_X_target: {}'.format(
             np.linalg.norm(arr_X_target, ord='fro')))
@@ -653,6 +653,8 @@ def palm4msa_fast3(arr_X_target: np.array,
         i_iter += 1
     if track_objective:
         objective_function = objective_function[:i_iter, :]
+    else:
+        objective_function = None
 
     if graphical_display and track_objective:
         plt.figure()
@@ -667,14 +669,10 @@ def palm4msa_fast3(arr_X_target: np.array,
         plt.legend()
         plt.show()
 
-    if track_objective:
-        return f_lambda, S_factors_op, arr_X_curr, objective_function, i_iter
-    else:
-        return f_lambda, S_factors_op, arr_X_curr, i_iter
+    return f_lambda, S_factors_op, arr_X_curr, objective_function, i_iter
 
 
 palm4msa = palm4msa_fast3
-
 
 if __name__ == '__main__':
     from scipy.linalg import hadamard
@@ -781,6 +779,11 @@ if __name__ == '__main__':
         #     graphical_display=False)
 
         hierarchical_palm4msa_fast = hierarchical_palm4msa
+        import daiquiri
+        import logging
+
+        daiquiri.setup(level=logging.INFO)
+
         out1 = hierarchical_palm4msa_fast(
             arr_X_target=X,
             lst_S_init=lst_factors,

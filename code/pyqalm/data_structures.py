@@ -101,11 +101,14 @@ class SparseFactors(LinearOperator):
         return SparseFactors([x.transpose()
                               for x in reversed(self._lst_factors)])
 
-    def compute_product(self):
+    def compute_product(self, return_array=True):
         Y = self._lst_factors[-1]
         for X in reversed(self._lst_factors[:-1]):
             Y = X.dot(Y)
-        return Y.toarray()
+        if return_array:
+            return Y.toarray()
+        else:
+            return Y
 
     def get_factor(self, index, copy=False):
         if copy:

@@ -28,7 +28,7 @@ def get_distances(X_data, U_centroids):
     """
     centroid_norms = np.linalg.norm(U_centroids, axis=1) ** 2
     # todo tirer parti de la sparsité des matrices.
-    centroid_distances = -2*(U_centroids @ X_data.T) + centroid_norms[:, np.newaxis]
+    centroid_distances = -2 * U_centroids @ X_data.T + centroid_norms[:, None]
 
     return centroid_distances.T
 
@@ -192,7 +192,15 @@ def qmeans(X_data:np.ndarray,
         logger.debug("Returned loss (with diag) palm: {}".format(objective_palm[-1, 0]))
 
         if i_iter >= 1:
-            delta_objective_error = np.abs(objective_function[i_iter, 0] - objective_function[i_iter-1, 0]) / objective_function[i_iter-1, 0] # todo vérifier que l'erreur absolue est plus petite que le threshold plusieurs fois d'affilée
+            if objective_function[i_iter-1, 0] == 0:
+                delta_objective_error = 0
+            else:
+                print(objective_function[i_iter, 0],
+                      objective_function[i_iter-1, 0])
+                delta_objective_error = \
+                    np.abs(objective_function[i_iter, 0]
+                           - objective_function[i_iter-1, 0]) \
+                    / objective_function[i_iter-1, 0] # todo vérifier que l'erreur absolue est plus petite que le threshold plusieurs fois d'affilée
 
         i_iter += 1
 

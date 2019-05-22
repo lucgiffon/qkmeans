@@ -15,6 +15,10 @@ from pyqalm.utils import get_side_prod, logger
 from pyqalm.data_structures import SparseFactors
 
 
+# TODO avoid conversions between dense ndarray and sparse matrices
+# TODO init palm with SparseFactors
+
+
 def compute_objective_function(arr_X_target, _f_lambda, _lst_S):
     if isinstance(_lst_S, SparseFactors):
         reconstruct = _f_lambda * _lst_S.compute_product()
@@ -323,7 +327,6 @@ def hierarchical_palm4msa(arr_X_target: np.array,
                                       -nb_factors_so_far:]), _, _, nb_iter_this_factor_bis = func_fine_tune_step_palm4msa(
                 lst_S_init=[new_residual] + lst_S[-nb_factors_so_far:])
 
-        print('Slow', k, nb_iter_this_factor, nb_iter_this_factor_bis)
         lst_nb_iter_by_factor.append(
             nb_iter_this_factor + nb_iter_this_factor_bis)
 

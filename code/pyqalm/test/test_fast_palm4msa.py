@@ -190,7 +190,7 @@ class TestPalm4Msa(unittest.TestCase):
                     err_msg='Factor {}'.format(j))
             np.testing.assert_array_almost_equal(out3[2], out2[2],
                                                  err_msg='arr_X_curr')
-            np.testing.assert_equal(out3[3], out2[4], err_msg='i_iter')
+            np.testing.assert_equal(out3[4], out2[4], err_msg='i_iter')
 
             out3 = palm4msa_fast3(
                 X,
