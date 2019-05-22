@@ -80,7 +80,6 @@ def PALM4MSA(arr_X_target: np.array,
     delta_objective_error = np.inf
     while i_iter == 0 or ((i_iter < nb_iter) and (delta_objective_error > delta_objective_error_threshold)):
 
-
         for j in factor_number_generator:
             if lst_projection_functions[j].__name__ == "constant_proj":
                 continue

@@ -2,8 +2,8 @@
 Analysis of objective function during qmeans execution
 
 Usage:
-  qmeans_objective_function_analysis kmeans [-h] [-v] --output-file=str [--seed=int] (--blobs|--census|--kddcup|--plants|--mnist|--fashion-mnist) --nb-cluster=int --initialization=str [--nb-iteration=int] [--assignation-time] [--1-nn]
-  qmeans_objective_function_analysis qmeans [-h] [-v] --output-file=str [--seed=int] (--blobs|--census|--kddcup|--plants|--mnist|--fashion-mnist) --nb-cluster=int --initialization=str --nb-factors=int --sparsity-factor=int [--hierarchical] [--nb-iteration-palm=int] [--residual-on-right] [--assignation-time] [--1-nn]
+  qmeans_objective_function_analysis kmeans [-h] [-v] --output-file=str [--seed=int] (--blobs|--census|--kddcup|--plants|--mnist|--fashion-mnist) --nb-cluster=int --initialization=str [--nb-iteration=int] [--assignation-time] [--1-nn] [--nystrom]
+  qmeans_objective_function_analysis qmeans [-h] [-v] --output-file=str [--seed=int] (--blobs|--census|--kddcup|--plants|--mnist|--fashion-mnist) --nb-cluster=int --initialization=str --nb-factors=int --sparsity-factor=int [--hierarchical] [--nb-iteration-palm=int] [--residual-on-right] [--assignation-time] [--1-nn] [--nystrom]
 
 Options:
   -h --help                             Show this screen.
@@ -18,11 +18,12 @@ Dataset:
   --kddcup                              Use Kddcupbio dataset.
   --plants                              Use plants dataset.
   --mnist                               Use mnist dataset.
-  --fashion-mnist                       Use fasion-mnist dataset. # todo add writer for centroids result
+  --fashion-mnist                       Use fasion-mnist dataset.
 
 Tasks:
   --assignation-time                    Evaluate assignation time for a single points when clusters have been defined.
   --1-nn                                Evaluate inference time (by instance) and inference accuracy for 1-nn (available only for mnist and fashion-mnist datasets)
+  --nystrom                             Evaluate reconstruction time and reconstruction accuracy for Nyström approximation.
 
 Non-specific options:
   --nb-cluster=int                      Number of cluster to look for.
@@ -46,10 +47,12 @@ import logging
 import daiquiri
 import time
 import numpy as np
-from pyqalm.utils import ResultPrinter, ParameterManager, ParameterManagerQmeans, ObjectiveFunctionPrinter, logger, timeout_signal_handler
+from pyqalm.utils import ResultPrinter, ParameterManager, ParameterManagerQmeans, ObjectiveFunctionPrinter, logger, timeout_signal_handler, random_combination, compute_euristic_gamma
 # todo graphical evaluation option
 from pyqalm.qmeans import kmeans, qmeans, build_constraint_set_smart, get_distances
 from sklearn.neighbors import KNeighborsClassifier
+from sklearn.kernel_approximation import Nystroem
+import itertools
 
 lst_results_header = [
     "traintime",
@@ -62,7 +65,10 @@ lst_results_header = [
     "1nn_kd_tree_inference_time",
     "1nn_kd_tree_accuracy",
     "1nn_ball_tree_inference_time",
-    "1nn_ball_tree_accuracy"
+    "1nn_ball_tree_accuracy",
+    "nystrom_build_time",
+    "nystrom_inference_time",
+    "nystrom_sampled_error_reconstruction"
 ]
 
 def main_kmeans(X, U_init):
@@ -200,6 +206,59 @@ def make_1nn_evaluation(x_train, y_train, x_test, y_test, U_centroids, indicator
             signal.alarm(0)
 
 
+def special_rbf_kernel(X, Y, gamma):
+    """
+    Rbf kernel expressed under the form f(x)f(u)f(xy^T)
+    :param X: n x d matrix
+    :param Y: n x d matrix
+    :return:
+    """
+    assert len(X.shape) == len(Y.shape) == 2
+
+    def f(mat):
+        return np.exp(-gamma * np.trace(mat.transpose() @ mat)) # todo verifier avec valentin que ceci utilise bien la structure de données
+    def g(scal):
+        return np.exp(2 * gamma * scal)
+
+    return f(X) * f(Y) * g(X @ Y.transpose())
+
+def make_nystrom_evaluation(x_train, U_centroids):
+    gamma = compute_euristic_gamma(x_train)
+
+    nystrom_build_start_time = time.time()
+
+    basis_kernel_W = special_rbf_kernel(U_centroids, U_centroids, gamma)
+    U, S, V = np.linalg.svd(basis_kernel_W)
+    S = np.maximum(S, 1e-12)
+
+    normalization_ = np.dot(U / np.sqrt(S), V)
+
+    nystrom_build_stop_time = time.time()
+
+    nystrom_build_time = nystrom_build_stop_time - nystrom_build_start_time
+
+    n_sample = 5000
+    indexes_samples = np.random.permutation(x_train.shape[0])[:n_sample]
+    sample = x_train[indexes_samples]
+
+    real_kernel = special_rbf_kernel(sample, sample, gamma)
+
+    nystrom_inference_time_start = time.time()
+    nystrom_embedding = special_rbf_kernel(U_centroids, sample, gamma).T @ normalization_
+    nystrom_approx_kernel_value = nystrom_embedding @ nystrom_embedding.T
+    nystrom_inference_time_stop = time.time()
+    nystrom_inference_time = nystrom_inference_time_stop - nystrom_inference_time_start
+
+    sampled_froebenius_norm = np.linalg.norm(nystrom_approx_kernel_value - real_kernel)
+
+    nystrom_results = {
+        "nystrom_build_time": nystrom_build_time,
+        "nystrom_inference_time": nystrom_inference_time,
+        "nystrom_sampled_error_reconstruction": sampled_froebenius_norm
+    }
+
+    resprinter.add(nystrom_results)
+
 if __name__ == "__main__":
     arguments = docopt.docopt(__doc__)
     paraman = ParameterManager(arguments)
@@ -236,17 +295,21 @@ if __name__ == "__main__":
     np.save(paraman["--output-file_centroidprinter"], U_final, allow_pickle=True)
 
     if paraman["--assignation-time"]:
+        logger.info("Start assignation time evaluation")
         make_assignation_evaluation(dataset["x_train"], U_final)
 
     if paraman["--1-nn"]:
         logger.info("Start 1 nearest neighbor evaluation")
-        make_1nn_evaluation(x_train=dataset["x_train"], # todo remove this
+        make_1nn_evaluation(x_train=dataset["x_train"],
                             y_train=dataset["y_train"],
                             x_test=dataset["x_test"],
                             y_test=dataset["y_test"],
                             U_centroids=U_final,
                             indicator_vector=indicator_vector_final)
 
+    if paraman["--nystrom"]:
+        logger.info("Start Nyström reconstruction evaluation")
+        make_nystrom_evaluation(dataset["x_train"], U_final)
 
     resprinter.print()
     objprinter.print()

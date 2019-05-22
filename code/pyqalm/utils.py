@@ -1,5 +1,6 @@
 import logging
 import os
+import random
 import urllib
 
 import pathlib
@@ -71,12 +72,18 @@ class ResultPrinter:
         """
         self.__dict.update(d)
 
+    def _get_ordered_items(self):
+        all_keys, all_values = zip(*self.__dict.items())
+        arr_keys, arr_values = np.array(all_keys), np.array(all_values)
+        indexes_sort = np.argsort(arr_keys)
+        return list(arr_keys[indexes_sort]), list(arr_values[indexes_sort])
+
     def print(self):
         """
         Call this function whener you want to print/write to file the content of the dictionnaires.
         :return:
         """
-        headers, values = zip(*self.__dict.items())
+        headers, values = self._get_ordered_items()
         headers = [str(h) for h in headers]
         s_headers = ",".join(headers)
         values = [str(v) for v in values]
@@ -92,6 +99,13 @@ class ResultPrinter:
 
 def timeout_signal_handler(signum, frame):
     raise TimeoutError("More than 10 times slower than kmean")
+
+def random_combination(iterable, r):
+    "Random selection from itertools.combinations(iterable, r)"
+    pool = tuple(iterable)
+    n = len(pool)
+    indices = sorted(random.sample(range(n), r))
+    return tuple(pool[i] for i in indices)
 
 class ObjectiveFunctionPrinter:
     def __init__(self, output_file:Path=None):
@@ -177,6 +191,7 @@ class ParameterManager(dict):
 
         :return:
         """
+        # todo normalize data before
         if self["--blobs"]:
             return blobs_dataset()
         elif self["--census"]:
@@ -204,6 +219,33 @@ class ParameterManager(dict):
         else:
             raise NotImplementedError("Unknown initialization.")
 
+def compute_euristic_gamma(dataset_full, slice_size=1000):
+    """
+    Given a dataset, return the gamma that should be used (euristically) when using a rbf kernel on this dataset.
+
+    The formula: $\sigma^2 = 1/n^2 * \sum_{i, j}^{n}||x_i - x_j||^2$
+
+    :param dataset: The dataset on which to look for the best sigma
+    :return:
+    """
+    results = []
+    # dataset_full = np.reshape(dataset_full, (-1, 1))
+    if slice_size > dataset_full.shape[0]:
+        slice_size = dataset_full.shape[0]
+    for i in range(dataset_full.shape[0] // slice_size):
+        if (i+1) * slice_size <= dataset_full.shape[0]:
+            dataset = dataset_full[i * slice_size: (i+1) * slice_size]
+            slice_size_tmp = slice_size
+        else:
+            dataset = dataset_full[i * slice_size:]
+            slice_size_tmp = len(dataset)
+        r1 = np.sum(dataset * dataset, axis=1)
+        r1 = np.reshape(r1, [-1, 1])
+        r2 = np.reshape(r1, [1, -1])
+        d_mat = np.dot(dataset, dataset.T)
+        d_mat = r1 - 2 * d_mat + r2
+        results.append(1/slice_size_tmp**2 * np.sum(d_mat))
+    return 1. / np.mean(results)
 
 class ParameterManagerQmeans(ParameterManager):
     def __init__(self, dct_params, **kwargs):
