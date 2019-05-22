@@ -160,7 +160,7 @@ def qmeans(X_data: np.ndarray,
 
     if return_objective_function:
         objective_function = np.empty((nb_iter, 2))
-        objective_function[0, 0] = np.nan
+        objective_function[0, 0] = np.inf
 
     # Loop for the maximum number of iterations
     i_iter = 0

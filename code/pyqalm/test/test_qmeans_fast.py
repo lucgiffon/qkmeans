@@ -12,8 +12,7 @@ class TestCompareQmeans(unittest.TestCase):
         nb_clusters = 9
         nb_iter_kmeans = 10
         X, _ = datasets.make_blobs(n_samples=200, n_features=16, centers=32)
-        U_centroids_hat = X[np.random.permutation(X.shape[0])[
-                            :nb_clusters]]  # kmeans++ initialization is not feasible because complexity is O(ndk)...
+        U_centroids_hat = X[np.random.permutation(X.shape[0])[:nb_clusters]]
 
         nb_factors = 5
         sparsity_factor = 3

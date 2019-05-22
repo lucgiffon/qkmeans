@@ -92,7 +92,7 @@ def qmeans(X_data:np.ndarray,
 
 
     objective_function = np.empty((nb_iter,2))
-    objective_function[0, 0] = np.nan
+    objective_function[0, 0] = np.inf
 
     # Loop for the maximum number of iterations
     i_iter = 0
@@ -193,8 +193,8 @@ def qmeans(X_data:np.ndarray,
         logger.debug("Returned loss (with diag) palm: {}".format(objective_palm[-1, 0]))
 
         if i_iter >= 1:
-            if objective_function[i_iter-1, 0] == 0:
-                delta_objective_error = 0
+            if objective_function[i_iter-1, 0] == np.inf:
+                delta_objective_error = np.inf
             else:
                 print(objective_function[i_iter, 0],
                       objective_function[i_iter-1, 0])
