@@ -160,6 +160,11 @@ class ObjectiveFunctionPrinter:
                     with open(path_arr, "a") as out_f:
                         out_f.write(str_row + "\n")
 
+def get_random():
+    val = str(random.randint(1, 10000000000))[1:8]
+    # print(val)
+    return val
+
 class ParameterManager(dict):
     def __init__(self, dct_params, **kwargs):
         super().__init__(self, **dct_params, **kwargs)
@@ -170,7 +175,7 @@ class ParameterManager(dict):
         self.__init_seed()
 
     def __init_output_file(self):
-        out_file = self["--output-file"]
+        out_file = get_random()
         if out_file is not None and len(out_file.split(".")) > 1:
             raise ValueError("Output file name should be given without any extension (no `.` in the string)")
         if out_file is not None:

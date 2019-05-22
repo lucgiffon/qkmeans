@@ -2,14 +2,12 @@
 Analysis of objective function during qmeans execution
 
 Usage:
-  qmeans_objective_function_analysis kmeans [-h] [-v] --output-file=str [--seed=int] (--blobs|--census|--kddcup|--plants|--mnist|--fashion-mnist) --nb-cluster=int --initialization=str [--nb-iteration=int] [--assignation-time] [--1-nn] [--nystrom]
-  qmeans_objective_function_analysis qmeans [-h] [-v] --output-file=str [--seed=int] (--blobs|--census|--kddcup|--plants|--mnist|--fashion-mnist) [--nb-cluster=int] --initialization=str --nb-factors=int --sparsity-factor=int [--hierarchical] [--nb-iteration-palm=int] [--assignation-time] [--1-nn] [--nystrom]
+  qmeans_objective_function_analysis kmeans [-h] [-v] [--seed=int] (--blobs|--census|--kddcup|--plants|--mnist|--fashion-mnist) --nb-cluster=int --initialization=str [--nb-iteration=int] [--assignation-time] [--1-nn] [--nystrom]
+  qmeans_objective_function_analysis qmeans [-h] [-v] [--seed=int] (--blobs|--census|--kddcup|--plants|--mnist|--fashion-mnist) [--nb-cluster=int] --initialization=str --nb-factors=int --sparsity-factor=int [--hierarchical] [--nb-iteration-palm=int] [--assignation-time] [--1-nn] [--nystrom]
 
 Options:
   -h --help                             Show this screen.
   -v --verbose                          Set verbosity to debug.
-  --output-file=str                     Tell if the results should be written to some file and give the path to the file.
-                                        The file name must be given without ext.
   --seed=int                            The seed to use for numpy random module.
 
 Dataset:
