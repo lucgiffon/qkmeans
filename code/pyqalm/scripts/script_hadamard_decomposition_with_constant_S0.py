@@ -12,7 +12,7 @@ from pyqalm.utils import logger, get_lambda_proxsplincol, constant_proj
 from scipy.linalg import hadamard
 from numpy.linalg import norm
 
-from pyqalm.qalm import HierarchicalPALM4MSA
+from pyqalm.palm.qalm import hierarchical_palm4msa
 from pyqalm.test.test_qalm import visual_evaluation_palm4msa
 
 
@@ -46,7 +46,7 @@ for k in range(nb_factors - 1):
     lst_proj_op_by_fac_step.append(dct_step_lst_nb_keep_values)
 
 #final_lambda, final_factors, final_X = PALM4LED(H, lst_factors, [nb_keep_values for _ in range(nb_factors)], _lambda, nb_iter)
-final_lambda, final_factors, final_X, nb_iter_by_factor, _ = HierarchicalPALM4MSA(
+final_lambda, final_factors, final_X, nb_iter_by_factor, _ = hierarchical_palm4msa(
     arr_X_target=H,
     lst_S_init=lst_factors,
     lst_dct_projection_function=lst_proj_op_by_fac_step,
