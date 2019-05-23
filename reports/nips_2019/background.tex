@@ -59,7 +59,7 @@ where $n_k^{(\tau)} \leftarrow |\{n: \rvt^{(\tau)}[n]=k\}|$ is the number of poi
 
 The assignment step (\eqref{eq:assignment_problem_kmeans}) costs $\mathcal{O}(\nexamples\datadim\nclusters)$ operations while the center update (\eqref{eq:center_update}) is in $\mathcal{O}\left (\nexamples\datadim\right )$ operations. Hence, the bottleneck in the overall time complexity $\mathcal{O}(\nexamples\datadim\nclusters)$ is due to the assignment step. Once the clusters have been defined, assigning $\nexamples'$ new points to these clusters is performed via \eqref{eq:assignment_problem_kmeans} at the cost of $\mathcal{O}\left (\nexamples'\datadim\nclusters \right )$ operations.
 
-The main contribution in this paper relies on the idea that \eqref{eq:assignment_problem_kmeans} may be computed faster by approximating $\rmU$ by a fast operator.
+The main contribution in this paper relies on the idea that \eqref{eq:assignment_problem_kmeans} may be computed more efficiently by approximating $\rmU$ as a fast operator.
 
 % Each update step $\tau$ is divided into two parts: (i) all observations $\rmX_{[n]}$ are assigned to their nearest cluster based on the center-points $\rmU_{[\rvt[n]]}^{(\tau-1)}$s at this step (Line \ref{line:kmeans:assignment}) in $\mathcal{O}(\nexamples\datadim\nclusters)$ operations
 %
@@ -101,37 +101,19 @@ The main contribution in this paper relies on the idea that \eqref{eq:assignment
 %We remark here that the computational bottleneck of this assignment lies in the computation of $\rmU_{[k]}^T\rvx$ for all $k$. This computation is also encountered in the assignment step (line \ref{line:kmeans:assignment}) of the Algorithm \ref{algo:kmeans}.
 
 
-\subsection{Learning Fast transforms as the product of sparse matrices}
-\label{sec:palm4led}
+\subsection{Learning fast transforms as the product of sparse matrices}
+\label{sec:palm4msa}
 
+The success of some linear operators like Fourier or Hadamard transforms relies on both their mathematical properties and their ability to be computed in an efficient way, typically in $\mathcal{O}\left (M\log\left (M\right )\right )$ instead of $\mathcal{O}\left (M^2\right )$ operations when defined in dimension $M$. 
+The main idea of the related fast algorithm is that the matrix $\rmU\in\sR^{M\times M}$ characterizing such a linear operator can be written as the product $\rmU=\Pi_{q\in\intint{\nfactors}}\rmS_q$ of $\nfactors$ sparse matrices $\rmS_q$, with $Q=\mathcal{O}\left (\log M\right )$ and $\left \|\rmS_q\right \|_0=\mathcal{O}\left (M\right )$.
+As a consequence, for any vector $\rvx\in\sR^M$, $\rmU\rvx$ can be computed efficiently as $\mathcal{O}\left (\log M\right )$ products $\rmS_0 \left (\rmS_1 \left (\ldots \left (\rmS_{Q-1}\rvx\right )\right )\right )$ between a sparse matrix and a vector, the cost of each product being $\mathcal{O}\left (M\right )$.
 
-\begin{algorithm}
-	\caption{PALM4MSA algorithm}
-	\label{algo:palm4msa}
-	\begin{algorithmic}[1]
-		
-		
-		\REQUIRE The matrix to factorize $\rmU \in \R^{K \times d}$, the desired number of factors $Q$, the constraint sets $\mathcal{E}_j$ , $j \in [\![Q]\!]$ and a stopping criterion (e.g., here, a number of iterations $N_{iter}$ ).
-		
-		\ENSURE $\{\mathcal{S}_1 \dots \mathcal{S}_{Q}\}|\mathcal{S}_j \in \mathcal{E}_j$ such that $\prod_{j=1}^{Q}\mathcal{S}_j \approx \rmU$
-		
-		\FOR {$i = 0$ to $N_{iter}$}
-		\FOR {$j = 1$ to $Q$}
-		\STATE  $\rmL_j \leftarrow \prod_{l=j+1}^{Q} \mathcal{S}_{l}^{i}$
-		\STATE  $\rmR_j \leftarrow \prod_{l=1}^{j-1} \mathcal{S}_{l}^{i+1}$
-		\STATE $c_j^i :> (\lambda^i)^2 ||\rmR_j||_2^2 ||\rmL_j||_2^2$
-		\STATE $\mathcal{S}^{i+1}_j \leftarrow P_{\mathcal{E}_j}(\mathcal{S}_j^i - \frac{1}{c_j^i} \lambda^i \rmL_j^T(\lambda \rmL_j \mathcal{S}_j^i \rmR_j - \rmU)\rmR_j^T)$
-		\ENDFOR
-		\STATE $\hat \rmU := \prod_{j=1}^{Q} \mathcal{S}_j^{i+1}$
-		\STATE $\lambda^{i+1} \leftarrow \frac{Trace(\rmU^T\hat\rmU)}{Trace(\hat\rmU^T\hat\rmU)}$
-		\ENDFOR
-		
-		\ENSURE $\lambda, \{\mathcal{S}_1 \dots \mathcal{S}_{Q}\}|\mathcal{S}_j \in \mathcal{E}_j$ such that $\lambda \prod_{j=1}^{Q}\mathcal{S}_j \approx \rmU$
-		
-	\end{algorithmic}
-\end{algorithm}
+When the linear operator $\rmU$ is an arbitrary matrix, one may approximate it with such a sparse-product structure by learning the factors $\left \lbrace\rmS_q\right \rbrace_{q\in\intint{Q}}$ in order to benefit from a fast algorithm.
+Recent works~\cite{LeMagoarou2016Flexible} have proposed algorithmic strategies to learn such a factorization.
 
+TO BE COMPLETED + algo~\ref{algo:palm4msa} in appendix~\ref{sec:app:palm4msa}.
 
+\cite{bolte2014proximal, LeMagoarou2016Flexible}
 
 A popular way for providing concise description of high-dimensional vectors $\rmU \in \R^{K \times d}$ is to compute a sparse representation using a dictionary:
 %
