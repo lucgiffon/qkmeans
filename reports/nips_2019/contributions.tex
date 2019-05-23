@@ -125,6 +125,7 @@ of this section.}
 		\STATE $\forall k\in\intint{\nclusters}, \hat{\rvu}_k \leftarrow \frac{1}{n_k^{(\tau)}} \sum_{n: \rvt^{(\tau)}[n]= k} {\rvx_n}$
 with $n_k \leftarrow |\{n: \rvt^{(\tau)}[n]=k\}|$
 		\COMMENT{$\bigO{\nexamples\datadim}$}
+		\label{line:qmeans:compute_means}
 %		\FORALL {$k \in [\![K]\!]$}
 %		\label{line:qmeans:startkmeans}
 %		\STATE $n_k^{(\tau)} \leftarrow |\{i: \rvt^{(\tau)}_i=k\}|$
@@ -135,10 +136,13 @@ with $n_k \leftarrow |\{n: \rvt^{(\tau)}[n]=k\}|$
 %		\label{line:qmeans:endkmeans}
 		\STATE $\rmA \leftarrow \mathcal{D}_{\sqrt{\rvn^{(\tau)}}} \times \hat{\rmU}^{(\tau)} $
 		\COMMENT{$\bigO{\nclusters\datadim}$}
+		\label{line:qmeans:A}
 		\STATE $\left \lbrace \rmS_q^{(\tau)}\right \rbrace_{q\in\intint{\nfactors}} \leftarrow \argmin_{\left \lbrace \rmS_q\right \rbrace_{q\in\intint{\nfactors}}} \left \|\rmA - \prod_{q\in\intint{\nfactors}}^{Q}{\rmS_q}\right \|_F^2 + \sum_{q\in\intint{\nfactors}} \mathbf{1}_{\mathcal{E}_q}(\rmS_q)$\\
 		\COMMENT{$\bigO{AB\log^2A}$ (or $\bigO{AB\log^3A}$)}
+		\label{line:qmeans:S}
 		\STATE $\rmU^{(\tau)} \leftarrow \mathcal{D}_{\sqrt{\rvn^{(\tau)}}}^{-1} \times \prod_{q\in\intint{\nfactors}}{\rmS_q^{(\tau)}}$
 		\COMMENT{$\bigO{A^2\log A+AB}$}
+		\label{line:qmeans:U}
 		\ENDFOR
 		\ENSURE assignement vector $\rvt$ and sparse matrices $\left \lbrace \rmS_q : \rmS_q \in \mathcal{E}_q\right \rbrace_{q\in\intint{\nfactors}}$ such that $\prod_{q\in\intint{\nfactors}}\rmS_q \approx \rmU$ the $\nclusters$ means of the $\nexamples$ data points
 	\end{algorithmic}
@@ -350,17 +354,23 @@ The hierarchical version of \palm proposed in~\cite{LeMagoarou2016Flexible} cons
 \paragraph{Complexity of the \qkmeans algorithm.} The overall complexity of \qkmeans is in $\bigO{\nexamples\left(A\log A+B\right ) + AB \log^2 A}$ when used with \palm and in $\bigO{\nexamples\left(A\log A+B\right ) + AB \log^3 A}$ when used with the hierarchical version of \palm. The time complexities of the main steps are given in Algorithm~\ref{algo:qmeans}. 
 
 The assignation step (line~\ref{line:qmeans:assignment} and Eq.~\eqref{eq:assignment_problem_kmeans}) benefits from the fast computation of $\rmU \rmX$ in~$\bigO{\nexamples\left(A\log A+B\right )}$ while the computation of the norms of the cluster centers is in $\bigO{AB}$.
-This bottleneck in \kmeans is here TO BE CONTINUATED
+One can see that the computational bottleneck of \kmeans is here reduced, which shows the advantage of using \qkmeans when $\nexamples$, $\nclusters$ and $\datadim$ are large.
 
-We now show how the cluster assignation step of our method is computationaly less expensive than the one of the previous K-means algorithm and how this feature might even fasten the computation of the K-means algorithm in general.
+The computation of the centers of each cluster, given in line~\ref{line:kmeans:compute_means}, is the same as in \kmeans and takes $\bigO{\nexamples\datadim}$ operations.
 
-\paragraph{Cluster assignation}
+The update of the fast transform, in lines~\ref{line:qmeans:A} to~\ref{line:qmeans:U} is a computational overload compared to \kmeans. 
+Its time complexity is dominated by the update of the sparse factors at line~\ref{line:qmeans:S}, in $\bigO{AB \log^2 A}$ if \palm is called and in $\bigO{AB \log^3 A}$ if its hierarchical version is called. 
+Note that this cost is dominated by the cost of the assignement step as soon as the number of examples $\nexamples$ is greater than $\log^3 A$.
 
-In Equation~\ref{eq:assignment_problem_kmeans}, we have seen that the cost of the assignation of an observation to a cluster is majored by the matrix-vector multiplication between the cluster matrix and the observation. Using our method, this cost is reduced from $\mathcal{O}(Kd)$ operations to $\mathcal{O}(Qp)$ operations. \addLG{Envolée: In the experiments, we will se that $Q$ can be chosen sufficiently little so that this complexity becomes to $\mathcal{O}(p \log q)$ operations.}
-
-\paragraph{Q-means factorization construction}
-
-This fastening of the assignation step can also be used while constructing the Q-means factorization: the complexity of this step is reduced from $\mathcal{O}(ndk)$ to $\mathcal{O}(npQ)$. Nevertheless, this reduction has to be taken cautiously because of the extra-step in the Q-means algorithm: the inner call to the hierarchical-PALM4MSA at each iteration that costs $\mathcal{O}(Q^2(Qpq + Kd + q^2\log q^2) + K^2d)$. This leaves us with an overall time complexity of $\mathcal{O}(Q^2(Qpq + Kd + q^2\log q^2) + K^2d) + npQ$. \addLG{We note here that our use of the PALM4MSA algorithm doesn't rely on the number of sample in the full dataset: if $n$ is large enough compared to $K$ and $d$, then the complexity is majored by $\mathcal{O}(np \log q)$}
+%We now show how the cluster assignation step of our method is computationaly less expensive than the one of the previous K-means algorithm and how this feature might even fasten the computation of the K-means algorithm in general.
+%
+%\paragraph{Cluster assignation}
+%
+%In Equation~\ref{eq:assignment_problem_kmeans}, we have seen that the cost of the assignation of an observation to a cluster is majored by the matrix-vector multiplication between the cluster matrix and the observation. Using our method, this cost is reduced from $\mathcal{O}(Kd)$ operations to $\mathcal{O}(Qp)$ operations. \addLG{Envolée: In the experiments, we will se that $Q$ can be chosen sufficiently little so that this complexity becomes to $\mathcal{O}(p \log q)$ operations.}
+%
+%\paragraph{Q-means factorization construction}
+%
+%This fastening of the assignation step can also be used while constructing the Q-means factorization: the complexity of this step is reduced from $\mathcal{O}(ndk)$ to $\mathcal{O}(npQ)$. Nevertheless, this reduction has to be taken cautiously because of the extra-step in the Q-means algorithm: the inner call to the hierarchical-PALM4MSA at each iteration that costs $\mathcal{O}(Q^2(Qpq + Kd + q^2\log q^2) + K^2d)$. This leaves us with an overall time complexity of $\mathcal{O}(Q^2(Qpq + Kd + q^2\log q^2) + K^2d) + npQ$. \addLG{We note here that our use of the PALM4MSA algorithm doesn't rely on the number of sample in the full dataset: if $n$ is large enough compared to $K$ and $d$, then the complexity is majored by $\mathcal{O}(np \log q)$}
 
 %We now note that, in practice, $Q$ is supposed to be small compared to $K$ or $d$, and that $p$ should be of the same order than $d$. In that case, we can simplify the complexity of the final algorithm to $\mathcal{O}(Kd + d^2)$.
 

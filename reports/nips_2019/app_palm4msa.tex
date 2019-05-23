@@ -2,7 +2,7 @@
 \label{sec:app:palm4msa}
 \addVE{Pour que $S_0=\lambda \rmI$ soit à gauche, inverser l'ordre du produit ($S_1, S_2, \ldots, S_{Q-1}$ contre $S_{Q-1}...S_2 S_1$) précédemment.}
 
-\addVE{Set $A=\min(\nclusters, \datadim), B=\max(\nclusters, \datadim)$ and assume $\nfactors=\mathcal{O}\left (\log A\right )$}
+\addVE{Set $A=\min(\nclusters, \datadim), B=\max(\nclusters, \datadim)$. Assume $\nfactors=\mathcal{O}\left (\log A\right )$ and $\left \|\rmS_q\right \|_0=\bigO{A}$ for $A\times A$ matrices and $\left \|\rmS_q\right \|_0=\bigO{B}$ for $A\times B$ or $B\times A$ matrices}
 
 \addVE{Préciser que la contruction des opérateurs rapides $L$ et $R$ est en temps constant car on se contente de stocker les matrices (sans faire le produit, sans même les copier). De même, pour $S_0$, on ne fait pas la construction de la matrice, on stocke juste $\lambda$, c'est juste mathématiquement pratique de présenter les choses ainsi.}
 
