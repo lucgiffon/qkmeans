@@ -117,29 +117,48 @@ of this section.}
 	\begin{algorithmic}[1]
 		
 		
-		\REQUIRE $\rmX \in \R^{n \times d}$, $K$, $\{\mathcal{S}_1 \dots \mathcal{S}_{Q}\}|\mathcal{S}_j \in \mathcal{E}_j$
-		\ENSURE $\{\mathcal{S}_1 \dots \mathcal{S}_{Q}\}|\mathcal{S}_j \in \mathcal{E}_j$ such that $\prod_{j=1}^{Q}\mathcal{S}_j \approx \rmU$ the K means of $n$ $d$-dimensional samples
-		\STATE $\tau \leftarrow 0$
-		\REPEAT
-		\STATE $\tau \leftarrow \tau + 1$
-		\STATE $\rvt^{(\tau)} \leftarrow \argmin_{\rvt \in [\![K]\!]^n} \sum_{i=1}^{n} {||\rmX_i - \rmU^{(\tau -1)}_{\rvt(i)}||_2^2}$
+		\REQUIRE $\rmX \in \R^{\nexamples \times \datadim}$, $\nclusters$, initialization $\left \lbrace \rmS_q^{(0)} : \rmS_q^{(0)} \in \mathcal{E}_q\right \rbrace_{q\in\intint{\nfactors}}$
+		\ENSURE $\left \lbrace \rmS_q : \rmS_q \in \mathcal{E}_q\right \rbrace_{q\in\intint{\nfactors}}$ such that $\prod_{q\in\intint{\nfactors}}\rmS_q \approx \rmU$ the $\nclusters$ means of the $\nexamples$ data points
+		\FOR{$\tau=1, 2, \ldots$ until convergence}
+		\STATE $\rvt^{(\tau)} \leftarrow \argmin_{\rvt \in \intint{\nclusters}^\nexamples} \sum_{n\in\intint{\nexamples}} {\left \|\rvx_n - \rvu^{(\tau -1)}_{\rvt[i]}\right \|_2^2}$\\
+		\hfill \COMMENT{$\mathcal{O}\left (\nexamples\left(A\log A+B\right )+A^2\log A+AB\right )$}
 		\label{line:qmeans:assignment}
-		\FORALL {$k \in [\![K]\!]$}
-		\label{line:qmeans:startkmeans}
-		\STATE $n_k^{(\tau)} \leftarrow |\{i: \rvt^{(\tau)}_i=k\}|$
-		\STATE $\hat{\rmX}^{(\tau)}_k \leftarrow \frac{1}{n^\tau_k} \sum_{i: \rvt^\tau_i = k} {\rvx_i}$
+		\STATE $\forall k\in\intint{\nclusters}, \hat{\rvu}_k \leftarrow \frac{1}{n_k^{(\tau)}} \sum_{n: \rvt^{(\tau)}[n]= k} {\rvx_n}$
+with $n_k \leftarrow |\{n: \rvt^{(\tau)}[n]=k\}|$
+		\hfill \COMMENT{$\mathcal{O}\left (\nexamples\datadim\right )$}
+%		\FORALL {$k \in [\![K]\!]$}
+%		\label{line:qmeans:startkmeans}
+%		\STATE $n_k^{(\tau)} \leftarrow |\{i: \rvt^{(\tau)}_i=k\}|$
+%		\hfill \COMMENT{$\mathcal{O}\left (1\right )$}
+%		\STATE $\hat{\rmX}^{(\tau)}_k \leftarrow \frac{1}{n^\tau_k} \sum_{i: \rvt^\tau_i = k} {\rvx_i}$
+%		\hfill \COMMENT{$\mathcal{O}\left (1\right )$}
+%		\ENDFOR
+%		\label{line:qmeans:endkmeans}
+		\STATE $\rmA \leftarrow \mathcal{D}_{\sqrt{\rvn^{(\tau)}}} \times \hat{\rmU}^{(\tau)} $
+		\hfill \COMMENT{$\mathcal{O}\left (\nclusters\datadim\right )$}
+		\STATE $\left \lbrace \rmS_q^{(\tau)}\right \rbrace_{q\in\intint{\nfactors}} \leftarrow \argmin_{\left \lbrace \rmS_q\right \rbrace_{q\in\intint{\nfactors}}} \left \|\rmA - \prod_{q\in\intint{\nfactors}}^{Q}{\rmS_q}\right \|_F^2 + \sum_{q\in\intint{\nfactors}} \mathbf{1}_{\mathcal{E}_q}(\rmS_q)$\\
+		\hfill \COMMENT{$\mathcal{O}\left (\text{TODO from palm4msa}\right )$}
+		\STATE $\rmU^{(\tau)} \leftarrow \mathcal{D}_{\sqrt{\rvn^{(\tau)}}}^{-1} \times \prod_{q\in\intint{\nfactors}}{\rmS_q^{(\tau)}}$
+		\hfill \COMMENT{$\mathcal{O}\left (1\right )$}
 		\ENDFOR
-		\label{line:qmeans:endkmeans}
-		\STATE $\rmA^{(\tau)} \leftarrow \mathcal{D}_{\sqrt{\rvn^{(\tau)}}}~\hat{\rmX}^{(\tau)} $
-		\STATE $\{\mathcal{S}^{(\tau)}_1 \dots \mathcal{S}^{(\tau)}_{Q}\}, \lambda^{(\tau)} \leftarrow \argmin_{\{\mathcal{S}_1 \dots \mathcal{S}_Q, \lambda\}} ||\rmA^{(\tau)} - ~\lambda\prod_{j=0}^{Q}{\mathcal{S}_j}||_\mathcal{F}^2 + \sum_{j=0}^{Q} \delta_j(\mathcal{S}_j)$
-		\STATE $\rmU^{(\tau)}_k \leftarrow \lambda^{(\tau)} \prod_{j=1}^{Q}{\mathcal{S}_j^{(\tau)}}$
-		
-		\UNTIL{stop criterion}
 	\end{algorithmic}
 \end{algorithm}
 
+\addVE{TODO: fix how to write indicator function instead of $\mathbf{1}_{\mathcal{E}_q}(\rmS_q)$ in algo QK-means.}
 
+\addVE{TODO: $\hat{\rmX}$ is renamed $\hat{\rmU}$ in algorithm QKmeans, check consistency in the rest of the paper.}
 
+\addVE{TODO: adapt QKmeans to deal with the fixed factor $\mathcal{D}_{\sqrt{\rvn^{(\tau)}}}$}
+
+\addVE{TODO: complexity of QKmeans
+\begin{itemize}
+\item assignation: 
+\begin{itemize}
+\item compute the product of the sparse factors in $\mathcal{O}\left (A^2\log A+AB\right )$ and the norm of each cluster center $\mathcal{O}\left (\nclusters\datadim\right )=\mathcal{O}\left (AB\right )$
+\item apply the operator to the data points in $\mathcal{O}\left (\nexamples\left(A\log A+B\right ) \right )$
+\end{itemize} 
+\end{itemize}
+}
 To show this convergence, we need to show that each update step in one iteration $\tau$ of the algorithm actually reduces the overall objective. To this end, we start by re-writing the objective at a given time-step $\tau$:
 %
 \begin{equation}
