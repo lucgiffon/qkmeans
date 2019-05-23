@@ -35,52 +35,70 @@ In this section, we begin by introducing some notation and then review the basic
 
 \subsection{K-means}
 \label{sec:kmeans}
-The K-means algorithm is used to partition a given set of observations $\rmX$ into a predefined $K$ clusters while minimizing the distance between the observations in each partition:
+The K-means algorithm is used to partition a given set of observations $\rmX$ into a predefined number $\nclusters$ of clusters while minimizing the distance between the observations in each partition:
 
 \begin{equation}
 \label{eq:kmean_problem}
-    \argmin_{\rmU, \rvt} \sum_{k=1}^{K} \sum_{j: \rvt_j = k} ||\rmX_j -\rmU_k||^2,
+    \argmin_{\rmU, \rvt} \sum_{k\in\intint{\nclusters}} \sum_{j: \rvt[n] = k} ||\rmX_{[n]} -\rmU_{[k]}||^2,
 \end{equation}
 % autre écriture de l'objectif de k-means
 % = \argmin_{\rmU, \rvt} \sum_{k=1}^{K} c_k + \sum_{k=1}^{K} n_k||\hat{\rmU}_k - \rmU_k||^2
-where $\rmU \in \R^{K \times d}$ is the matrix of the cluster's center-points and $\rvt \in  [\![K]\!]^n$ is the indicator vector.
+where the matrix $\rmU \in \R^{\nclusters \times \datadim}$ is composed of the cluster centers and the indicator vector $\rvt \in  [\![\nclusters]\!]^\nexamples$ assigns each example to a cluster.
 
-The algorithm (Algorithm \ref{algo:kmeans}) starts with an initialized set of $K$ center-points ($\{\rmU_i \in \R^d\}_{i=1}^{K}$). Each update step $\tau$ is divided into two parts: (i) all observations $\rmX_i$ are assigned to their nearest cluster based on the center-points $\rmU_i^{(\tau-1)}$s at this step (Line \ref{line:kmeans:assignment}) in $\mathcal{O}(ndK)$ operations. (ii) the new center-points $\rmU_i^{(\tau)}$s are computed as the means of the assignated $\rmX_i$ (Line \ref{line:kmeans:compute_means}) for a total of $\mathcal{O}(nd)$ operations.
-
-\begin{algorithm}
-\caption{K-means algorithm}
-\label{algo:kmeans}
-\begin{algorithmic}[1]
-
-
-\REQUIRE $\rmX \in \R^{n \times d}$, $K$, $\{\rmU_i \in \R^d\}_{i=1}^{K}$
-\ENSURE $\{\rmU_i\}_{i=1}^{K}$ the K means of $n$ $d$-dimensional samples
-\STATE $\tau \leftarrow 0$
-\REPEAT
-\STATE $\tau \leftarrow \tau + 1$
-\STATE $\rvt^{(\tau)} \leftarrow \argmin_{\rvt \in [\![K]\!]^n} \sum_{i=1}^{n} {||\rmX_i - \rmU^{(\tau-1)}_{\rvt_i}||_2^2}$
-\label{line:kmeans:assignment}
-\FORALL {$k \in [\![K]\!]^n$}
-\STATE $n_k^{(\tau)} \leftarrow |\{i: \rvt^{(\tau)}_i=k\}|$
-\label{line:kmeans:count}
-\STATE $\rmU^{(\tau)}_k \leftarrow \frac{1}{n_k^{(\tau)}} \sum_{i: \rvt^{(\tau)}_i = k} {\rmX_i}$
-\label{line:kmeans:compute_means}
-\ENDFOR
-\UNTIL{stop criterion}
-\RETURN $\rmU^{(\tau)}$
-\end{algorithmic}
-\end{algorithm}
-
-
-Once the clusters have been defined, for any $\rvx \in \R^d$ the cluster associated with this $\rvx$ is:
-
-\begin{equation}
+The algorithm starts with an initialized set of $\nclusters$ cluster centers $\rmU_{[k]}^{(0)} \in \R^\datadim$, $k\in\intint{\nclusters}$. Along iterations indexed by $\tau$, it then alternates between (i) an assignment step where each point assignment is updated as
+\begin{align}
 \label{eq:assignment_problem_kmeans}
-\argmin_{k \in [\![K]\!]} ||\rvx - \rmU_{k}||_2^2 = \argmin_{k \in [\![K]\!]} ||\rmU_{k}||_2^2 - 2 \rmU_{k}^T\rvx
-\end{equation}.
+\forall n\in\intint{N}, \rvt[n] \leftarrow \argmin_{k \in [\![\nclusters]\!]} ||\rmX_{[n]} - \rmU_{[k]}^{(\tau-1)}||_2^2 = \argmin_{k \in [\![\nclusters]\!]} ||\rmU_{[k]}^{(\tau-1)}||_2^2 - 2 \left <\rmU_{[k]}^{(\tau-1)}, \rmX_{[n]}\right >
+\end{align}
+and (2) the update of each cluster center as the centroid of the data points assigned to this cluster:
+\begin{align}
+\label{eq:center_update}
+\forall k\in\intint{K}, \rmU^{(\tau)}_k \leftarrow \frac{1}{n_k^{(\tau)}} \sum_{n: \rvt^{(\tau)}[n]= k} {\rmX_{[n]}}
+\end{align}
+where $n_k^{(\tau)} \leftarrow |\{n: \rvt^{(\tau)}[n]=k\}|$ is the number of points in cluster $k$, at a total cost of $\mathcal{O}\left (\nexamples\datadim\right )$ operations.
+
+The assignment step (\eqref{eq:assignment_problem_kmeans}) costs $\mathcal{O}(\nexamples\datadim\nclusters)$ operations while the center update (\eqref{eq:center_update}) is in $\mathcal{O}\left (\nexamples\datadim\right )$ operations. Hence, the bottleneck in the overall time complexity $\mathcal{O}(\nexamples\datadim\nclusters)$ is due to the assignment step. Once the clusters have been defined, assigning $\nexamples'$ new points to these clusters is performed via \eqref{eq:assignment_problem_kmeans} at the cost of $\mathcal{O}\left (\nexamples'\datadim\nclusters \right )$ operations.
+
+The main contribution in this paper relies on the idea that \eqref{eq:assignment_problem_kmeans} may be computed faster by approximating $\rmU$ by a fast operator.
+
+% Each update step $\tau$ is divided into two parts: (i) all observations $\rmX_{[n]}$ are assigned to their nearest cluster based on the center-points $\rmU_{[\rvt[n]]}^{(\tau-1)}$s at this step (Line \ref{line:kmeans:assignment}) in $\mathcal{O}(\nexamples\datadim\nclusters)$ operations
+%
+% (ii) the new center-points $\rmU_{[k]}^{(\tau)}$s are computed as the means of the assignated $\rmX_{[n]}$ (Line \ref{line:kmeans:compute_means}) for a total of $\mathcal{O}\left (\nexamples\datadim\right )$ operations.
+
+%\begin{algorithm}
+%\caption{K-means algorithm}
+%\label{algo:kmeans}
+%\begin{algorithmic}[1]
+%
+%
+%\REQUIRE $\rmX \in \R^{\nexamples \times \datadim}$, $\nclusters$, $\{\rmU_i \in \R^\datadim\}_{i=1}^{\nclusters}$
+%\ENSURE $\{\rmU_i\}_{i=1}^{\nclusters}$ the K means of $\nexamples$ $\datadim$-dimensional samples
+%\STATE $\tau \leftarrow 0$
+%\REPEAT
+%\STATE $\tau \leftarrow \tau + 1$
+%\STATE $\rvt^{(\tau)} \leftarrow \argmin_{\rvt \in [\![\nclusters]\!]^n} \sum_{i=1}^{\nexamples} {||\rmX_i - \rmU^{(\tau-1)}_{\rvt_i}||_2^2}$
+%\label{line:kmeans:assignment}
+%\FORALL {$k \in [\![\nclusters]\!]^\nexamples$}
+%\STATE $n_k^{(\tau)} \leftarrow |\{i: \rvt^{(\tau)}_i=k\}|$
+%\label{line:kmeans:count}
+%\STATE $\rmU^{(\tau)}_k \leftarrow \frac{1}{n_k^{(\tau)}} \sum_{i: \rvt^{(\tau)}_i = k} {\rmX_i}$
+%\label{line:kmeans:compute_means}
+%\ENDFOR
+%\UNTIL{stop criterion}
+%\RETURN $\rmU^{(\tau)}$
+%\end{algorithmic}
+%\end{algorithm}
 
 
-We remark here that the computational bottleneck of this assignment lies in the computation of $\rmU_k^T\rvx$ for all $k$. This computation is also encountered in the assignment step (line \ref{line:kmeans:assignment}) of the Algorithm \ref{algo:kmeans}.
+%Once the clusters have been defined, for any $\rvx \in \R^\datadim$ the cluster associated with this $\rvx$ is:
+%
+%\begin{equation}
+%\label{eq:assignment_problem_kmeans}
+%\argmin_{k \in [\![\nclusters]\!]} ||\rvx - \rmU_{[k]}||_2^2 = \argmin_{k \in [\![\nclusters]\!]} ||\rmU_{[k]}||_2^2 - 2 \rmU_{[k]}^T\rvx.
+%\end{equation}
+%
+%
+%We remark here that the computational bottleneck of this assignment lies in the computation of $\rmU_{[k]}^T\rvx$ for all $k$. This computation is also encountered in the assignment step (line \ref{line:kmeans:assignment}) of the Algorithm \ref{algo:kmeans}.
 
 
 \subsection{Learning Fast transforms as the product of sparse matrices}
