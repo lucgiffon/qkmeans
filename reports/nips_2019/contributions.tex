@@ -269,32 +269,32 @@ Each iteration takes $\mathcal{O}(Q(Qpq + Kd + q^2\log q^2) + K^2d)$\addLG{$q^2 
 
 Adding up the complexity for each of those lines and then simplifying gives an overall complexity of $\mathcal{O}(Q(Qpq + Kd + q^2\log q^2) + K^2d)$\addLG{$q^2 \log q^2$ peut être remplacé par $q^2 + p\log p$ grâce à l'algo quickselect}. Note that $\mathcal{O}(Kq)$ is majored by $\mathcal{O}(Kd)$ since $d \geq q$.
 
-\begin{algorithm}
-\caption{PALM4MSA algorithm}
-\label{algo:palm4msa}
-\begin{algorithmic}[1]
-
-
-\REQUIRE The matrix to factorize $\rmU \in \R^{K \times d}$, the desired number of factors $Q$, the constraint sets $\mathcal{E}_j$ , $j \in [\![Q]\!]$ and a stopping criterion (e.g., here, a number of iterations $N_{iter}$ ).
-
-\ENSURE $\{\mathcal{S}_1 \dots \mathcal{S}_{Q}\}|\mathcal{S}_j \in \mathcal{E}_j$ such that $\prod_{j=1}^{Q}\mathcal{S}_j \approx \rmU$
-
-\FOR {$i = 0$ to $N_{iter}$}
-\FOR {$j = 1$ to $Q$}
-\STATE  $\rmL_j \leftarrow \prod_{l=j+1}^{Q} \mathcal{S}_{l}^{i}$
-\STATE  $\rmR_j \leftarrow \prod_{l=1}^{j-1} \mathcal{S}_{l}^{i+1}$
-\STATE $c_j^i :> (\lambda^i)^2 ||\rmR_j||_2^2 ||\rmL_j||_2^2$
-\STATE $\mathcal{S}^{i+1}_j \leftarrow P_{\mathcal{E}_j}(\mathcal{S}_j^i - \frac{1}{c_j^i} \lambda^i \rmL_j^T(\lambda \rmL_j \mathcal{S}_j^i \rmR_j - \rmU)\rmR_j^T)$
-\ENDFOR
-\STATE $\hat \rmU := \prod_{j=1}^{Q} \mathcal{S}_j^{i+1}$
-\STATE $\lambda^{i+1} \leftarrow \frac{Trace(\rmU^T\hat\rmU)}{Trace(\hat\rmU^T\hat\rmU)}$
-\ENDFOR
-
-\ENSURE $\lambda, \{\mathcal{S}_1 \dots \mathcal{S}_{Q}\}|\mathcal{S}_j \in \mathcal{E}_j$ such that $\lambda \prod_{j=1}^{Q}\mathcal{S}_j \approx \rmU$
-
-\end{algorithmic}
-\end{algorithm}
-
+%\begin{algorithm}
+%\caption{PALM4MSA algorithm}
+%\label{algo:palm4msa}
+%\begin{algorithmic}[1]
+%
+%
+%\REQUIRE The matrix to factorize $\rmU \in \R^{K \times d}$, the desired number of factors $Q$, the constraint sets $\mathcal{E}_j$ , $j \in [\![Q]\!]$ and a stopping criterion (e.g., here, a number of iterations $N_{iter}$ ).
+%
+%\ENSURE $\{\mathcal{S}_1 \dots \mathcal{S}_{Q}\}|\mathcal{S}_j \in \mathcal{E}_j$ such that $\prod_{j=1}^{Q}\mathcal{S}_j \approx \rmU$
+%
+%\FOR {$i = 0$ to $N_{iter}$}
+%\FOR {$j = 1$ to $Q$}
+%\STATE  $\rmL_j \leftarrow \prod_{l=j+1}^{Q} \mathcal{S}_{l}^{i}$
+%\STATE  $\rmR_j \leftarrow \prod_{l=1}^{j-1} \mathcal{S}_{l}^{i+1}$
+%\STATE $c_j^i :> (\lambda^i)^2 ||\rmR_j||_2^2 ||\rmL_j||_2^2$
+%\STATE $\mathcal{S}^{i+1}_j \leftarrow P_{\mathcal{E}_j}(\mathcal{S}_j^i - \frac{1}{c_j^i} \lambda^i \rmL_j^T(\lambda \rmL_j \mathcal{S}_j^i \rmR_j - \rmU)\rmR_j^T)$
+%\ENDFOR
+%\STATE $\hat \rmU := \prod_{j=1}^{Q} \mathcal{S}_j^{i+1}$
+%\STATE $\lambda^{i+1} \leftarrow \frac{Trace(\rmU^T\hat\rmU)}{Trace(\hat\rmU^T\hat\rmU)}$
+%\ENDFOR
+%
+%\ENSURE $\lambda, \{\mathcal{S}_1 \dots \mathcal{S}_{Q}\}|\mathcal{S}_j \in \mathcal{E}_j$ such that $\lambda \prod_{j=1}^{Q}\mathcal{S}_j \approx \rmU$
+%
+%\end{algorithmic}
+%\end{algorithm}
+%
 
 %Also, we consider the scenario when the first factor is in $\R^{K \times d}$ and all the others are in $\R^{d \times d}$. Finaly, we set the number of values in each sparse matrix to be the same and equal to $p$.
 

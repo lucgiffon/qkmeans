@@ -2,11 +2,13 @@
 
 The notations frequently used in the paper are summarized in Table~\ref{tab:notation}. 
 %
-Throughout the paper we use $N$ as the number of data samples and $D$ the dimensionality of a data point. $\rmX \in \R^{N \times D}$ is the data matrix. We denote by $[\![K]\!]$, where $K \in \sN$, the set of all $i$ such as $i \in \sN$ and $i < K$.
+Throughout the paper we use $\nexamples$ as the number of data samples and $\datadim$ the dimensionality of a data point. 
+$\rmX \in \R^{\nexamples \times \datadim}$ is the data matrix. 
+For $K \in \sN$, we define $\intint{K}=\left \lbrace k\in \sN: 1 \leq k \leq K\right \rbrace$.
 %
 For a given vector $\rvv$, $\rvv[i]$ is the $i$th component of $\rvv$.
 %
-For a given matrix $\rmM$, the notation $\rmM_{[i]}$ (resp. $\rmM^{[i]}$) refers to the $i$th row (column) of the matrix $\rmA$, the entry at the $i$th row and the $j$th column is denoted by $\rmM[i,j]$, and $\|\rmM\|$ denotes the Frobenius norm. \addHK{other norms?}
+For a given matrix $\rmM$, the notation $\rmM_{[i]}$ (resp. $\rmM^{[i]}$) refers to the $i$th row (column) of $\rmM$, the entry at the $i$th row and the $j$th column is denoted by $\rmM[i,j]$, and $\|\rmM\|_F$ denotes the Frobenius norm, $\|\rmM\|_2$ the spectral norm and $\|\rmM\|_0$ counts the number of non-zero entries in $\rmM$. \addHK{other norms?}
 
 
 

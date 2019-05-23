@@ -1,3 +1,11 @@
+reports.bakdir/*
+data/*
+
+.kile/*
+*.kilepr*
+.bakdir
+results/*
+
 *.pdf
 *.synctex.gz
 *.aux
@@ -5,8 +13,8 @@
 *.bbl
 *.blg
 *.dvi
-*.ps
 *.out
+*.ps
 
 *.py[co]
 
