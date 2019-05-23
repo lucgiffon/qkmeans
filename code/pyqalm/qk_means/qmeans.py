@@ -9,7 +9,7 @@ from pprint import pformat
 
 import numpy as np
 from numpy.linalg import multi_dot
-from pyqalm.qalm import HierarchicalPALM4MSA, compute_objective_function, PALM4MSA
+from pyqalm.qalm import hierarchical_palm4msa, compute_objective_function, palm4msa
 from pyqalm.test.test_qalm import visual_evaluation_palm4msa
 from sklearn import datasets
 import matplotlib.pyplot as plt
@@ -17,6 +17,7 @@ import matplotlib.pyplot as plt
 from pyqalm.utils import get_side_prod, logger, get_lambda_proxsplincol, constant_proj
 
 daiquiri.setup(level=logging.INFO)
+
 
 def get_distances(X_data, U_centroids):
     """
@@ -27,13 +28,14 @@ def get_distances(X_data, U_centroids):
     """
     centroid_norms = np.linalg.norm(U_centroids, axis=1) ** 2
     # todo tirer parti de la sparsité des matrices.
-    centroid_distances = -2*(U_centroids @ X_data.T) + centroid_norms[:, np.newaxis]
+    centroid_distances = -2 * U_centroids @ X_data.T + centroid_norms[:, None]
 
     return centroid_distances.T
 
 
 def compute_objective(X_data, U_centroids, indicator_vector):
     return np.linalg.norm(X_data - U_centroids[indicator_vector]) ** 2
+
 
 def qmeans(X_data:np.ndarray,
            K_nb_cluster:int,
@@ -64,7 +66,7 @@ def qmeans(X_data:np.ndarray,
     if graphical_display:
         lst_factors_init = copy.deepcopy(lst_factors)
 
-    _lambda_tmp, lst_factors, U_centroids, nb_iter_by_factor, objective_palm = HierarchicalPALM4MSA(
+    _lambda_tmp, lst_factors, U_centroids, nb_iter_by_factor, objective_palm = hierarchical_palm4msa(
         arr_X_target=np.eye(K_nb_cluster) @ X_centroids_hat,
         lst_S_init=lst_factors,
         lst_dct_projection_function=lst_proj_op_by_fac_step,
@@ -96,7 +98,7 @@ def qmeans(X_data:np.ndarray,
     i_iter = 0
     delta_objective_error_threshold = 1e-6
     delta_objective_error = np.inf
-    while (i_iter == 0) or ((i_iter < nb_iter) and (delta_objective_error > delta_objective_error_threshold)):
+    while (i_iter <= 1) or ((i_iter < nb_iter) and (delta_objective_error > delta_objective_error_threshold)):
 
         logger.info("Iteration Qmeans {}".format(i_iter))
 
@@ -136,7 +138,7 @@ def qmeans(X_data:np.ndarray,
             lst_factors_init = copy.deepcopy(lst_factors)
 
         if hierarchical_inside:
-            _lambda_tmp, lst_factors, _, nb_iter_by_factor, objective_palm = HierarchicalPALM4MSA(
+            _lambda_tmp, lst_factors, _, nb_iter_by_factor, objective_palm = hierarchical_palm4msa(
                 arr_X_target=diag_counts_sqrt @ X_centroids_hat,
                 lst_S_init=lst_factors,
                 lst_dct_projection_function=lst_proj_op_by_fac_step,
@@ -151,7 +153,7 @@ def qmeans(X_data:np.ndarray,
             loss_palm_after = objective_palm[-1, -1]
 
         else:
-            _lambda_tmp, lst_factors, _, objective_palm, nb_iter_palm = PALM4MSA(
+            _lambda_tmp, lst_factors, _, objective_palm, nb_iter_palm = palm4msa(
                 arr_X_target=diag_counts_sqrt @ X_centroids_hat,
                 lst_S_init=lst_factors,
                 nb_factors=len(lst_factors),
@@ -185,7 +187,7 @@ def qmeans(X_data:np.ndarray,
 
         logger.debug("Returned loss (with diag) palm: {}".format(objective_palm[-1, 0]))
 
-        if i_iter >= 1:
+        if i_iter >= 2:
             delta_objective_error = np.abs(objective_function[i_iter, 0] - objective_function[i_iter-1, 0]) / objective_function[i_iter-1, 0] # todo vérifier que l'erreur absolue est plus petite que le threshold plusieurs fois d'affilée
 
         i_iter += 1
@@ -396,8 +398,10 @@ def init_factors(left_dim, right_dim, nb_factors):
     lst_factors[-1] = np.zeros((inner_factor_dim, right_dim))
     return lst_factors
 
-if __name__ == '__main__':
 
+if __name__ == '__main__':
+    np.random.seed(0)
+    daiquiri.setup(level=logging.INFO)
     nb_clusters = 10
     nb_iter_kmeans = 10
     X, _ = datasets.make_blobs(n_samples=1000, n_features=20, centers=50)

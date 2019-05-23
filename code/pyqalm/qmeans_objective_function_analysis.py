@@ -37,19 +37,18 @@ Qmeans-Specifc options:
 """
 # todo add   --update-right-to-left                Tells if the factors should be updated from right to left in each iteration of palm4msa.
 # todo --residual-on-right                   Tells if the residual should be computed as right factor in each loop of hierarchical palm4msa.
-from pathlib import Path
 import signal
 import docopt
 import logging
 import daiquiri
 import time
 import numpy as np
-from pyqalm.utils import ResultPrinter, ParameterManager, ParameterManagerQmeans, ObjectiveFunctionPrinter, logger, timeout_signal_handler, random_combination, compute_euristic_gamma
+from pyqalm.utils import ResultPrinter, ParameterManager, ParameterManagerQmeans, ObjectiveFunctionPrinter, logger, timeout_signal_handler, compute_euristic_gamma
 # todo graphical evaluation option
-from pyqalm.qmeans import kmeans, qmeans, build_constraint_set_smart, get_distances
+from pyqalm.qk_means.qmeans import qmeans, get_distances
+from pyqalm.qk_means.utils import build_constraint_set_smart
+from pyqalm.qk_means.kmeans import kmeans
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.kernel_approximation import Nystroem
-import itertools
 
 lst_results_header = [
     "traintime",
@@ -117,7 +116,7 @@ def main_qmeans(X, U_init):
     }
 
 
-    objprinter.add("qmeans_objective", ("after palm", "after t"), objective_values_q)
+    objprinter.add("qmeans_objective", ("after t", ), objective_values_q)
     resprinter.add(qmeans_results)
 
     return final_centroids, indicator_vector_final
