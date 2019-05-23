@@ -1,5 +1,27 @@
 %\paragraph{Notations}
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{table}[t]
+	\centering
+	\begin{tabular}{|r|c|l|}
+		\hline
+		indices &  $i$, $j$, $m$, $n$, $p$, $q$ &  small  Latin characters  \\
+		other integers &  $K$, $Q$, $N$, $\ldots$ &  capital  Latin characters \\
+	%	vector spaces\footnotemark & $\mathcal{X}$, $\mathcal{Y}$, $\mathcal{H}$, $\ldots$ & Calligraphic letters \\ 
+		vectors (or functions) & $\rvx$, $\rvt$, $\rvk$, $\ldots$ & small bold Latin characters \\
+		matrices  & $\rmX$, $\rmU$, $\rmK$, $\ldots$ & capital bold Latin characters \\
+		transpose & $\top$ & $\rmX^\top$ transpose of  $\rmX$ \\
+		\hline
+	\end{tabular}
+	\caption{Notations used in this paper.}
+	\label{tab:notation}
+\end{table}
+\addtocounter{footnote}{0}
+\footnotetext{We also use the standard notations such as $\mathbb{R}^n$ and $\mathbb{M}_n$.}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
 The notations frequently used in the paper are summarized in Table~\ref{tab:notation}. 
 %
 Throughout the paper we use $\nexamples$ as the number of data samples and $\datadim$ the dimensionality of a data point. 
@@ -13,3 +35,4 @@ For a given matrix $\rmM$, the notation $\rmM_{[i]}$ (resp. $\rmM^{[i]}$) refers
 
 
 
+\todo[inline]{The text is redundant with the table. In addition, we should remove the "small Latin character0", "capital Latin characters" as they do not provide any meaning. We should prefer the trick with the transpose.}
