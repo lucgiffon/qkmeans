@@ -1,22 +1,19 @@
 %\paragraph{Notations}
 
 
-
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{table}[t]
 	\centering
-	\begin{tabular}{|r|c||l|c|}
+	\begin{tabular}{|r|c||r|c|}
 		\hline
-		number of data points & $N$ & data points  & $\rvx_1,\ldots, \rvx_N $  \\
-		dimension of a data point & $D$ &  cluster centers   & $\rvu_1,\ldots, \rvu_K $  \\
-		number of clusters & $K$ &  data matrix  & $ \rmX$  \\
-		number of sparse matrix factors& $Q$ & cluster center matrix & $\rmU$ \\
-		$L2$-norm, $L0$-norm& $\|\cdot\|$, $\|\cdot\|_0$ & sparse matrices & $\rmS_1, \ldots, \rmS_Q$ \\
-		Frobenius norm, 	spectral norm & $\|\cdot\|_F$, $\|\cdot\|_2$ & & \\
-		 the set of interger $k$ less than $K$& $\intint{K}\doteq \left \lbrace k\in \sN: 1 \leq k \leq K\right \rbrace$  & & \\
-		 sparsity constraint sets & $\mathcal{E}_1, \ldots, \mathcal{E}_Q$  & sparsity enforcing functions & $\delta_{\mathcal{E}_1},\ldots,\delta_{\mathcal{E}_Q}$  \\
-		  current iteration & $\tau$  & &  \\
+			number of data points & $N$ & data points  & $\rvx_1,\ldots, \rvx_N $  \\
+			dimension of a data point & $D$ & data matrix  & $ \rmX \in\mathbb{R}^{N\times D}$  \\
+				number of clusters & $K$ &  cluster centers   & $\rvu_1,\ldots, \rvu_K $  \\
+			cluster assignment vector & $\rvt$ & cluster center matrix & $\rmU\in\mathbb{R}^{K\times D}$ \\
+				number of sparse matrix factors& $Q$ & sparse matrices & $\rmS_1, \ldots, \rmS_Q$ \\
+			$L2$-norm, $L0$-norm& $\|\cdot\|$, $\|\cdot\|_0$ & Frobenius norm, 	spectral norm & $\|\cdot\|_F$, $\|\cdot\|_2$ \\
+		sparsity constraint sets & $\mathcal{E}_1, \ldots, \mathcal{E}_Q$  & sparsity enforcing functions & $\delta_{\mathcal{E}_1},\ldots,\delta_{\mathcal{E}_Q}$  \\
+		the set of interger $k$ less than $K$& $\intint{K}$ & current iteration & $\tau$   \\
 		\hline
 	\end{tabular}
 	\caption{Notations used in this paper.}
@@ -25,6 +22,8 @@
 \addtocounter{footnote}{0}
 \footnotetext{We also use the standard notations such as $\mathbb{R}^n$ and $\mathbb{M}_n$.}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -48,17 +47,17 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-The notations frequently used in the paper are summarized in Table~\ref{tab:notation}. 
+%The notations frequently used in the paper are summarized in Table~\ref{tab:notation}. 
+%%
+%Throughout the paper we use $\nexamples$ as the number of data samples and $\datadim$ the dimensionality of a data point. 
+%$\rmX \in \R^{\nexamples \times \datadim}$ is the data matrix. 
+%For $K \in \sN$, we define $\intint{K}=\left \lbrace k\in \sN: 1 \leq k \leq K\right \rbrace$.
+%%
+%For a given vector $\rvv$, $\rvv[i]$ is the $i$th component of $\rvv$.
+%%
+%For a given matrix $\rmM$, the notation $\rmM_{[i]}$ (resp. $\rmM^{[i]}$) refers to the $i$th row (column) of $\rmM$, the entry at the $i$th row and the $j$th column is denoted by $\rmM[i,j]$, and $\|\rmM\|_F$ denotes the Frobenius norm, $\|\rmM\|_2$ the spectral norm and $\|\rmM\|_0$ counts the number of non-zero entries in $\rmM$. \addHK{other norms?}
 %
-Throughout the paper we use $\nexamples$ as the number of data samples and $\datadim$ the dimensionality of a data point. 
-$\rmX \in \R^{\nexamples \times \datadim}$ is the data matrix. 
-For $K \in \sN$, we define $\intint{K}=\left \lbrace k\in \sN: 1 \leq k \leq K\right \rbrace$.
 %
-For a given vector $\rvv$, $\rvv[i]$ is the $i$th component of $\rvv$.
 %
-For a given matrix $\rmM$, the notation $\rmM_{[i]}$ (resp. $\rmM^{[i]}$) refers to the $i$th row (column) of $\rmM$, the entry at the $i$th row and the $j$th column is denoted by $\rmM[i,j]$, and $\|\rmM\|_F$ denotes the Frobenius norm, $\|\rmM\|_2$ the spectral norm and $\|\rmM\|_0$ counts the number of non-zero entries in $\rmM$. \addHK{other norms?}
-
-
-
-
-\todo[inline]{The text is redundant with the table. In addition, we should remove the "small Latin character0", "capital Latin characters" as they do not provide any meaning. We should prefer the trick with the transpose.}
+%
+%\todo[inline]{The text is redundant with the table. In addition, we should remove the "small Latin character0", "capital Latin characters" as they do not provide any meaning. We should prefer the trick with the transpose.}
