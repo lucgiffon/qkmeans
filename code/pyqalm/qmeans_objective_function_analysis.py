@@ -41,6 +41,7 @@ import signal
 import docopt
 import logging
 import daiquiri
+import sys
 import time
 import numpy as np
 from pyqalm.data_structures import SparseFactors
@@ -224,7 +225,7 @@ def special_rbf_kernel(X, Y, gamma):
 
     def g(scal):
         if isinstance(scal, LinearOperator):
-            return np.exp(2 * gamma * (scal* np.ones(scal.shape)))
+            return np.exp(2 * gamma * (scal * np.ones(scal.shape)))
         else:
             return np.exp(2 * gamma * scal)
     return f(X).reshape(-1, 1) * g(X @ Y.transpose()) * f(Y).reshape(1, -1)
@@ -267,6 +268,7 @@ def make_nystrom_evaluation(x_train, U_centroids):
     resprinter.add(nystrom_results)
 
 if __name__ == "__main__":
+    logger.info("Command line: " + " ".join(sys.argv))
     arguments = docopt.docopt(__doc__)
     paraman = ParameterManager(arguments)
     initialized_results = dict((v, None) for v in lst_results_header)

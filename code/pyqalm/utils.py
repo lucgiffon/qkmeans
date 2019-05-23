@@ -176,6 +176,7 @@ class ParameterManager(dict):
 
     def __init_output_file(self):
         out_file = get_random()
+        self["--output-file"] = out_file
         if out_file is not None and len(out_file.split(".")) > 1:
             raise ValueError("Output file name should be given without any extension (no `.` in the string)")
         if out_file is not None:
@@ -267,7 +268,7 @@ class ParameterManagerQmeans(ParameterManager):
 
 
 def blobs_dataset():
-    blob_size = 1000000
+    blob_size = 500000
     blob_features = 2000
     blob_centers = 5000
     X, y = datasets.make_blobs(n_samples=blob_size, n_features=blob_features, centers=blob_centers)

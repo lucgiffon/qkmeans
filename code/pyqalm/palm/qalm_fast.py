@@ -213,7 +213,7 @@ def hierarchical_palm4msa(arr_X_target: np.array,
             #     nb_iter_this_factor_bis = func_fine_tune_step_palm4msa(
             #         lst_S_init=[new_residual] + lst_S[-nb_factors_so_far:])
             lst_S_in = op_S_factors.get_list_of_factors()[-nb_factors_so_far:]
-            f_lambda, lst_S_out, _, nb_iter_this_factor_bis = \
+            f_lambda, lst_S_out, _, objective_function_palm4msa, nb_iter_this_factor_bis = \
                 func_fine_tune_step_palm4msa(
                     lst_S_init=[new_residual] + lst_S_in)
             # TODO remove .toarray()?
