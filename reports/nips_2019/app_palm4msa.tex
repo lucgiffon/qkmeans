@@ -1,12 +1,15 @@
 \section{palm4MSA algorithm}
 \label{sec:app:palm4msa}
-\addVE{Pour que $S_0=\lambda \rmI$ soit à gauche, inverser l'ordre du produit (actuellement $S_{Q-1}...S_2 S_1$).}
+\addVE{Pour que $S_0=\lambda \rmI$ soit à gauche, inverser l'ordre du produit ($S_1, S_2, \ldots, S_{Q-1}$ contre $S_{Q-1}...S_2 S_1$) précédemment.}
+
+\addVE{Set $A=\min(\nclusters, \datadim), B=\max(\nclusters, \datadim)$ and assume $\nfactors=\mathcal{O}\left (\log A\right )$}
+
+\addVE{Préciser que la contruction des opérateurs rapides $L$ et $R$ est en temps constant car on se contente de stocker les matrices (sans faire le produit, sans même les copier). De même, pour $S_0$, on ne fait pas la construction de la matrice, on stocke juste $\lambda$, c'est juste mathématiquement pratique de présenter les choses ainsi.}
 
 \begin{algorithm}
 	\caption{palm4MSA algorithm}
 	\label{algo:palm4msa}
 	\begin{algorithmic}[1]
-		
 		
 		\REQUIRE The matrix to factorize $\rmU \in \R^{\nclusters \times \datadim}$, the desired number of factors $\nfactors$, the constraint sets $\mathcal{E}_q$ , $q\in \intint{\nfactors}$ and a stopping criterion (e.g., here, a number of iterations $N_{iter}$ ).
 		
@@ -14,20 +17,31 @@
 		
 		\FOR {$i = \in\intint{N_{iter}}$}
 		\FOR {$q = 1$ to $\nfactors$}
-		\STATE  $\rmL_q \leftarrow \prod_{l=q+1}^{\nfactors} \rmS_{l}^{(i)}$
+%		\STATE  $\rmL_q \leftarrow \prod_{l=q+1}^{\nfactors} \rmS_{l}^{(i)}$
+		\STATE  $\rmL_q \leftarrow \prod_{l=0}^{q-1} \rmS_{l}^{(i)}$
 		\COMMENT{in $\mathcal{O}\left (1\right )$}
-		\STATE  $\rmR_q \leftarrow \prod_{l=0}^{q-1} \rmS_{l}^{(i+1)}$
+%		\STATE  $\rmR_q \leftarrow \prod_{l=0}^{q-1} \rmS_{l}^{(i+1)}$
+		\STATE  $\rmR_q \leftarrow \prod_{l=q+1}^{\nfactors-1} \rmS_{l}^{(i+1)}$
 		\COMMENT{in $\mathcal{O}\left (1\right )$}
 %		\STATE Choose $c > (\lambda^{(i)})^2 ||\rmR_q||_2^2 ||\rmL_q||_2^2$
 		\STATE Choose $c > ||\rmR_q||_2^2 ||\rmL_q||_2^2$
-		\COMMENT{$\mathcal{O}\left (TODO\right )$}
+%		\COMMENT{in $\mathcal{O}\left (A\nfactors+B\right )$}
+		\COMMENT{in $\mathcal{O}\left (A \log A+B\right )$}
 		\STATE $\rmD \leftarrow \rmS_q^i - \frac{1}{c} \rmL_q^T(\rmL_q \rmS_q^i \rmR_q - \rmU)\rmR_q^T$
+%		\COMMENT{in $\mathcal{O}\left (\nclusters\datadim\nfactors\right )$}
+		\COMMENT{in $\mathcal{O}\left (AB\log A\right )$}
 %		\STATE $\rmD \leftarrow \rmS_q^i - \frac{1}{c} \lambda^{(i)} \rmL_q^T(\lambda^{(i)} \rmL_q \rmS_q^i \rmR_q - \rmU)\rmR_q^T$
 		\STATE $\rmS^{(i+1)}_q \leftarrow P_{\mathcal{E}_q}(\rmD)$
+%		\COMMENT{in $\mathcal{O}\left (\nclusters\datadim\nfactors\right )$}
+		\COMMENT{in $\mathcal{O}\left (AB\log A\right )$}
 		\ENDFOR
 		\STATE $\hat \rmU := \prod_{j=1}^{\nfactors} \rmS_q^{(i+1)}$
+		\COMMENT{in $\mathcal{O}\left (1\right )$}
 		\STATE $\lambda^{(i+1)} \leftarrow \frac{Trace(\rmU^T\hat\rmU)}{Trace(\hat\rmU^T\hat\rmU)}$
+%		\COMMENT{in $\mathcal{O}\left (\nclusters\datadim\right )$}
+		\COMMENT{in $\mathcal{O}\left (AB\right )$}
 		\STATE $\rmS_0 \leftarrow \lambda^{(i+1)} \rmI$
+		\COMMENT{in $\mathcal{O}\left (1\right )$}
 		\ENDFOR
 		
 		\ENSURE $\left \lbrace \rmS_q : \rmS_q \in \mathcal{E}_q\right \rbrace_{q\in\intint{\nfactors}}$ such that $\prod_{q\in\intint{\nfactors}}\rmS_q \approx \rmU$

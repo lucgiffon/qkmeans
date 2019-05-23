@@ -109,11 +109,14 @@ The main idea of the related fast algorithm is that the matrix $\rmU\in\sR^{M\ti
 As a consequence, for any vector $\rvx\in\sR^M$, $\rmU\rvx$ can be computed efficiently as $\mathcal{O}\left (\log M\right )$ products $\rmS_0 \left (\rmS_1 \left (\ldots \left (\rmS_{Q-1}\rvx\right )\right )\right )$ between a sparse matrix and a vector, the cost of each product being $\mathcal{O}\left (M\right )$.
 
 When the linear operator $\rmU$ is an arbitrary matrix, one may approximate it with such a sparse-product structure by learning the factors $\left \lbrace\rmS_q\right \rbrace_{q\in\intint{Q}}$ in order to benefit from a fast algorithm.
-Recent works~\cite{LeMagoarou2016Flexible} have proposed algorithmic strategies to learn such a factorization.
+Recent works~\cite{LeMagoarou2016Flexible} have proposed algorithmic strategies to learn such a factorization. Based on the proximal alternating linearized minimization (PALM) algorithm~\cite{bolte2014proximal}, the PALM for Multi-layer Sparse Approximation (palm4MSA) algorithm~\cite{LeMagoarou2016Flexible} aims at approximating a matrix $\rmU\in\sR^{\nclusters\times\datadim}$ as a product of sparse matrices by solving
+\begin{align}
+\label{eq:palm4msa}
+\min_{\left \lbrace\rmS_q\right \rbrace_{q\in\intint{Q}}} \left \|\rmU - \lambda \prod_{q\in\intint{\nfactors}}{\rmS_q}\right \|_F^2 + \sum_{q\in\intint{\nfactors}} \delta_q(\rmS_q)
+\end{align}
+
 
 TO BE COMPLETED + algo~\ref{algo:palm4msa} in appendix~\ref{sec:app:palm4msa}.
-
-\cite{bolte2014proximal, LeMagoarou2016Flexible}
 
 A popular way for providing concise description of high-dimensional vectors $\rmU \in \R^{K \times d}$ is to compute a sparse representation using a dictionary:
 %
