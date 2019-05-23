@@ -22,11 +22,11 @@ of QK-means may be written as follows:
 \begin{align}
 \label{eq:qmean_problem}
  \min_{\rmU\in\{\prod_{q=1}^Q\rmS_j\}, \rvt} & g\left(\rmU, \rvt\right)
-    \doteq \sum_{k=1}^{K}\sum_{j: t_j = k} \left\|\rvx_j -\rvu_k\right\|^2 + \sum_{q=0}^{Q} \delta_q(\rmS_q)
+    \doteq \sum_{k=1}^{K}\sum_{j: t_j = k} \left\|\rvx_j -\rvu_k\right\|^2 + \sum_{q=0}^{Q} \delta_{\mathcal{E}_q}(\rmS_q)
 \end{align}
 %
 Here, 
-as before, the $\delta_q$'s enforce the sparsity of the $\rmS_q$'s: $\delta_q(\emS_q)=0$ if $\rmS_q$ fulfills the sparsity constraints
+as before, the $\delta_{\mathcal{E}_q}$'s enforce the sparsity of the $\rmS_q$'s: $\delta_{\mathcal{E}_q}(\emS_q)=0$ if $\rmS_q$ fulfills the sparsity constraints
 and $+\infty$ otherwise.
 
 \todo[inline]{Talk about the sizes of the matrices in the optimization problem?}
@@ -44,8 +44,8 @@ fixed (and coming from the previous iteration) and ii) the reestimation of the c
 \begin{subequations}
 \label{eq:qmeans}
 \begin{align}
-\rvt^{(\tau)} &= \argmin_{\rvt\in\llbracket K\rrbracket^n}\sum_{j=1}^n\|\rvx_j-\rvu_{t_j}^{(\tau-1)}\|_{2}^2\label{eq:assignment}\\
-\rmU^{(\tau)} &= \argmin_{\rmU\in\{\prod_{j=0}^Q\rmS_j\}}\|\rmD^{(\tau)}\hat{\rmX}^{(\tau)}-U\|_F^2+\sum_{q=0}^{Q} \delta_q(\rmS_q)\label{eq:reestimation}
+\rvt^{(\tau)} &= \argmin_{\rvt\in\llbracket K\rrbracket^n}\sum_{j=1}^n\|\rvx_j-\rvu_{t_j}^{(\tau-1)}\|^2\label{eq:assignment}\\
+\rmU^{(\tau)} &= \argmin_{\rmU\in\{\prod_{j=0}^Q\rmS_j\}}\|\rmD^{(\tau)}\hat{\rmX}^{(\tau)}-\rmU\|_F^2+\sum_{q=0}^{Q} \delta_{\mathcal{E}_q}(\rmS_q)\label{eq:reestimation}
 \end{align}
 \end{subequations}
 where $\rmD^{(\tau)}=\diag\left({n_1^{(\tau)}},\ldots,{n_K^{(\tau)}}\right)^{1/2}$ is the square
@@ -119,11 +119,11 @@ of this section.}
 		
 		\REQUIRE $\rmX \in \R^{\nexamples \times \datadim}$, $\nclusters$, initialization $\left \lbrace \rmS_q^{(0)} : \rmS_q^{(0)} \in \mathcal{E}_q\right \rbrace_{q\in\intint{\nfactors}}$
 		\FOR{$\tau=1, 2, \ldots$ until convergence}
-		\STATE $\rvt^{(\tau)} \leftarrow \argmin_{\rvt \in \intint{\nclusters}^\nexamples} \sum_{n\in\intint{\nexamples}} {\left \|\rvx_n - \rvu^{(\tau -1)}_{\rvt[i]}\right \|_2^2}$
+		\STATE $\rvt^{(\tau)} \leftarrow \argmin_{\rvt \in \intint{\nclusters}^\nexamples} \sum_{n\in\intint{\nexamples}} {\left \|\rvx_n - \rvu^{(\tau -1)}_{t_i}\right \|^2}$
 		\COMMENT{$\mathcal{O}\left (\nexamples\left(A\log A+B\right ) + AB\right )$}
 		\label{line:qmeans:assignment}
-		\STATE $\forall k\in\intint{\nclusters}, \hat{\rvu}_k \leftarrow \frac{1}{n_k^{(\tau)}} \sum_{n: \rvt^{(\tau)}[n]= k} {\rvx_n}$
-with $n_k \leftarrow |\{n: \rvt^{(\tau)}[n]=k\}|$
+		\STATE $\forall k\in\intint{\nclusters}, \hat{\rvu}_k \leftarrow \frac{1}{n_k^{(\tau)}} \sum_{n: t_n^{(\tau)}= k} {\rvx_n}$
+with $n_k \leftarrow |\{n: t_n^{(\tau)}=k\}|$
 		\COMMENT{$\bigO{\nexamples\datadim}$}
 		\label{line:qmeans:compute_means}
 %		\FORALL {$k \in [\![K]\!]$}
