@@ -280,7 +280,7 @@ def qmeans(X_data: np.ndarray,
         i_iter += 1
 
     # if return_objective_function:
-    return  objective_function[:i_iter], op_centroids, indicator_vector
+    return objective_function[:i_iter], op_centroids, indicator_vector
     # else:
     #     return op_centroids, None
 
