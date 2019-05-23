@@ -139,5 +139,7 @@ class SparseFactors(LinearOperator):
                 a = eigs(A=SS, k=1, return_eigenvectors=False)
             except Exception as e:
                 warnings.warn(str(e))
-                return self.compute_spectral_norm(method='svds')
+                # FIXME if ARGPACK fails, compute norm with regular function
+                return np.linalg.norm(self.compute_product(), ord=2)
+                # return self.compute_spectral_norm(method='svds')
             return np.sqrt(np.real(a[0]))
