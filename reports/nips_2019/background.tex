@@ -1,12 +1,45 @@
-\section{Background}
+\section{Preliminaries}
 \label{sec:background}
+
+In this section, we begin by introducing some notation and then review the basics of K-means and give some background about learning fast transforms.
+
+\subsection{Notations}
+
+
+\input{notations.tex}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{table}[t]
+	\centering
+	\begin{tabular}{|r|c|l|}
+		\hline
+		indices &  $i$, $j$, $m$, $n$, $p$, $q$ &  small  Latin characters  \\
+		other integers &  $K$, $Q$, $N$, $\ldots$ &  capital  Latin characters \\
+	%	vector spaces\footnotemark & $\mathcal{X}$, $\mathcal{Y}$, $\mathcal{H}$, $\ldots$ & Calligraphic letters \\ 
+		vectors (or functions) & $\rvx$, $\rvt$, $\rvk$, $\ldots$ & small bold Latin characters \\
+		matrices  & $\rmX$, $\rmU$, $\rmK$, $\ldots$ & capital bold Latin characters \\
+		transpose & $\top$ & $\rmX^\top$ transpose of  $\rmX$ \\
+		\hline
+	\end{tabular}
+	\caption{Notations used in this paper.}
+	\label{tab:notation}
+\end{table}
+\addtocounter{footnote}{0}
+\footnotetext{We also use the standard notations such as $\mathbb{R}^n$ and $\mathbb{M}_n$.}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+
+
 \subsection{K-means}
 \label{sec:kmeans}
 The K-means algorithm is used to partition a given set of observations $\rmX$ into a predefined $K$ clusters while minimizing the distance between the observations in each partition:
 
 \begin{equation}
 \label{eq:kmean_problem}
-    \argmin_{\rmU, \rvt} \sum_{k=1}^{K} \sum_{j: \rvt_j = k} ||\rmX_j -\rmU_k||^2 \\
+    \argmin_{\rmU, \rvt} \sum_{k=1}^{K} \sum_{j: \rvt_j = k} ||\rmX_j -\rmU_k||^2,
 \end{equation}
 % autre écriture de l'objectif de k-means
 % = \argmin_{\rmU, \rvt} \sum_{k=1}^{K} c_k + \sum_{k=1}^{K} n_k||\hat{\rmU}_k - \rmU_k||^2
@@ -52,6 +85,36 @@ We remark here that the computational bottleneck of this assignment lies in the 
 
 \subsection{Learning Fast transforms as the product of sparse matrices}
 \label{sec:palm4led}
+
+
+\begin{algorithm}
+	\caption{PALM4MSA algorithm}
+	\label{algo:palm4msa}
+	\begin{algorithmic}[1]
+		
+		
+		\REQUIRE The matrix to factorize $\rmU \in \R^{K \times d}$, the desired number of factors $Q$, the constraint sets $\mathcal{E}_j$ , $j \in [\![Q]\!]$ and a stopping criterion (e.g., here, a number of iterations $N_{iter}$ ).
+		
+		\ENSURE $\{\mathcal{S}_1 \dots \mathcal{S}_{Q}\}|\mathcal{S}_j \in \mathcal{E}_j$ such that $\prod_{j=1}^{Q}\mathcal{S}_j \approx \rmU$
+		
+		\FOR {$i = 0$ to $N_{iter}$}
+		\FOR {$j = 1$ to $Q$}
+		\STATE  $\rmL_j \leftarrow \prod_{l=j+1}^{Q} \mathcal{S}_{l}^{i}$
+		\STATE  $\rmR_j \leftarrow \prod_{l=1}^{j-1} \mathcal{S}_{l}^{i+1}$
+		\STATE $c_j^i :> (\lambda^i)^2 ||\rmR_j||_2^2 ||\rmL_j||_2^2$
+		\STATE $\mathcal{S}^{i+1}_j \leftarrow P_{\mathcal{E}_j}(\mathcal{S}_j^i - \frac{1}{c_j^i} \lambda^i \rmL_j^T(\lambda \rmL_j \mathcal{S}_j^i \rmR_j - \rmU)\rmR_j^T)$
+		\ENDFOR
+		\STATE $\hat \rmU := \prod_{j=1}^{Q} \mathcal{S}_j^{i+1}$
+		\STATE $\lambda^{i+1} \leftarrow \frac{Trace(\rmU^T\hat\rmU)}{Trace(\hat\rmU^T\hat\rmU)}$
+		\ENDFOR
+		
+		\ENSURE $\lambda, \{\mathcal{S}_1 \dots \mathcal{S}_{Q}\}|\mathcal{S}_j \in \mathcal{E}_j$ such that $\lambda \prod_{j=1}^{Q}\mathcal{S}_j \approx \rmU$
+		
+	\end{algorithmic}
+\end{algorithm}
+
+
+
 A popular way for providing concise description of high-dimensional vectors $\rmU \in \R^{K \times d}$ is to compute a sparse representation using a dictionary:
 %
 \begin{equation}
@@ -78,3 +141,6 @@ Considering $\rmGamma$ being a sparse matrice too, it can be renamed as $\rmGamm
 with the $\delta_j(\mathcal{S}_j) = 0$ if $\mathcal{S}_j \in \mathcal{E}_j$ being the sparsity constraints to satisfy on the associated $\mathcal{S}_j$.
 
 Although this problem is highly non-convex, the authors derive an algorithm from the PALM algorithm \cite{bolte2014proximal}, which they call \textit{Hierarchical PALM4LED} to find a good local minima and give convergence guarantees to learn efficient dictionaries.
+
+
+

@@ -1,8 +1,12 @@
-\section{Contribution}
+\section{QuicK-means}
 \label{sec:contribution}
-\subsection{Q-means}
 
-We propose an extension of the K-means algorithm in which the matrix of center-points $\rmU$ is constrained to be expressed as a product of sparse matrices $\mathcal{S}_j: j = 1 \ldots Q$. From Equation \ref{eq:kmean_problem} and Equation \ref{eq:problem_gribon} we can write a new K-means optimisation problem with sparse factorization constraint which we call \textit{Q-means}:
+We now introduce our algorithm QuicK-means (abbreviated by QK-means), show its convergence property and analyze its computational complexity.
+
+\subsection{Algorithm}
+
+
+QuicK-means is an extension of the K-means algorithm in which the matrix of center-points $\rmU$ is constrained to be expressed as a product of sparse matrices $\mathcal{S}_j: j = 1 \ldots Q$. From Equation \ref{eq:kmean_problem} and Equation \ref{eq:problem_gribon} we can write a new K-means optimisation problem with sparse factorization constraint which we call \textit{Q-means}:
 %
 \begin{equation}
 \begin{split}
@@ -13,7 +17,40 @@ We propose an extension of the K-means algorithm in which the matrix of center-p
 \end{split}
 \end{equation}.
 %
-This problem can be solved using Algorithm \ref{algo:qmeans} which is a simple extension of the K-means algorithm (Algorithm \ref{algo:kmeans}) and is guaranteed to converge. To show this convergence, we need to show that each update step in one iteration $\tau$ of the algorithm actually reduces the overall objective. To this end, we start by re-writing the objective at a given time-step $\tau$:
+This problem can be solved using Algorithm \ref{algo:qmeans} which is a simple extension of the K-means algorithm (Algorithm \ref{algo:kmeans}) and is guaranteed to converge. 
+
+\subsection{Convergence analysis}
+
+\begin{algorithm}[t]
+	\caption{QuicK-means algorithm}
+	\label{algo:qmeans}
+	\begin{algorithmic}[1]
+		
+		
+		\REQUIRE $\rmX \in \R^{n \times d}$, $K$, $\{\mathcal{S}_1 \dots \mathcal{S}_{Q}\}|\mathcal{S}_j \in \mathcal{E}_j$
+		\ENSURE $\{\mathcal{S}_1 \dots \mathcal{S}_{Q}\}|\mathcal{S}_j \in \mathcal{E}_j$ such that $\prod_{j=1}^{Q}\mathcal{S}_j \approx \rmU$ the K means of $n$ $d$-dimensional samples
+		\STATE $\tau \leftarrow 0$
+		\REPEAT
+		\STATE $\tau \leftarrow \tau + 1$
+		\STATE $\rvt^{(\tau)} \leftarrow \argmin_{\rvt \in [\![K]\!]^n} \sum_{i=1}^{n} {||\rmX_i - \rmU^{(\tau -1)}_{\rvt(i)}||_2^2}$
+		\label{line:qmeans:assignment}
+		\FORALL {$k \in [\![K]\!]$}
+		\label{line:qmeans:startkmeans}
+		\STATE $n_k^{(\tau)} \leftarrow |\{i: \rvt^{(\tau)}_i=k\}|$
+		\STATE $\hat{\rmX}^{(\tau)}_k \leftarrow \frac{1}{n^\tau_k} \sum_{i: \rvt^\tau_i = k} {\rvx_i}$
+		\ENDFOR
+		\label{line:qmeans:endkmeans}
+		\STATE $\rmA^{(\tau)} \leftarrow \mathcal{D}_{\sqrt{\rvn^{(\tau)}}}~\hat{\rmX}^{(\tau)} $
+		\STATE $\{\mathcal{S}^{(\tau)}_1 \dots \mathcal{S}^{(\tau)}_{Q}\}, \lambda^{(\tau)} \leftarrow \argmin_{\{\mathcal{S}_1 \dots \mathcal{S}_Q, \lambda\}} ||\rmA^{(\tau)} - ~\lambda\prod_{j=0}^{Q}{\mathcal{S}_j}||_\mathcal{F}^2 + \sum_{j=0}^{Q} \delta_j(\mathcal{S}_j)$
+		\STATE $\rmU^{(\tau)}_k \leftarrow \lambda^{(\tau)} \prod_{j=1}^{Q}{\mathcal{S}_j^{(\tau)}}$
+		
+		\UNTIL{stop criterion}
+	\end{algorithmic}
+\end{algorithm}
+
+
+
+To show this convergence, we need to show that each update step in one iteration $\tau$ of the algorithm actually reduces the overall objective. To this end, we start by re-writing the objective at a given time-step $\tau$:
 %
 \begin{equation}
 \begin{split}
@@ -25,6 +62,9 @@ This problem can be solved using Algorithm \ref{algo:qmeans} which is a simple e
 \end{equation}.
 %
 We then assess whether or not this objective diminishes at each time-step in Algorithm \ref{algo:qmeans}.
+
+
+
 
 \paragraph{Assignment step (Line \ref{line:qmeans:assignment})} For a fixed $\rmU^{(\tau-1)}$ the new indicator vector $\rvt^{(\tau)}$ is defined as:
 %
@@ -81,37 +121,12 @@ with $\mathcal{S}_0$ fixed and equal to $\mathcal{D}_{\sqrt{\rvn^{(\tau)}}}$. Th
 Since \textit{Hierarchical PALM4LED} successivly updates the $\mathcal{S}_j$s independently and in an alternating fashion, we can still use \textit{PALM4LED} in to solve this problem with the $\mathcal{S}_0$ fixed.
 
 
-\begin{algorithm}
-\caption{Q-means algorithm}
-\label{algo:qmeans}
-\begin{algorithmic}[1]
 
-
-\REQUIRE $\rmX \in \R^{n \times d}$, $K$, $\{\mathcal{S}_1 \dots \mathcal{S}_{Q}\}|\mathcal{S}_j \in \mathcal{E}_j$
-\ENSURE $\{\mathcal{S}_1 \dots \mathcal{S}_{Q}\}|\mathcal{S}_j \in \mathcal{E}_j$ such that $\prod_{j=1}^{Q}\mathcal{S}_j \approx \rmU$ the K means of $n$ $d$-dimensional samples
-\STATE $\tau \leftarrow 0$
-\REPEAT
-\STATE $\tau \leftarrow \tau + 1$
-\STATE $\rvt^{(\tau)} \leftarrow \argmin_{\rvt \in [\![K]\!]^n} \sum_{i=1}^{n} {||\rmX_i - \rmU^{(\tau -1)}_{\rvt(i)}||_2^2}$
-\label{line:qmeans:assignment}
-\FORALL {$k \in [\![K]\!]$}
-\label{line:qmeans:startkmeans}
-\STATE $n_k^{(\tau)} \leftarrow |\{i: \rvt^{(\tau)}_i=k\}|$
-\STATE $\hat{\rmX}^{(\tau)}_k \leftarrow \frac{1}{n^\tau_k} \sum_{i: \rvt^\tau_i = k} {\rvx_i}$
-\ENDFOR
-\label{line:qmeans:endkmeans}
-\STATE $\rmA^{(\tau)} \leftarrow \mathcal{D}_{\sqrt{\rvn^{(\tau)}}}~\hat{\rmX}^{(\tau)} $
-\STATE $\{\mathcal{S}^{(\tau)}_1 \dots \mathcal{S}^{(\tau)}_{Q}\}, \lambda^{(\tau)} \leftarrow \argmin_{\{\mathcal{S}_1 \dots \mathcal{S}_Q, \lambda\}} ||\rmA^{(\tau)} - ~\lambda\prod_{j=0}^{Q}{\mathcal{S}_j}||_\mathcal{F}^2 + \sum_{j=0}^{Q} \delta_j(\mathcal{S}_j)$
-\STATE $\rmU^{(\tau)}_k \leftarrow \lambda^{(\tau)} \prod_{j=1}^{Q}{\mathcal{S}_j^{(\tau)}}$
-
-\UNTIL{stop criterion}
-\end{algorithmic}
-\end{algorithm}
 
 
 The factorization of $\rmU$ could then be used in an ulterior algorithm that involves a matrix-vector multiplication with $\rmU$: typically any algorithm involving the assignment of some data points to one of the clusters (Equation \ref{eq:assignment_problem_kmeans}). Such applications of our proposed algorithm are discussed in Section \ref{sec:uses}.
 
-\subsection{Complexity}
+\subsection{Complexity analysis}
 
 In the following, we call a matrix or a vector dense if it is not sparse.
 
