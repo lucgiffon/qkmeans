@@ -1,6 +1,6 @@
 import unittest
 import numpy as np
-from pyqalm.qalm import update_scaling_factor
+# from pyqalm.palm.qalm import update_scaling_factor
 
 class TestUpdateScalingFactor(unittest.TestCase):
     def test_equality_with_trace_computation(self):

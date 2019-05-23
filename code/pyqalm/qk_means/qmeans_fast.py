@@ -12,81 +12,18 @@ from collections import OrderedDict
 from pprint import pformat
 
 import numpy as np
-from pyqalm.qmeans import kmeans
+from pyqalm.qk_means.utils import compute_objective, assign_points_to_clusters, build_constraint_set_smart
+from pyqalm.qk_means.kmeans import kmeans
 from scipy.sparse import csr_matrix
 from sklearn import datasets
 import matplotlib.pyplot as plt
 
-from pyqalm.qalm_fast import hierarchical_palm4msa, \
-    compute_objective_function, palm4msa
+from pyqalm.palm.qalm_fast import hierarchical_palm4msa, \
+    palm4msa
 from pyqalm.test.test_qalm import visual_evaluation_palm4msa
 from pyqalm.data_structures import SparseFactors
-from pyqalm.utils import get_side_prod, get_lambda_proxsplincol, \
+from pyqalm.utils import get_lambda_proxsplincol, \
     constant_proj, logger
-
-
-def get_distances(X_data, centroids):
-    """
-    Return the matrix of distance between each data point and each centroid.
-
-    Parameters
-    ----------
-    X_data : np.ndarray [n, d]
-    centroids : np.ndarray or SparseFactors [k, d]
-
-    Returns
-    -------
-    np.ndarray [k, n]
-    """
-    if isinstance(centroids, SparseFactors):
-        mat_centroids = centroids.compute_product(return_array=False)
-        centroid_norms = np.linalg.norm(mat_centroids.toarray(), axis=1) ** 2
-        # centroid_norms = np.sqrt(centroids.power(2).sum(axis=1))
-    else:
-        centroid_norms = np.linalg.norm(centroids, axis=1) ** 2
-
-    centroid_distances = centroid_norms[:, None] - 2 * centroids @ X_data.T
-
-    return centroid_distances.T
-
-
-def compute_objective(X_data, centroids, indicator_vector):
-    """
-    Compute K-means objective function
-
-    Parameters
-    ----------
-    X_data : np.ndarray [n, d]
-    centroids : np.ndarray or SparseFactors [k, d]
-    indicator_vector : np.ndarray [n]
-
-    Returns
-    -------
-    float
-    """
-    if isinstance(centroids, SparseFactors):
-        centroids = centroids.compute_product()
-    return np.linalg.norm(X_data - centroids[indicator_vector, :]) ** 2
-
-
-def assign_points_to_clusters(X, centroids):
-    """
-
-    Parameters
-    ----------
-    X : np.ndarray [n, d]
-    centroids : np.ndarray or SparseFactors [k, d]
-
-    Returns
-    -------
-    np.ndarray [n]
-        indicator_vector
-    """
-    distances = get_distances(X, centroids)
-    # then, Determine class membership of each point
-    # by picking the closest centroid
-    indicator_vector = np.argmin(distances, axis=1)
-    return indicator_vector
 
 
 def qmeans(X_data: np.ndarray,
@@ -166,7 +103,7 @@ def qmeans(X_data: np.ndarray,
             _lambda * op_factors.compute_product())
 
     # if return_objective_function:
-    objective_function = np.empty((nb_iter, 2))
+    objective_function = np.empty((nb_iter))
     # objective_function[0, 0] = np.nan
 
     # Loop for the maximum number of iterations
@@ -193,6 +130,8 @@ def qmeans(X_data: np.ndarray,
         # # by picking the closest centroid
         # indicator_vector = np.argmin(distances, axis=1)
         indicator_vector = assign_points_to_clusters(X_data, op_centroids)
+
+        objective_function[i_iter] =  compute_objective(X_data, op_centroids, indicator_vector)
 
         # if return_objective_function:
         #     objective_function[i_iter, 1] = compute_objective(X_data,
@@ -304,10 +243,9 @@ def qmeans(X_data: np.ndarray,
         #     logger.debug("Returned loss (with diag) palm: {}"
         #                  .format(objective_palm[-1, 0]))
 
-        objective_function[i_iter] =  compute_objective(X_data, op_centroids, indicator_vector)
 
         if i_iter >= 2:
-            delta_objective_error = np.abs(objective_function[i_iter, 0] - objective_function[i_iter-1, 0]) / objective_function[i_iter-1, 0] # todo vérifier que l'erreur absolue est plus petite que le threshold plusieurs fois d'affilée
+            delta_objective_error = np.abs(objective_function[i_iter] - objective_function[i_iter-1]) / objective_function[i_iter-1] # todo vérifier que l'erreur absolue est plus petite que le threshold plusieurs fois d'affilée
         # if i_iter >= 1:
         #     if obj_fun_prev == 0:
         #         delta_objective_error = 0
@@ -326,66 +264,6 @@ def qmeans(X_data: np.ndarray,
     return  objective_function[:i_iter], op_centroids, indicator_vector
     # else:
     #     return op_centroids, None
-
-
-def build_constraint_sets(left_dim, right_dim, nb_factors, sparsity_factor):
-    """
-    Build constraint set for factors with first factor constant.
-
-    :param left_dim:
-    :param right_dim:
-    :param nb_factors:
-    :param sparsity_factor:
-    :return:
-    """
-
-    inner_factor_dim = min(left_dim, right_dim)
-
-    lst_proj_op_by_fac_step = []
-    lst_proj_op_desc_by_fac_step = []
-
-    nb_keep_values = sparsity_factor * inner_factor_dim  # sparsity factor = 5
-    for k in range(nb_factors - 1):
-        nb_values_residual = max(nb_keep_values, int(inner_factor_dim / 2 ** (
-            k)) * inner_factor_dim)  # k instead of (k+1) for the first, constant matrix
-        if k == 0:
-            dct_step_lst_proj_op = {
-                "split": [constant_proj, lambda mat: mat],
-                "finetune": [constant_proj, lambda mat: mat]
-            }
-            dct_step_lst_nb_keep_values = {
-                "split": ["constant_proj", "ident"],
-                "finetune": ["constant_proj", "ident"]
-            }
-        else:
-            dct_step_lst_proj_op = {
-                "split": [get_lambda_proxsplincol(nb_keep_values),
-                          get_lambda_proxsplincol(nb_values_residual)],
-                "finetune": [constant_proj] + [
-                    get_lambda_proxsplincol(nb_keep_values)] * (k) + [
-                                get_lambda_proxsplincol(nb_values_residual)]
-            }
-
-            dct_step_lst_nb_keep_values = {
-                "split": [nb_keep_values, nb_values_residual],
-                "finetune": ["constant_proj"] + [nb_keep_values] * (k) + [
-                    nb_values_residual]
-            }
-
-        lst_proj_op_by_fac_step.append(dct_step_lst_proj_op)
-        lst_proj_op_desc_by_fac_step.append(dct_step_lst_nb_keep_values)
-
-    return lst_proj_op_by_fac_step, lst_proj_op_desc_by_fac_step
-
-
-def init_factors(left_dim, right_dim, nb_factors):
-    inner_factor_dim = min(right_dim, left_dim)
-
-    lst_factors = [np.eye(inner_factor_dim) for _ in range(nb_factors)]
-    lst_factors[0] = np.eye(left_dim)
-    lst_factors[1] = np.eye(left_dim, inner_factor_dim)
-    lst_factors[-1] = np.zeros((inner_factor_dim, right_dim))
-    return lst_factors
 
 
 if __name__ == '__main__':
@@ -412,16 +290,16 @@ if __name__ == '__main__':
 
     U_centroids_hat = X[np.random.permutation(X.shape[0])[:nb_clusters]]
     # kmeans++ initialization is not feasible because complexity is O(ndk)...
+    residual_on_right = True
 
     sparsity_factor = 2
     nb_iter_palm = 300
 
-    lst_constraints, lst_constraints_vals = build_constraint_sets(
+    lst_constraints, lst_constraints_vals = build_constraint_set_smart(
         U_centroids_hat.shape[0], U_centroids_hat.shape[1], nb_factors,
-        sparsity_factor=sparsity_factor)
+        sparsity_factor=sparsity_factor, residual_on_right=residual_on_right)
     logger.info("constraints: {}".format(pformat(lst_constraints_vals)))
 
-    residual_on_right = True
 
     hierarchical_palm_init = {
         "init_lambda": 1.,
@@ -433,7 +311,7 @@ if __name__ == '__main__':
     # try:
     graphical_display = False
     logger.info('Running QuicK-means with H-Palm')
-    op_centroids_hier, objective_function_hier, indicator_hier = \
+    objective_function_hier, op_centroids_hier, indicator_hier = \
         qmeans(X, nb_clusters, nb_iter_kmeans,
                nb_factors, hierarchical_palm_init,
                initialization=U_centroids_hat,
@@ -442,7 +320,7 @@ if __name__ == '__main__':
                # return_objective_function=True)
 
     logger.info('Running QuicK-means with Palm')
-    op_centroids_palm, objective_function_palm, indicator_palm = \
+    objective_function_palm, op_centroids_palm, indicator_palm = \
         qmeans(X, nb_clusters, nb_iter_kmeans, nb_factors,
                hierarchical_palm_init,
                initialization=U_centroids_hat,
@@ -452,7 +330,7 @@ if __name__ == '__main__':
     #     logger.info("There have been a problem in qmeans: {}".format(str(e)))
     try:
         logger.info('Running K-means')
-        objective_values_k, centroids_finaux = \
+        objective_values_k, centroids_finaux, indicator_kmean = \
             kmeans(X, nb_clusters, nb_iter_kmeans,
                    initialization=U_centroids_hat)
     except SystemExit as e:
@@ -462,31 +340,9 @@ if __name__ == '__main__':
     plt.figure()
     # plt.yscale("log")
 
-    plt.scatter(np.arange(len(objective_function_palm) - 1) + 0.5,
-                objective_function_palm[1:, 0], marker="x",
-                label="qmeans after palm(0)", color="b")
-    plt.scatter((2 * np.arange(len(objective_function_palm)) + 1) / 2 - 0.5,
-                objective_function_palm[:, 1], marker="x",
-                label="qmeans after t (1)", color="r")
-    plt.plot(np.arange(len(objective_function_palm[:, :2].flatten()) - 1) / 2,
-             np.vstack(
-                 [np.array([objective_function_palm[0, 1]])[:, np.newaxis],
-                  objective_function_palm[1:, :2].flatten()[:, np.newaxis]]),
-             color="k", label="qmeans")
-    plt.scatter(np.arange(len(objective_function_hier) - 1) + 0.5,
-                objective_function_hier[1:, 0], marker="x",
-                label="qmeans after palm(0)", color="b")
-    plt.scatter((2 * np.arange(len(objective_function_hier)) + 1) / 2 - 0.5,
-                objective_function_hier[:, 1], marker="x",
-                label="qmeans after t (1)", color="r")
-    plt.plot(np.arange(len(objective_function_hier[:, :2].flatten()) - 1) / 2,
-             np.vstack(
-                 [np.array([objective_function_hier[0, 1]])[:, np.newaxis],
-                  objective_function_hier[1:, :2].flatten()[:, np.newaxis]]),
-             color="c", label="qmeans hier")
-
-    plt.plot(np.arange(len(objective_values_k)), objective_values_k,
-             label="kmeans", color="g", marker="x")
+    plt.plot(np.arange(len(objective_function_hier)), objective_function_hier, marker="x", label="hierarchical")
+    plt.plot(np.arange(len(objective_function_palm)), objective_function_palm, marker="x", label="palm")
+    plt.plot(np.arange(len(objective_values_k)), objective_values_k, marker="x", label="kmeans")
 
     handles, labels = plt.gca().get_legend_handles_labels()
     by_label = OrderedDict(zip(labels, handles))
