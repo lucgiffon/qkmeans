@@ -1,10 +1,9 @@
 \section{\palm algorithm}
 \label{sec:app:palm4msa}
+
+The \palm algorithm~\citep{LeMagoarou2016Flexible} is given in Algorithm~\ref{algo:palm4msa} together with the time complexity of each line, using $A=\min(\nclusters, \datadim)$ and $B=\max(\nclusters, \datadim)$. The complexity analysis is prpposed under the following assumptions, which are satisfied in the mentionned applications and in the proposed experiments: the number of factors is $\nfactors=\mathcal{O}\left (\log A\right )$; all but one sparse factors are of shape $A \times A$ and have $\bigO{A}$ non-zero entries while one of them is of shape $A\times B$ or $B\times A$ with $\bigO{B}$ non-zero entries.
+
 \addVE{Pour que $S_0=\lambda \rmI$ soit à gauche, inverser l'ordre du produit ($S_1, S_2, \ldots, S_{Q-1}$ contre $S_{Q-1}...S_2 S_1$) précédemment.}
-
-\addVE{Set $A=\min(\nclusters, \datadim), B=\max(\nclusters, \datadim)$. Assume $\nfactors=\mathcal{O}\left (\log A\right )$ and $\left \|\rmS_q\right \|_0=\bigO{A}$ for $A\times A$ matrices and $\left \|\rmS_q\right \|_0=\bigO{B}$ for $A\times B$ or $B\times A$ matrices}
-
-\addVE{Préciser que la contruction des opérateurs rapides $L$ et $R$ est en temps constant car on se contente de stocker les matrices (sans faire le produit, sans même les copier). De même, pour $S_0$, on ne fait pas la construction de la matrice, on stocke juste $\lambda$, c'est juste mathématiquement pratique de présenter les choses ainsi.}
 
 \begin{algorithm}
 	\caption{\palm algorithm}
@@ -29,14 +28,14 @@
 		\COMMENT{$\bigO{A \log A+B}$}
 		\STATE $\rmD \leftarrow \rmS_q^i - \frac{1}{c} \rmL_q^T(\rmL_q \rmS_q^i \rmR_q - \rmU)\rmR_q^T$
 %		\COMMENT{in $\mathcal{O}\left (\nclusters\datadim\nfactors\right )$}
-		\COMMENT{in $\bigO{AB\log A}$}
+		\COMMENT{$\bigO{AB\log A}$}
 %		\STATE $\rmD \leftarrow \rmS_q^i - \frac{1}{c} \lambda^{(i)} \rmL_q^T(\lambda^{(i)} \rmL_q \rmS_q^i \rmR_q - \rmU)\rmR_q^T$
 		\STATE $\rmS^{(i+1)}_q \leftarrow P_{\mathcal{E}_q}(\rmD)$
 %		\COMMENT{in $\mathcal{O}\left (\nclusters\datadim\nfactors\right )$}
-		\COMMENT{$\bigO{AB\log A}$}
+		\COMMENT{$\bigO{A^2\log A}$}
 		\ENDFOR
 		\STATE $\hat \rmU := \prod_{j=1}^{\nfactors} \rmS_q^{(i+1)}$
-		\COMMENT{$\bigO{1}$}
+		\COMMENT{$\bigO{A^2\log A + AB}$}
 		\STATE $\rmS_1 \leftarrow \frac{Trace(\rmU^T\hat\rmU)}{Trace(\hat\rmU^T\hat\rmU)} \rmI$
 %		\COMMENT{in $\mathcal{O}\left (\nclusters\datadim\right )$}
 		\COMMENT{$\bigO{AB}$}
@@ -47,16 +46,30 @@
 	\end{algorithmic}
 \end{algorithm}
 
-Each iteration takes $\mathcal{O}(Q(Qpq + Kd + q^2\log q^2) + K^2d)$\addLG{$q^2 \log q^2$ peut être remplacé par $q^2 + p\log p$ grâce à l'algo quickselect}. In the following analysis, we refer to the lines in Algorithm 2 of \cite{magoarou2014learning}. This algorithm is repeated here for simplicity (Algorithm \ref{algo:palm4msa}). Note that the displayed complexities are for one full iteration of the algorithm.
+In such conditions, the complexity of each line is:
+\begin{itemize}
+ \item [Lines 3-4] Fast operators $\rmL$ and $\rmR$ are defined for subsequent use without computing explicitly the product.
+% s can be \textit{precomputed} incrementaly for each iteration $i$, involving a total cost of $\mathcal{O}(Qpq)$ operations: for all $j < Q$, $\rmL_j = \rmL_{j+1} \mathcal{S}^i_{j+1}$; for $j = Q$, $\rmL_j = \textbf{Id}$;
+% \item [Line 4] The $\rmR$s is computed incrementaly for each iteration $j$: $\rmR_j = \mathcal{S}^{i+1}_{j-1} \rmR_{j-1}$ if $j > 1$; $\rmR_j = \textbf{Id}$ otherwise. This costs an overall $\mathcal{O}(Qpq)$ operations;
+ \item [Line 5] The spectral norm of $\rmL$ and $\rmR$ is obtained via a power method by iteratively applying each operator, benefiting from the fast transform.
+ \item [Line 6] The cost of the gradient step is dominated by the product of sparse matrices.
+% \addLG{avec Valentin on avait trouvé O(Kd min \{K, d\}) mais je ne suis plus d'accord} Taking advantage of the decompositions of $\rmL$ and $\rmR$ as products of sparse factors, the time complexity of this line ends up being $\mathcal{O}(Q(Qpq + Kd + q^2\log q^2))$ for a complete iteration: the $\mathcal{O}(Qpq)$ part comes from the various sparse-dense matrix multiplications with $\rmR$ and $\rmL$; the $\mathcal{O}(Kd)$ part comes from the pairwise substraction inside the parentheses and the $\mathcal{O}(q^2 \log q^2)$ part from the projection operator that involves sorting of the inner matrix.\addLG{$q^2 \log q^2$ peut être remplacé par $q^2 + p\log p$ grâce à l'algo quickselect}
+\item [Line 7] The projection onto a sparse-constraint set takes $\bigO{A^2\log A}$ for all the $A\times A$ matrices.
+ \item [Line 9] The reconstructed matrix $\hat \rmU$ is computed using $\bigO{\log A}$ products between $A\times A$ sparse matrices, in $\bigO{A^2}$ operations each, and one product with a sparse matrix in $\bigO{AB}$.
+ \item [Line 10] The numerator and denominator can be computed using a Hadamard product between the matrices followed by a sum over all the entries.
+\end{itemize}
+\addVE{Revoir le coût de la ligne 7 (tri/select+il manque le facteur de taille $AB$)}
 
-\begin{description}[leftmargin=\parindent,labelindent=\parindent]
- 
- \item [Line 3] The $\rmL$s can be \textit{precomputed} incrementaly for each iteration $i$, involving a total cost of $\mathcal{O}(Qpq)$ operations: for all $j < Q$, $\rmL_j = \rmL_{j+1} \mathcal{S}^i_{j+1}$; for $j = Q$, $\rmL_j = \textbf{Id}$;
- \item [Line 4] The $\rmR$s is computed incrementaly for each iteration $j$: $\rmR_j = \mathcal{S}^{i+1}_{j-1} \rmR_{j-1}$ if $j > 1$; $\rmR_j = \textbf{Id}$ otherwise. This costs an overall $\mathcal{O}(Qpq)$ operations;
- \item [Line 5] The time complexity for computing the operator norm of a matrix of dimension $K \times q$ is $\mathcal{O}(Kq)$, which leads a $\mathcal{O}(QKq)$ number of operations for this line \addLG{à éclaircir...};
- \item [Line 6] \addLG{avec Valentin on avait trouvé O(Kd min \{K, d\}) mais je ne suis plus d'accord} Taking advantage of the decompositions of $\rmL$ and $\rmR$ as products of sparse factors, the time complexity of this line ends up being $\mathcal{O}(Q(Qpq + Kd + q^2\log q^2))$ for a complete iteration: the $\mathcal{O}(Qpq)$ part comes from the various sparse-dense matrix multiplications with $\rmR$ and $\rmL$; the $\mathcal{O}(Kd)$ part comes from the pairwise substraction inside the parentheses and the $\mathcal{O}(q^2 \log q^2)$ part from the projection operator that involves sorting of the inner matrix.\addLG{$q^2 \log q^2$ peut être remplacé par $q^2 + p\log p$ grâce à l'algo quickselect}
- \item [Line 8] The reconstructed $\hat \rmU$ can be computed from the $\rmR_{Q-1}$ and $\mathcal{S}_Q^{i+1}$ obtained just before: $\hat \rmU = \mathcal{S}_Q^{i+1} \rmR_{Q-1}$. This sparse-dense matrix multiplication cost a time $\mathcal{O}(pq)$.
- \item [Line 9] \addLG{Avec valentin, on avait écrit $O(min\{K, d\} ^ 3)$ mais je ne suis plus d'accord}The computational complexity of this line is majored by the matrix multiplications that cost $\mathcal{O}(K^2d)$ operations.
-\end{description}
-
-Adding up the complexity for each of those lines and then simplifying gives an overall complexity of $\mathcal{O}(Q(Qpq + Kd + q^2\log q^2) + K^2d)$\addLG{$q^2 \log q^2$ peut être remplacé par $q^2 + p\log p$ grâce à l'algo quickselect}. Note that $\mathcal{O}(Kq)$ is majored by $\mathcal{O}(Kd)$ since $d \geq q$.
+%Each iteration takes $\mathcal{O}(Q(Qpq + Kd + q^2\log q^2) + K^2d)$\addLG{$q^2 \log q^2$ peut être remplacé par $q^2 + p\log p$ grâce à l'algo quickselect}. In the following analysis, we refer to the lines in Algorithm 2 of \cite{magoarou2014learning}. This algorithm is repeated here for simplicity (Algorithm \ref{algo:palm4msa}). Note that the displayed complexities are for one full iteration of the algorithm.
+%
+%\begin{description}[leftmargin=\parindent,labelindent=\parindent]
+% 
+% \item [Line 3] The $\rmL$s can be \textit{precomputed} incrementaly for each iteration $i$, involving a total cost of $\mathcal{O}(Qpq)$ operations: for all $j < Q$, $\rmL_j = \rmL_{j+1} \mathcal{S}^i_{j+1}$; for $j = Q$, $\rmL_j = \textbf{Id}$;
+% \item [Line 4] The $\rmR$s is computed incrementaly for each iteration $j$: $\rmR_j = \mathcal{S}^{i+1}_{j-1} \rmR_{j-1}$ if $j > 1$; $\rmR_j = \textbf{Id}$ otherwise. This costs an overall $\mathcal{O}(Qpq)$ operations;
+% \item [Line 5] The time complexity for computing the operator norm of a matrix of dimension $K \times q$ is $\mathcal{O}(Kq)$, which leads a $\mathcal{O}(QKq)$ number of operations for this line \addLG{à éclaircir...};
+% \item [Line 6] \addLG{avec Valentin on avait trouvé O(Kd min \{K, d\}) mais je ne suis plus d'accord} Taking advantage of the decompositions of $\rmL$ and $\rmR$ as products of sparse factors, the time complexity of this line ends up being $\mathcal{O}(Q(Qpq + Kd + q^2\log q^2))$ for a complete iteration: the $\mathcal{O}(Qpq)$ part comes from the various sparse-dense matrix multiplications with $\rmR$ and $\rmL$; the $\mathcal{O}(Kd)$ part comes from the pairwise substraction inside the parentheses and the $\mathcal{O}(q^2 \log q^2)$ part from the projection operator that involves sorting of the inner matrix.\addLG{$q^2 \log q^2$ peut être remplacé par $q^2 + p\log p$ grâce à l'algo quickselect}
+% \item [Line 8] The reconstructed $\hat \rmU$ can be computed from the $\rmR_{Q-1}$ and $\mathcal{S}_Q^{i+1}$ obtained just before: $\hat \rmU = \mathcal{S}_Q^{i+1} \rmR_{Q-1}$. This sparse-dense matrix multiplication cost a time $\mathcal{O}(pq)$.
+% \item [Line 9] \addLG{Avec valentin, on avait écrit $O(min\{K, d\} ^ 3)$ mais je ne suis plus d'accord}The computational complexity of this line is majored by the matrix multiplications that cost $\mathcal{O}(K^2d)$ operations.
+%\end{description}
+%
+%Adding up the complexity for each of those lines and then simplifying gives an overall complexity of $\mathcal{O}(Q(Qpq + Kd + q^2\log q^2) + K^2d)$\addLG{$q^2 \log q^2$ peut être remplacé par $q^2 + p\log p$ grâce à l'algo quickselect}. Note that $\mathcal{O}(Kq)$ is majored by $\mathcal{O}(Kd)$ since $d \geq q$.
