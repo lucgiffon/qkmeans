@@ -3,7 +3,7 @@ Analysis of objective function during qmeans execution
 
 Usage:
   qmeans_objective_function_analysis kmeans [-h] [-v] [--seed=int] (--blobs|--census|--kddcup|--plants|--mnist|--fashion-mnist) --nb-cluster=int --initialization=str [--nb-iteration=int] [--assignation-time] [--1-nn] [--nystrom]
-  qmeans_objective_function_analysis qmeans [-h] [-v] [--seed=int] (--blobs|--census|--kddcup|--plants|--mnist|--fashion-mnist) [--nb-cluster=int] --initialization=str --nb-factors=int --sparsity-factor=int [--hierarchical] [--nb-iteration-palm=int] [--assignation-time] [--1-nn] [--nystrom]
+  qmeans_objective_function_analysis qmeans [-h] [-v] [--seed=int] (--blobs|--census|--kddcup|--plants|--mnist|--fashion-mnist) --nb-cluster=int --initialization=str [--nb-factors=int] --sparsity-factor=int [--hierarchical] [--nb-iteration=int] [--nb-iteration-palm=int] [--assignation-time] [--1-nn] [--nystrom]
 
 Options:
   -h --help                             Show this screen.
@@ -43,12 +43,14 @@ import logging
 import daiquiri
 import time
 import numpy as np
+from pyqalm.data_structures import SparseFactors
 from pyqalm.utils import ResultPrinter, ParameterManager, ParameterManagerQmeans, ObjectiveFunctionPrinter, logger, timeout_signal_handler, compute_euristic_gamma
 # todo graphical evaluation option
-from pyqalm.qk_means.qmeans import qmeans, get_distances
-from pyqalm.qk_means.utils import build_constraint_set_smart
+from pyqalm.qk_means.qmeans_fast import qmeans
+from pyqalm.qk_means.utils import build_constraint_set_smart, get_distances
 from pyqalm.qk_means.kmeans import kmeans
 from sklearn.neighbors import KNeighborsClassifier
+from scipy.sparse.linalg import LinearOperator
 
 lst_results_header = [
     "traintime",
@@ -190,7 +192,7 @@ def make_1nn_evaluation(x_train, y_train, x_test, y_test, U_centroids, indicator
     logger.info("1 nearest neighbor with k-means search")
     kmean_tree_time = kmean_tree_evaluation()
     if paraman["kmeans"]:
-        lst_knn_types = ["brute", "ball tree", "kd tree"]
+        lst_knn_types = ["brute", "ball_tree", "kd_tree"]
         for knn_type in lst_knn_types:
             signal.signal(signal.SIGALRM, timeout_signal_handler)
             signal.alarm(int(kmean_tree_time * 10))
@@ -212,11 +214,20 @@ def special_rbf_kernel(X, Y, gamma):
     assert len(X.shape) == len(Y.shape) == 2
 
     def f(mat):
-        return np.exp(-gamma * np.trace(mat.transpose() @ mat)) # todo verifier avec valentin que ceci utilise bien la structure de données
-    def g(scal):
-        return np.exp(2 * gamma * scal)
+        if isinstance(mat, SparseFactors):
+            mat_centroids = mat.compute_product(return_array=False)
+            norm = np.linalg.norm(mat_centroids.toarray(), axis=1) ** 2
+        else:
+            norm = np.linalg.norm(mat, axis=1) ** 2
 
-    return f(X) * f(Y) * g(X @ Y.transpose())
+        return np.exp(-gamma * norm) # todo verifier avec valentin que ceci utilise bien la structure de données
+
+    def g(scal):
+        if isinstance(scal, LinearOperator):
+            return np.exp(2 * gamma * (scal* np.ones(scal.shape)))
+        else:
+            return np.exp(2 * gamma * scal)
+    return f(X).reshape(-1, 1) * g(X @ Y.transpose()) * f(Y).reshape(1, -1)
 
 def make_nystrom_evaluation(x_train, U_centroids):
     gamma = compute_euristic_gamma(x_train)
@@ -263,52 +274,68 @@ if __name__ == "__main__":
     resprinter.add(initialized_results)
     resprinter.add(paraman)
     objprinter = ObjectiveFunctionPrinter(output_file=paraman["--output-file_objprinter"])
-
+    has_failed = False
     if paraman["--verbose"]:
         daiquiri.setup(level=logging.DEBUG)
     else:
         daiquiri.setup(level=logging.INFO)
 
-    dataset = paraman.get_dataset()
+    try:
+        dataset = paraman.get_dataset()
 
-    dataset["x_train"] = dataset["x_train"].astype(np.float)
-    if "x_test" in dataset:
-        dataset["x_test"] = dataset["x_test"].astype(np.float)
-        dataset["y_test"] = dataset["y_test"].astype(np.float)
-        dataset["y_train"] = dataset["y_train"].astype(np.float)
+        dataset["x_train"] = dataset["x_train"].astype(np.float)
+        if "x_test" in dataset:
+            dataset["x_test"] = dataset["x_test"].astype(np.float)
+            dataset["y_test"] = dataset["y_test"].astype(np.float)
+            dataset["y_train"] = dataset["y_train"].astype(np.float)
 
-    U_init = paraman.get_initialization_centroids(dataset["x_train"])
+        U_init = paraman.get_initialization_centroids(dataset["x_train"])
 
-    if paraman["kmeans"]:
-        U_final, indicator_vector_final = main_kmeans(dataset["x_train"], U_init)
-    elif paraman["qmeans"]:
-        paraman_q = ParameterManagerQmeans(arguments)
-        paraman.update(paraman_q)
-        if paraman["--nb-factors"] is None:
-            paraman["--nb-factors"] = int(np.log2(min(U_init.shape)))
-        paraman["--residual-on-right"] = True if U_init.shape[1] >= U_init.shape[0] else False
-        U_final, indicator_vector_final = main_qmeans(dataset["x_train"], U_init)
-    else:
-        raise NotImplementedError("Unknown method.")
+        if paraman["kmeans"]:
+            U_final, indicator_vector_final = main_kmeans(dataset["x_train"], U_init)
+        elif paraman["qmeans"]:
+            paraman_q = ParameterManagerQmeans(arguments)
+            paraman.update(paraman_q)
+            if paraman["--nb-factors"] is None:
+                paraman["--nb-factors"] = int(np.log2(min(U_init.shape)))
+            paraman["--residual-on-right"] = True if U_init.shape[1] >= U_init.shape[0] else False
+            U_final, indicator_vector_final = main_qmeans(dataset["x_train"], U_init)
+        else:
+            raise NotImplementedError("Unknown method.")
 
-    np.save(paraman["--output-file_centroidprinter"], U_final, allow_pickle=True)
+        np.save(paraman["--output-file_centroidprinter"], U_final, allow_pickle=True)
 
-    if paraman["--assignation-time"]:
-        logger.info("Start assignation time evaluation")
-        make_assignation_evaluation(dataset["x_train"], U_final)
+        if paraman["--assignation-time"]:
+            logger.info("Start assignation time evaluation")
+            make_assignation_evaluation(dataset["x_train"], U_final)
 
-    if paraman["--1-nn"] and "x_test" in dataset.keys():
-        logger.info("Start 1 nearest neighbor evaluation")
-        make_1nn_evaluation(x_train=dataset["x_train"],
-                            y_train=dataset["y_train"],
-                            x_test=dataset["x_test"],
-                            y_test=dataset["y_test"],
-                            U_centroids=U_final,
-                            indicator_vector=indicator_vector_final)
+        if paraman["--1-nn"] and "x_test" in dataset.keys():
+            logger.info("Start 1 nearest neighbor evaluation")
+            make_1nn_evaluation(x_train=dataset["x_train"],
+                                y_train=dataset["y_train"],
+                                x_test=dataset["x_test"],
+                                y_test=dataset["y_test"],
+                                U_centroids=U_final,
+                                indicator_vector=indicator_vector_final)
 
-    if paraman["--nystrom"]:
-        logger.info("Start Nyström reconstruction evaluation")
-        make_nystrom_evaluation(dataset["x_train"], U_final)
+        if paraman["--nystrom"]:
+            logger.info("Start Nyström reconstruction evaluation")
+            make_nystrom_evaluation(dataset["x_train"], U_final)
+    except Exception as e:
+        has_failed = True
+        failure_dict = {
+            "failure": has_failed
+        }
 
+        resprinter.add(failure_dict)
+        resprinter.print()
+        objprinter.print()
+        raise e
+
+    failure_dict = {
+        "failure": has_failed
+    }
+
+    resprinter.add(failure_dict)
     resprinter.print()
     objprinter.print()

@@ -140,17 +140,33 @@ def qmeans(X_data: np.ndarray,
 
         # Update centroid location using the newly
         # assigned data point classes
-        for c in range(K_nb_cluster):
-            X_centroids_hat[c] = np.mean(X_data[indicator_vector == c], 0)
 
         # get the number of observation in each cluster
         cluster_names, counts = np.unique(indicator_vector, return_counts=True)
         cluster_names_sorted = np.argsort(cluster_names)
 
-        if len(counts) < K_nb_cluster:
-            raise ValueError(
-                "Some clusters have no point. Aborting iteration {}"
-                .format(i_iter))
+        # if len(counts) < K_nb_cluster:
+            # raise ValueError(
+            #     "Some clusters have no point. Aborting iteration {}"
+            #     .format(i_iter))
+
+        biggest_cluster = cluster_names[np.argmax(counts)]
+        biggest_cluster_data = X_data[indicator_vector == biggest_cluster]
+
+        for c in range(K_nb_cluster):
+            cluster_data = X_data[indicator_vector == c]
+            if len(cluster_data) == 0:
+                logger.warning("cluster has lost data, add new cluster")
+                X_centroids_hat[c] = biggest_cluster_data[np.random.randint(len(biggest_cluster_data))].reshape(1, -1)
+                counts = list(counts)
+                counts.append(1)
+                counts = np.array(counts)
+                cluster_names_sorted = list(cluster_names_sorted)
+                cluster_names_sorted.append(c)
+                cluster_names_sorted = np.array(cluster_names_sorted)
+            else:
+                X_centroids_hat[c] = np.mean(X_data[indicator_vector == c], 0)
+
 
         # diag_counts_sqrt = np.diag(np.sqrt(counts[cluster_names_sorted]))  # todo use sparse matrix object
         # diag_counts_sqrt_norm = np.linalg.norm(diag_counts_sqrt)  # todo analytic sqrt(n) instead of cumputing it with norm
