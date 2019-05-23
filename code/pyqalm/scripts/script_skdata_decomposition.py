@@ -10,11 +10,10 @@ from pprint import pformat
 import daiquiri
 import numpy as np
 from pyqalm.utils import logger, get_lambda_proxsplincol
-from scipy.linalg import hadamard
 from numpy.linalg import norm
 from sklearn import datasets
 
-from pyqalm.qalm import hierarchical_palm4msa
+from pyqalm.palm.qalm import hierarchical_palm4msa
 from pyqalm.test.test_qalm import visual_evaluation_palm4msa
 
 

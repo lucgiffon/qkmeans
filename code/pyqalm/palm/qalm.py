@@ -74,6 +74,7 @@ def palm4msa(arr_X_target: np.array,
 
     logger.debug('Norme de arr_X_target: {}'.format(
         np.linalg.norm(arr_X_target, ord='fro')))
+
     assert len(lst_S_init) > 0
     assert get_side_prod(lst_S_init).shape == arr_X_target.shape
     assert len(lst_S_init) == nb_factors
@@ -93,6 +94,7 @@ def palm4msa(arr_X_target: np.array,
     i_iter = 0
     delta_objective_error_threshold = 1e-6
     delta_objective_error = np.inf
+
     while i_iter == 0 or ((i_iter < nb_iter) and (
             delta_objective_error > delta_objective_error_threshold)):
 

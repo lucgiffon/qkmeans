@@ -24,24 +24,17 @@ install:
 	$(PYTHON_INTERPRETER) -m pip install -e code/
 
 ## Make Dataset
-data: requirements
+data:
 	$(PYTHON_INTERPRETER) src/data/make_dataset.py all data/external
 
-cifar100: data/external/cifar100fine.npz
-data/external/cifar100fine.npz:
-	$(PYTHON_INTERPRETER) src/data/make_dataset.py cifar100 data/external
+kddcup: data/external/kddcup.npz
+data/external/kddcup.npz:
+	$(PYTHON_INTERPRETER) src/data/make_dataset.py kddcup data/external
 
-cifar10: data/external/cifar10.npz
-data/external/cifar10.npz:
-	$(PYTHON_INTERPRETER) src/data/make_dataset.py cifar10 data/external
+kddcup: data/external/census.npz
+data/external/census.npz:
+	$(PYTHON_INTERPRETER) src/data/make_dataset.py census data/external
 
-mnist: data/external/mnist.npz
-data/external/mnist.npz:
-	$(PYTHON_INTERPRETER) src/data/make_dataset.py mnist data/external
-
-svhn: data/external/svhn.npz
-data/external/svhn.npz:
-	$(PYTHON_INTERPRETER) src/data/make_dataset.py svhn data/external
 
 
 ## Make Transforms
@@ -75,27 +68,6 @@ clean:
 	rm -rf data/external/*
 	rm -rf data/processed/*
 	rm -rf models/external/*
-
-## Lint using flake8
-lint:
-	flake8 src
-
-## Upload Data to S3
-sync_data_to_s3:
-ifeq (default,$(PROFILE))
-	aws s3 sync data/ s3://$(BUCKET)/data/
-else
-	aws s3 sync data/ s3://$(BUCKET)/data/ --profile $(PROFILE)
-endif
-
-## Download Data from S3
-sync_data_from_s3:
-ifeq (default,$(PROFILE))
-	aws s3 sync s3://$(BUCKET)/data/ data/
-else
-	aws s3 sync s3://$(BUCKET)/data/ data/ --profile $(PROFILE)
-endif
-
 
 #################################################################################
 # PROJECT RULES                                                                 #
