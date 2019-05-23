@@ -1,0 +1,355 @@
+\documentclass{article}
+
+% if you need to pass options to natbib, use, e.g.:
+%     \PassOptionsToPackage{numbers, compress}{natbib}
+% before loading neurips_2018
+
+% ready for submission
+% \usepackage{neurips_2018}
+
+% to compile a preprint version, e.g., for submission to arXiv, add add the
+% [preprint] option:
+%     \usepackage[preprint]{neurips_2018}
+
+% to compile a camera-ready version, add the [final] option, e.g.:
+     \usepackage[final]{nips_2018}
+
+% to avoid loading the natbib package, add option nonatbib:
+%     \usepackage[nonatbib]{neurips_2018}
+
+\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+\usepackage{hyperref}       % hyperlinks
+\usepackage{url}            % simple URL typesetting
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+
+\title{Document de travail QALM}
+\author{%
+  David S.~Hippocampus \\
+  Department of Computer Science\\
+  Cranberry-Lemon University\\
+  Pittsburgh, PA 15213 \\
+  \texttt{hippo@cs.cranberry-lemon.edu} \\
+  % examples of more authors
+  % \And
+  % Coauthor \\
+  % Affiliation \\
+  % Address \\
+  % \texttt{email} \\
+  % \AND
+  % Coauthor \\
+  % Affiliation \\
+  % Address \\
+  % \texttt{email} \\
+  % \And
+  % Coauthor \\
+  % Affiliation \\
+  % Address \\
+  % \texttt{email} \\
+  % \And
+  % Coauthor \\
+  % Affiliation \\
+  % Address \\
+  % \texttt{email} \\
+}
+
+\usepackage{natbib}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{graphicx}
+
+\def\rmGamma{{\mathbf{\Gamma}}}
+
+\input{math_commands.tex}
+
+\begin{document}
+
+\maketitle
+
+\section{Notations}
+
+$[\![K]\!]$ with $K \in \sN$ is the set of all i such as $i \in \sN$ and $i < K$ . $\rmX \in \R^{n \times d}$ is the considered dataset. For a given matrix $\rmA$, the notation $\rmA_i$ refers to the $i^{th}$ row of the matrix $\rmA$.
+
+\section{Background}
+
+\subsection{K-means}
+
+The K-means algorithm is used to partition a given set of observations $\rmX$ into a predefined amount of $K$ clusters while minimizing the distance between the observations in each partition:
+
+\begin{equation}
+\label{eq:kmean_problem}
+    \argmin_{\rmU, \rvt} \sum_{k=1}^{K} \sum_{j: \rvt_j = k} ||\rmX_j -\rmU_k||^2 \\
+\end{equation}
+% autre écriture de l'objectif de k-means
+% = \argmin_{\rmU, \rvt} \sum_{k=1}^{K} c_k + \sum_{k=1}^{K} n_k||\hat{\rmU}_k - \rmU_k||^2
+where $\rmU \in \R^{K \times d}$ is the matrix of the clusters center-points and $\rvt \in  [\![K]\!]^n$ is the indicator vector.
+
+The algorithm (Algorithm \ref{algo:kmeans}) starts with an initialized set of $K$ center-points ($\{\rmU_i \in \R^d\}_{i=1}^{K}$). Each update step $\tau$ is divided into two parts: (i) all observations $\rmX_i$ are assigned to their nearest cluster based on the center-points $\rmU_i^{(\tau-1)}$s at this step (Line \ref{line:kmeans:assignment}) in $O(ndK)$ operations. (ii) the new center-points $\rmU_i^{(\tau)}$s are computed as the means of the assignated $\rmX_i$ (Line \ref{line:kmeans:compute_means}) for a total of $O(nd)$ operations.
+
+\begin{algorithm}
+\caption{K-means algorithm}
+\label{algo:kmeans}
+\begin{algorithmic}[1]
+
+
+\REQUIRE $\rmX \in \R^{n \times d}$, $K$, $\{\rmU_i \in \R^d\}_{i=1}^{K}$
+\ENSURE $\{\rmU_i\}_{i=1}^{K}$ the K means of $n$ $d$-dimensional samples
+\STATE $\tau \leftarrow 0$
+\REPEAT
+\STATE $\tau \leftarrow \tau + 1$
+\STATE $\rvt^{(\tau)} \leftarrow \argmin_{\rvt \in [\![K]\!]^n} \sum_{i=1}^{n} {||\rmX_i - \rmU^{(\tau-1)}_{\rvt_i}||_2^2}$
+\label{line:kmeans:assignment}
+\FORALL {$k \in [\![K]\!]^n$}
+\STATE $n_k^{(\tau)} \leftarrow |\{i: \rvt^{(\tau)}_i=k\}|$
+\label{line:kmeans:count}
+\STATE $\rmU^{(\tau)}_k \leftarrow \frac{1}{n_k^{(\tau)}} \sum_{i: \rvt^{(\tau)}_i = k} {\rmX_i}$
+\label{line:kmeans:compute_means}
+\ENDFOR
+\UNTIL{stop criterion}
+\RETURN $\rmU^{(\tau)}$
+\end{algorithmic}
+\end{algorithm}
+
+
+Once the cluster have been defined, for any $\rvx \in \R^d$ the cluster associated with this $\rvx$ is:
+
+\begin{equation}
+\label{eq:assignment_problem_kmeans}
+\argmin_{k \in [\![K]\!]} ||\rvx - \rmU_{k}||_2^2 = \argmin_{k \in [\![K]\!]} ||U_k||_2^2 - 2 \rmU_{k}^T\rvx
+\end{equation}.
+
+
+We remark here that the computational bottleneck of this assignment lies in the computation of $\rmU_k^T\rvx$ for all $k$. This computation is also encountered in the assignment step Line \ref{line:kmeans:assignment} of the Algorithm \ref{algo:kmeans}.
+
+
+\subsection{Learning Fast transforms as the product of sparse matrices}
+
+A popular way for providing concise description of high-dimensional vectors $\rmU \in \R^{K \times d}$ is to compute a sparse representation using a dictionnary:
+
+\begin{equation}
+\rmU^T \approx \rmD\rmGamma
+\end{equation}
+
+where $\rmD \in \R^{d \times d}$ is a dictionnary and $\rmGamma \in \R^{d \times K}$ has sparse columns. Historically, the dictionnary is either (i) analytic: $\rmD$ is chosen to give a fast reconstruction of the initial matrix by taking advantage of some fast-transform algorithm (the \textit{Fast Hadamard Transform} for instance) or (ii) learned: $\rmD$ is learned from the data itself to give a good reconstruction of the initial matrix.
+
+Building on the observation that the fast-transform associated with an analytic dictionnary can be expressed as the product of sparse matrices $\mathcal{S}_j$ from a set $\mathcal{S}$ of size $M$, \cite{magoarou2014learning} proposes an algorithm to learn a dictionnary from the data with sparsity constraints such that this dictionnary would be both well-suited with the data and fast to use:
+
+\begin{equation}
+\rmD = \lambda \prod_{j=1}^{M}\mathcal{S}_j
+\end{equation}
+
+with $\forall j \in \{1 \ldots M\}$, $\mathcal{S}_j \in \mathcal{E}_j$, $\mathcal{E}_j = \lbrace \rmA \in \R^{a \times a+1}~\text{s.t.}~||\rmA||_0^0 \leq p_j, ||\rmA||_1 = 1 \rbrace$ and $p_j$ being chosen suitably. The $\lambda$ parameter has been added along with the normalization constraint in the $\mathcal{E}_j$ in order to remove scaling ambiguity in the learned $\mathcal{S}_j$.
+
+Considering $\rmGamma$ being a sparse matrice too, it can be renamed as $\rmGamma = \mathcal{S}_{M+1}$. We set $Q = M+1$ and the overall dictionnary learning problem can be expressed as the following optimisation problem:
+
+\begin{equation}
+\label{eq:problem_gribon}
+\min_{\{\mathcal{S}_1 \dots \mathcal{S}_Q, \lambda\}} ||\rmU - \lambda \prod_{j=1}^{Q}{\mathcal{S}_j}||_2^2 + \sum_{j=1}^{Q} \delta_j(\mathcal{S}_j)
+\end{equation}
+
+with the $\delta_j(\mathcal{S}_j) = 0$ if $\mathcal{S}_j \in \mathcal{E}_j$ being the sparsity constraints to satisfy on the associated $\mathcal{S}_j$.
+
+Although this problem being highly non-convex, the authors derive an algorithm from the PALM algorithm \cite{bolte2014proximal}, which they call \textit{Hierarchical PALM4LED} to find a good local minima and give convergence guarantees to learn efficient dictionaries.
+
+
+\section{Contribution}
+
+\subsection{Q-means}
+
+We propose an extension of the K-means algorithm in which the matrix of center-points $\rmU$ is constrained to be expressed as a product of sparse matrices $\mathcal{S}_j: j = 1 \ldots Q$. From Equation \ref{eq:kmean_problem} and Equation \ref{eq:problem_gribon} we can write a new K-means optimisation problem with sparse factorization constraint which we call \textit{Q-means}:
+
+\begin{equation}
+\begin{split}
+\label{eq:qmean_problem}
+    \argmin_{\{\mathcal{S}_1 \dots \mathcal{S}_Q, \lambda\}, \rvt} & \sum_{k=1}^{K} \sum_{j: \rvt_j = k} ||\rmX_j -\rmU_k||^2 + \sum_{j=1}^{Q} \delta_j(\mathcal{S}_j) \\
+    & s.t. ~ \rmU = \lambda \prod_{j=1}^{Q}{\mathcal{S}_j}
+\end{split}
+\end{equation}.
+
+This problem can be solved using Algorithm \ref{algo:qmeans} which is a simple extension of the K-means algorithm (Algorithm \ref{algo:kmeans}) and is guaranteed to converge. To show this convergence, we need to show that each update step in one iteration $\tau$ of the algorithm actually reduces the overall objective. To this end, we start by re-writting the objective at a given time-step $\tau$:
+
+\begin{equation}
+\begin{split}
+\label{eq:qmean_problem_2}
+    g(\{ \mathcal{S}_1^{(\tau)}, \ldots,\mathcal{S}_Q^{(\tau)} \}, \lambda^{(\tau)}, \rvt^{(\tau)}) = & \sum_{k=1}^{K} \left( \sum_{j: \rvt^{(\tau)}_j = k} ||\rmX_j - \rmU^{(\tau)}_k||^2 + \sum_{j=1}^{Q} \delta_j(\mathcal{S}_j^{(\tau)}) \right)\\
+    & s.t. ~ \rmU = \lambda^{(\tau)} \prod_{j=1}^{Q}{\mathcal{S}_j^{(\tau)}}
+\end{split}
+\end{equation}.
+
+Then we assess wether or not this objective diminish at each time-step in Algorithm \ref{algo:qmeans}.
+
+\paragraph{Assignment step (Line \ref{line:qmeans:assignment})} For a fixed $\rmU^{(\tau-1)}$ the new indicator vector $\rvt^{(\tau)}$ is defined such as:
+
+\begin{equation}
+ \rvt^{(\tau)}_i = \argmin_{k \in [\![K]\!]} ||\rmX_i - \rmU^{(\tau-1)}||_2^2
+\end{equation}
+
+for any $i \in [\![n]\!]$. This step is exactly identical in the K-means algorithm (Algorithm \ref{algo:kmeans}) and is clearly minimizing the objective function \textit{w.r.t.} to vector $\rvt$.
+
+\paragraph{Centroids computation step (Line \ref{line:qmeans:startkmeans} to \ref{line:qmeans:endkmeans})} For a fixed $\rvt^{(\tau)}$, the new sparsely-factorized centroids are solution of the following subproblem:
+
+\begin{equation}
+\label{eq:qmeans_problem_t_fixed}
+\begin{split}
+ \argmin_{\{ \mathcal{S}_1, \ldots,\mathcal{S}_Q\}, \lambda} & g(\{ \mathcal{S}_1, \ldots,\mathcal{S}_Q\}, \lambda, \rvt^{(\tau)}) = \argmin_{\{ \mathcal{S}_1, \ldots,\mathcal{S}_Q\}, \lambda} \sum_{k=1}^{K} \left( \sum_{j: \rvt^{(\tau)}_j = k} ||\rmX_j - \rmU_k||^2_2 + \sum_{j=1}^{Q} \delta_j(\mathcal{S}_j) \right) \\
+ = & \argmin_{\{ \mathcal{S}_1, \ldots,\mathcal{S}_Q\}, \lambda}  ||\mathcal{D}_{\sqrt{\rvn^{(\tau)}}}~(\hat{\rmX}^{(\tau)} - \rmU)||_{\mathcal{F}} ^ 2  + \sum_{k=1}^{K} c_k^{(\tau)} +  \sum_{j=1}^{Q} \delta_j(\mathcal{S}_j)\\
+  = & \argmin_{\{ \mathcal{S}_1, \ldots,\mathcal{S}_Q\}, \lambda}  ||\mathcal{D}_{\sqrt{\rvn^{(\tau)}}}~(\hat{\rmX}^{(\tau)} - \rmU)||_{\mathcal{F}} ^ 2  +  \sum_{j=1}^{Q} \delta_j(\mathcal{S}_j)\\
+ s.t. ~ \rmU =& \lambda \prod_{j=1}^{Q}{\mathcal{S}_j}
+\end{split} 
+\end{equation}
+
+where :
+
+\begin{itemize}
+ \item $\sqrt{\rvn^{(\tau)}} \in {\R^{K}}$ is the pair-wise square root of the vector indicating the number of observation in each cluster at step $\tau$: $\rvn_k = |\{i: \rvt^\tau_i = k\}|$;
+ \item $\mathcal{D}_\rvv \in \R^{K \times K}$ refers to a diagonal matrix with entries in the diagonal from a vector $\rvv$;
+ \item $\hat{\rmX}^{(\tau)} \in \R^{K \times d}$ refers to the real centroid matrix obtained at step $\tau$ \textit{w.r.t} the indicator vector at this step $\rvt^{(\tau)}$: $\hat{\rmX}^{(\tau)}_k = \frac{1}{\rvn_k}\sum_{j:\rvt^{(\tau)}_j = k} {\rmX_j}$. When $\rvt^{(\tau)}$ is fixed, this is constant.
+ \item $c_k^{(\tau)} = \sum_{j: \rvt^{(\tau)}_j = k}^{}||\rmX_j - \hat{\rmX}_k^{(\tau)}||$ is constant \textit{w.r.t} $\{ \mathcal{S}_1, \ldots,\mathcal{S}_Q\}$ and $\lambda$.
+\end{itemize}
+
+Again,  the minimization of the overall objective $g$ from Equation \ref{eq:qmean_problem_2} is clear since the $\{ \mathcal{S}_1, \ldots,\mathcal{S}_Q\}$ and $\lambda$ are precisely chosen to minimize $g$.
+
+Note that the formulation of the problem in Equation \ref{eq:qmeans_problem_t_fixed} shows the connection between the K-means and \textit{Hierarchical PALM4LED} objectives, which allow to combine them without trouble. Indeed, we can set
+
+\begin{equation*}
+\rmA^{(\tau)} = \mathcal{D}_{\sqrt{\rvn^{(\tau)}}}~\hat{\rmX}^{(\tau)}
+\end{equation*}
+and
+\begin{equation*}
+\rmB^{(\tau)} = \mathcal{D}_{\sqrt{\rvn^{(\tau)}}}~\rmU = \mathcal{D}_{\sqrt{\rvn^{(\tau)}}}~\lambda \prod_{j=1}^{Q}{\mathcal{S}_j} = \lambda \prod_{j=0}^{Q}{\mathcal{S}_j}
+\end{equation*}
+
+with $\mathcal{S}_0$ fixed and equal to $\mathcal{D}_{\sqrt{\rvn^{(\tau)}}}$. The Equation \ref{eq:qmeans_problem_t_fixed} can then be rewritten 
+
+\begin{equation}
+\begin{split}
+ \argmin_{\{ \mathcal{S}_1, \ldots,\mathcal{S}_Q\}, \lambda} & ||\rmA^{(\tau)} - \rmB^{(\tau)}||_{\mathcal{F}} ^ 2  +  \sum_{j=0}^{Q} \delta_j(\mathcal{S}_j)\\
+ s.t. &~ \rmB^{(\tau)} = \lambda \prod_{j=0}^{Q}{\mathcal{S}_j}
+\end{split}
+\end{equation}
+
+Since \textit{Hierarchical PALM4LED} successivly update the $\mathcal{S}_j$s independently and in an alternating fashion, we can still use \textit{PALM4LED} in to solve this problem with the $\mathcal{S}_0$ fixed.
+
+
+\begin{algorithm}
+\caption{Q-means algorithm}
+\label{algo:qmeans}
+\begin{algorithmic}[1]
+
+
+\REQUIRE $\rmX \in \R^{n \times d}$, $K$, $\{\mathcal{S}_1 \dots \mathcal{S}_{Q}\}|\mathcal{S}_j \in \mathcal{E}_j$
+\ENSURE $\{\mathcal{S}_1 \dots \mathcal{S}_{Q}\}|\mathcal{S}_j \in \mathcal{E}_j$ such that $\prod_{j=1}^{Q}\mathcal{S}_j \approx \rmU$ the K means of $n$ $d$-dimensional samples
+\STATE $\tau \leftarrow 0$
+\REPEAT
+\STATE $\tau \leftarrow \tau + 1$
+\STATE $\rvt^{(\tau)} \leftarrow \argmin_{\rvt \in [\![K]\!]^n} \sum_{i=1}^{n} {||\rmX_i - \rmU^{(\tau -1)}_{\rvt(i)}||_2^2}$
+\label{line:qmeans:assignment}
+\FORALL {$k \in [\![K]\!]$}
+\label{line:qmeans:startkmeans}
+\STATE $n_k^{(\tau)} \leftarrow |\{i: \rvt^{(\tau)}_i=k\}|$
+\STATE $\hat{\rmX}^{(\tau)}_k \leftarrow \frac{1}{n^\tau_k} \sum_{i: \rvt^\tau_i = k} {\rvx_i}$
+\ENDFOR
+\label{line:qmeans:endkmeans}
+\STATE $\rmA^{(\tau)} \leftarrow \mathcal{D}_{\sqrt{\rvn^{(\tau)}}}~\hat{\rmX}^{(\tau)} $
+\STATE $\{\mathcal{S}^{(\tau)}_1 \dots \mathcal{S}^{(\tau)}_{Q}\}, \lambda^{(\tau)} \leftarrow \argmin_{\{\mathcal{S}_1 \dots \mathcal{S}_Q, \lambda\}} ||\rmA^{(\tau)} - ~\lambda\prod_{j=0}^{Q}{\mathcal{S}_j}||_\mathcal{F}^2 + \sum_{j=0}^{Q} \delta_j(\mathcal{S}_j)$
+\STATE $\rmU^{(\tau)}_k \leftarrow \lambda^{(\tau)} \prod_{j=1}^{Q}{\mathcal{S}_j^{(\tau)}}$
+
+\UNTIL{stop criterion}
+\end{algorithmic}
+\end{algorithm}
+
+The factorization of $\rmU$ could then be used in ulterior algorithm that involve a matrix-vector multiplication with $\rmU$: typically any algorithm involving the assignment of some data points to one of the cluster (Equation \ref{eq:assignment_problem_kmeans}). Such applications of our proposed algorithm are discussed in Section \ref{sec:uses}.
+
+\subsection{Complexity}
+\paragraph{Complexity of a multiplication of dense matrices.}
+If $\rmA$ is an $M\times K $ matrix and $\rmB$ is an $K \times N$ matrix, then computing $\rmA \rmB$ can be done in $\mathcal{O}\left (MKN\right )$ operations.
+
+\paragraph{Complexity of a multiplication with a sparse matrix.}
+If $\rmA$ is a sparse matrix with $a$ non-zero entries and $\rmB$ is a dense matrix with $N$ columns, then computing $\rmA \rmB$ can be done in $\mathcal{O}\left (aN\right )$ operations.
+If $\rmB$ is also sparse, with $b$ non-zero entries, then the bound is $\mathcal{O}\left ( \min\left ( a \min\left (b, N \right ), b \min\left (a, M\right ) \right ) \right )$ where $M$ is the number of rows in $\rmA$.
+This is a naive upper bound for sparse matrices, some tighter bound may be found.
+
+\paragraph{Complexity of algorithm Palm4LED.}
+to be completed
+
+\paragraph{Complexity of algorithm Hierarchical PALM4LED.}
+to be completed
+
+\paragraph{Complexity of Kmeans (algorithm~\ref{algo:kmeans}).}
+Each iteration takes $\mathcal{O}\left (ndk\right )$
+\begin{itemize}
+\item Assignment, line~\ref{line:kmeans:assignment}: $\mathcal{O}\left (ndk\right )$\\
+it is dominated by the computation of $\rmU \rmX^T$ using $\left \|\rvx-\rvu\right \|_2^2=\left \|\rvx\right \|_2^2+\left \|\rvu\right \|_2^2-2\left <\rvx, \rvu\right >$
+\item Computing size of cluster, line~\ref{line:kmeans:count}: $\mathcal{O}\left (n \right )$\\
+it consists in one pass over $\rvt$.
+\item Updating the centroids, line~\ref{line:kmeans:compute_means}: $\mathcal{O}\left (nd\right )$\\
+since each example is summed once.
+\end{itemize}
+
+\paragraph{Complexity of Q-means (algorithm~\ref{algo:qmeans}).}
+
+\section{Applications}
+\label{sec:uses}
+
+\subsection{Nyström approximation}
+
+Standard kernel machines are often prohibited in large scale applications because of their associated Gram matrix $\rmK$ which has $O(n^2)$ storage and $O(n^2d)$ computational complexity: $\forall i,j \in [\![n]\!], \rmK_{i,j} = k(\rmX_i, \rmX_j)$. A well-known strategy to overcome this problem is to use the Nyström method which compute a low-rank approximation of the Gram matrix on the basis of some pre-selected landmark points. 
+
+Given $K \ll n$ landmark points $\{\rmU_i\}_{i=1}^{K}$, the Nyström method gives the following approximation of the full Gram matrix:
+
+\begin{equation}
+ \label{eq:nystrom}
+ \rmK \approx \tilde\rmK = \rmC\rmW^\dagger\rmC^T
+\end{equation}
+
+with $\rmW \in \R^{K \times K}$ containing all the kernel values between landmarks: $\forall i,j \in [\![K]\!]~ \rmW_{i,j} = k(\rmU_i, \rmU_j)$; $\rmW^\dagger$ being the pseudo-inverse of $\rmW$ and $\rmC \in \R^{n \times K}$ containing all the kernel values between landmark points and data points: $\forall i \in [\![n]\!], \forall j \in [\![K]\!]~ \rmC_{i, j} = k(\rmX_i, \rmU_j)$.
+
+\subsubsection{Efficient Nyström approximation}
+
+A substantial amount of research has been conducted toward landmark point selection methods for improved approximation accuracy \cite{kumar2012sampling} \cite{musco2017recursive} but much less has been done for improved computation speed. In \cite{si2016computationally}, they propose an algorithm to learn the matrix of landmark points with some structure constraint so that its utilisation is fast, taking advantage of fast-transforms. This results in an efficient Nyström approximation that is faster to use both in the training and testing phase of some ulterior machine learning application.
+
+Remarking that the main computation cost of the Nyström approximation comes from the computation of the kernel function between the train/test samples and the landmark points, they aim at accelerating this step. In particular, they focus on a family of kernel functions that have the following form:
+
+\begin{equation}
+ K(\rvx_i, \rvx_j) = f(\rvx_i) f(\rvx_j) g(\rvx_i^T\rvx_j)
+\end{equation}
+
+where $f: \R^d \rightarrow \R$ and $g: \R \rightarrow \R$. They show that this family of functions contains some widely used kernel such as the Gaussian kernel or the Polynomial one. Given a set of $K$ landmark points $\rmU \in \R^{K \times d}$ and a sample $\rvx$, the computational time for computing the kernel between $\rvx$ and each row of $\rmU$ (necessary for the Nyström approximation) is bottlenecked by the computation of the product $\rmU\rvx$. They hence propose to write the $\rmU$ matrix as the concatenation of structured $s = K / d$ product of matrices:
+
+\begin{equation}
+ \rmU = \left[ \rmV_1 \rmH^T, \cdots, \rmV_s\rmH^T  \right]^T
+\end{equation}
+
+where the $\rmH$ is a $d \times d$ matrix associated with a fast transform such as the \textit{Haar} or \textit{Hadamard} matrix and the $\rmV_i$s are some $d \times d$ diagonal matrices to be either chosen with a standard landmark selection method or learned using an algorithm they provide.
+
+Depending on the $\rmH$ matrix they chose, they can improve the time complexity for the computation of $\rmU\rvx$ from $O(Kd)$ to $O(K \log{d})$ (\textit{Fast Hadamard transform}) or $O(K)$ (\textit{Fast Haar Transform}).
+
+\subsubsection{Q-means in Nyström}
+
+We propose to use our Q-means algorithm in order to learn directly the $\rmU$ matrix in the Nyström approximation so that the matrix-vector multiplication $\rmU \rvx$ is cheap to compute but the structure of $\rmU$ is not constrained by some pre-defined transform matrix. We propose to take the objective $\rmU$ matrix as the K-means matrix of $\rmX$ since it has been shown to achieve good reconstruction accuracy in the Nyström method but express it as a product of sparse matrices.
+
+In \cite{si2016computationally}, they propose two point of view to show how their method improve the state of the art:
+
+\begin{itemize}
+ \item For a fixed time budget, they show better approximation accuracy of their Nyström method by sampling (\textit{learning}) more landmark points;
+ \item For a fixed error budget, they show lower time consumption.
+\end{itemize}
+
+Our algorithm could allow to get an efficient Nyström approximation for the same set of landmark points, expressed as a factorization of sparse matrix. In the experiments, we will take Nyström with K-means sampling as our baseline for reconstructing the full Gram-Matrix and we will show that our method can work
+
+\subsection{RBF networks}
+
+Besoin d'éclaircir les liens avec RBF networks
+
+\subsection{nearest-neighbours}
+
+Besoin d'éclaircir les liens avec nearest neighbours
+
+%\bibliographystyle{plain}
+%\bibliography{references}
+\bibliographystyle{plain}
+\bibliography{biblio}
+\end{document}

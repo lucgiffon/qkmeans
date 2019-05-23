@@ -1,0 +1,146 @@
+\section{Preliminaries}
+\label{sec:background}
+
+In this section, we begin by introducing some notation and then review the basics of K-means and give some background about learning fast transforms.
+
+\subsection{Notations}
+
+
+\input{notations.tex}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{table}[t]
+	\centering
+	\begin{tabular}{|r|c|l|}
+		\hline
+		indices &  $i$, $j$, $m$, $n$, $p$, $q$ &  small  Latin characters  \\
+		other integers &  $K$, $Q$, $N$, $\ldots$ &  capital  Latin characters \\
+	%	vector spaces\footnotemark & $\mathcal{X}$, $\mathcal{Y}$, $\mathcal{H}$, $\ldots$ & Calligraphic letters \\ 
+		vectors (or functions) & $\rvx$, $\rvt$, $\rvk$, $\ldots$ & small bold Latin characters \\
+		matrices  & $\rmX$, $\rmU$, $\rmK$, $\ldots$ & capital bold Latin characters \\
+		transpose & $\top$ & $\rmX^\top$ transpose of  $\rmX$ \\
+		\hline
+	\end{tabular}
+	\caption{Notations used in this paper.}
+	\label{tab:notation}
+\end{table}
+\addtocounter{footnote}{0}
+\footnotetext{We also use the standard notations such as $\mathbb{R}^n$ and $\mathbb{M}_n$.}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+
+
+\subsection{K-means}
+\label{sec:kmeans}
+The K-means algorithm is used to partition a given set of observations $\rmX$ into a predefined $K$ clusters while minimizing the distance between the observations in each partition:
+
+\begin{equation}
+\label{eq:kmean_problem}
+    \argmin_{\rmU, \rvt} \sum_{k=1}^{K} \sum_{j: \rvt_j = k} ||\rmX_j -\rmU_k||^2,
+\end{equation}
+% autre écriture de l'objectif de k-means
+% = \argmin_{\rmU, \rvt} \sum_{k=1}^{K} c_k + \sum_{k=1}^{K} n_k||\hat{\rmU}_k - \rmU_k||^2
+where $\rmU \in \R^{K \times d}$ is the matrix of the cluster's center-points and $\rvt \in  [\![K]\!]^n$ is the indicator vector.
+
+The algorithm (Algorithm \ref{algo:kmeans}) starts with an initialized set of $K$ center-points ($\{\rmU_i \in \R^d\}_{i=1}^{K}$). Each update step $\tau$ is divided into two parts: (i) all observations $\rmX_i$ are assigned to their nearest cluster based on the center-points $\rmU_i^{(\tau-1)}$s at this step (Line \ref{line:kmeans:assignment}) in $\mathcal{O}(ndK)$ operations. (ii) the new center-points $\rmU_i^{(\tau)}$s are computed as the means of the assignated $\rmX_i$ (Line \ref{line:kmeans:compute_means}) for a total of $\mathcal{O}(nd)$ operations.
+
+\begin{algorithm}
+\caption{K-means algorithm}
+\label{algo:kmeans}
+\begin{algorithmic}[1]
+
+
+\REQUIRE $\rmX \in \R^{n \times d}$, $K$, $\{\rmU_i \in \R^d\}_{i=1}^{K}$
+\ENSURE $\{\rmU_i\}_{i=1}^{K}$ the K means of $n$ $d$-dimensional samples
+\STATE $\tau \leftarrow 0$
+\REPEAT
+\STATE $\tau \leftarrow \tau + 1$
+\STATE $\rvt^{(\tau)} \leftarrow \argmin_{\rvt \in [\![K]\!]^n} \sum_{i=1}^{n} {||\rmX_i - \rmU^{(\tau-1)}_{\rvt_i}||_2^2}$
+\label{line:kmeans:assignment}
+\FORALL {$k \in [\![K]\!]^n$}
+\STATE $n_k^{(\tau)} \leftarrow |\{i: \rvt^{(\tau)}_i=k\}|$
+\label{line:kmeans:count}
+\STATE $\rmU^{(\tau)}_k \leftarrow \frac{1}{n_k^{(\tau)}} \sum_{i: \rvt^{(\tau)}_i = k} {\rmX_i}$
+\label{line:kmeans:compute_means}
+\ENDFOR
+\UNTIL{stop criterion}
+\RETURN $\rmU^{(\tau)}$
+\end{algorithmic}
+\end{algorithm}
+
+
+Once the clusters have been defined, for any $\rvx \in \R^d$ the cluster associated with this $\rvx$ is:
+
+\begin{equation}
+\label{eq:assignment_problem_kmeans}
+\argmin_{k \in [\![K]\!]} ||\rvx - \rmU_{k}||_2^2 = \argmin_{k \in [\![K]\!]} ||\rmU_{k}||_2^2 - 2 \rmU_{k}^T\rvx
+\end{equation}.
+
+
+We remark here that the computational bottleneck of this assignment lies in the computation of $\rmU_k^T\rvx$ for all $k$. This computation is also encountered in the assignment step (line \ref{line:kmeans:assignment}) of the Algorithm \ref{algo:kmeans}.
+
+
+\subsection{Learning Fast transforms as the product of sparse matrices}
+\label{sec:palm4led}
+
+
+\begin{algorithm}
+	\caption{PALM4MSA algorithm}
+	\label{algo:palm4msa}
+	\begin{algorithmic}[1]
+		
+		
+		\REQUIRE The matrix to factorize $\rmU \in \R^{K \times d}$, the desired number of factors $Q$, the constraint sets $\mathcal{E}_j$ , $j \in [\![Q]\!]$ and a stopping criterion (e.g., here, a number of iterations $N_{iter}$ ).
+		
+		\ENSURE $\{\mathcal{S}_1 \dots \mathcal{S}_{Q}\}|\mathcal{S}_j \in \mathcal{E}_j$ such that $\prod_{j=1}^{Q}\mathcal{S}_j \approx \rmU$
+		
+		\FOR {$i = 0$ to $N_{iter}$}
+		\FOR {$j = 1$ to $Q$}
+		\STATE  $\rmL_j \leftarrow \prod_{l=j+1}^{Q} \mathcal{S}_{l}^{i}$
+		\STATE  $\rmR_j \leftarrow \prod_{l=1}^{j-1} \mathcal{S}_{l}^{i+1}$
+		\STATE $c_j^i :> (\lambda^i)^2 ||\rmR_j||_2^2 ||\rmL_j||_2^2$
+		\STATE $\mathcal{S}^{i+1}_j \leftarrow P_{\mathcal{E}_j}(\mathcal{S}_j^i - \frac{1}{c_j^i} \lambda^i \rmL_j^T(\lambda \rmL_j \mathcal{S}_j^i \rmR_j - \rmU)\rmR_j^T)$
+		\ENDFOR
+		\STATE $\hat \rmU := \prod_{j=1}^{Q} \mathcal{S}_j^{i+1}$
+		\STATE $\lambda^{i+1} \leftarrow \frac{Trace(\rmU^T\hat\rmU)}{Trace(\hat\rmU^T\hat\rmU)}$
+		\ENDFOR
+		
+		\ENSURE $\lambda, \{\mathcal{S}_1 \dots \mathcal{S}_{Q}\}|\mathcal{S}_j \in \mathcal{E}_j$ such that $\lambda \prod_{j=1}^{Q}\mathcal{S}_j \approx \rmU$
+		
+	\end{algorithmic}
+\end{algorithm}
+
+
+
+A popular way for providing concise description of high-dimensional vectors $\rmU \in \R^{K \times d}$ is to compute a sparse representation using a dictionary:
+%
+\begin{equation}
+\rmU^T \approx \rmD\rmGamma
+\end{equation}
+%
+where $\rmD \in \R^{d \times d}$ is a dictionary and $\rmGamma \in \R^{d \times K}$ has sparse columns. Historically, the dictionary is either (i) analytic: $\rmD$ is chosen to give a fast reconstruction of the initial matrix by taking advantage of some fast-transform algorithm (the \textit{Fast Hadamard Transform} for instance) or (ii) learned: $\rmD$ is learned from the data itself to give a good reconstruction of the initial matrix.
+
+Building on the observation that the fast-transform associated with an analytic dictionary can be expressed as the product of sparse matrices $\mathcal{S}_j$ from a set $\mathcal{S}$ of size $M$, \cite{magoarou2014learning} proposes an algorithm to learn a dictionary from the data with sparsity constraints such that this dictionary would be both well-suited with the data and fast to use:
+%
+\begin{equation}
+\rmD = \lambda \prod_{j=1}^{M}\mathcal{S}_j
+\end{equation}
+%
+with $\forall j \in \{1 \ldots M\}$, $\mathcal{S}_j \in \mathcal{E}_j$, $\mathcal{E}_j = \lbrace \rmA \in \R^{a \times a+1}~\text{s.t.}~||\rmA||_0^0 \leq p_j, ||\rmA||_1 = 1 \rbrace$ and $p_j$ being chosen suitably. The $\lambda$ parameter has been added along with the normalization constraint in the $\mathcal{E}_j$ in order to remove scaling ambiguity in the learned $\mathcal{S}_j$.
+
+Considering $\rmGamma$ being a sparse matrice too, it can be renamed as $\rmGamma = \mathcal{S}_{M+1}$. We set $Q = M+1$ and the overall dictionary learning problem can be expressed as the following optimisation problem:
+%
+\begin{equation}
+\label{eq:problem_gribon}
+\min_{\{\mathcal{S}_1 \dots \mathcal{S}_Q, \lambda\}} ||\rmU - \lambda \prod_{j=1}^{Q}{\mathcal{S}_j}||_2^2 + \sum_{j=1}^{Q} \delta_j(\mathcal{S}_j)
+\end{equation}
+%
+with the $\delta_j(\mathcal{S}_j) = 0$ if $\mathcal{S}_j \in \mathcal{E}_j$ being the sparsity constraints to satisfy on the associated $\mathcal{S}_j$.
+
+Although this problem is highly non-convex, the authors derive an algorithm from the PALM algorithm \cite{bolte2014proximal}, which they call \textit{Hierarchical PALM4LED} to find a good local minima and give convergence guarantees to learn efficient dictionaries.
+
+
+

@@ -16,7 +16,6 @@ results/*
 *.out
 *.ps
 
-
 *.py[co]
 
 # Packages
