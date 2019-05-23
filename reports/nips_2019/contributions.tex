@@ -1,25 +1,115 @@
+%!TEX root=neurips2019_qmeans.tex
+
 \section{QuicK-means}
 \label{sec:contribution}
+\todo[inline]{Unify the notation and give it some aesthetics: $X_i$ for a vector is
+ugly and inconsistent with the table of notation, $\rvx_i$ should be preferred.}
 
-We now introduce our algorithm QuicK-means (abbreviated by QK-means), show its convergence property and analyze its computational complexity.
+We here introduce our main contribution, QuicK-means (abbreviated by QK-means), 
+show its convergence property and analyze its computational complexity.
 
-\subsection{Algorithm}
+\subsection{QK-means: Encoding Centroids as Products of Sparse Matrices}
 
+QuicK-means is an extension of the K-means algorithm in which the matrix of centroids $\rmU$
+is sought for as a product $\prod_{j=0}^Q\mathcal{S}_j$ of sparse matrices $S_j$.
+% $\mathcal{S}_j: j = 0 \ldots Q$. 
+Doing so will allow us to cope with the computational bulk imposed by the product $\rmU\rvx$
+(cf.~\eqref{eq:assignment_problem_kmeans}) at the core of the cluster assignement process.
 
-QuicK-means is an extension of the K-means algorithm in which the matrix of center-points $\rmU$ is constrained to be expressed as a product of sparse matrices $\mathcal{S}_j: j = 1 \ldots Q$. From Equation \ref{eq:kmean_problem} and Equation \ref{eq:problem_gribon} we can write a new K-means optimisation problem with sparse factorization constraint which we call \textit{Q-means}:
+Building upon~\eqref{eq:kmean_problem} and~\eqref{eq:problem_gribon} the optimisation problem 
+of QK-means may be written as follows:
 %
-\begin{equation}
-\begin{split}
+\begin{align}
 \label{eq:qmean_problem}
- \argmin_{\{\mathcal{S}_1 \dots \mathcal{S}_Q, \lambda\}, \rvt} & g(\{ \mathcal{S}_1, \ldots,\mathcal{S}_Q \}, \lambda, \rvt)\\
-    =\argmin_{\{\mathcal{S}_1 \dots \mathcal{S}_Q, \lambda\}, \rvt} & \sum_{k=1}^{K} \left( \sum_{j: \rvt_j = k} ||\rmX_j -\rmU_k||^2 \right) + \sum_{j=1}^{Q} \delta_j(\mathcal{S}_j) \\
-    & s.t. ~ \rmU = \lambda \prod_{j=1}^{Q}{\mathcal{S}_j}
-\end{split}
-\end{equation}.
+ \min_{U\in\{\prod_{q=1}^Q\mathcal{S}_j\}, \rvt} & g\left(U, \rvt\right)
+    \doteq \sum_{k=1}^{K}\sum_{j: \rvt_j = k} \left\|\rvx_j -\rvu_k\right\|^2 + \sum_{q=0}^{Q} \delta_q(\mathcal{S}_q)
+\end{align}
 %
-This problem can be solved using Algorithm \ref{algo:qmeans} which is a simple extension of the K-means algorithm (Algorithm \ref{algo:kmeans}) and is guaranteed to converge. 
+Here, 
+as before, the $\delta_q$'s enforce the sparsity of the $\mathcal{S}_q$'s: $\delta_q(\mathcal{S}_q)=0$ if $\mathcal{S}_q$ fulfills the sparsity constraints
+and $+\infty$ otherwise.
 
-\subsection{Convergence analysis}
+\todo[inline]{Talk about the sizes of the matrices in the optimization problem?}
+
+This problem can be solved using the QKmeans algorithm, given in Algorithm~\ref{algo:qmeans},
+which proceeds in a similar way as Lloyd's algorithm with the difference being the 
+recourse to a sparse factor decomposition of the matrix of centroids at
+each re-estimation step. More precisely, at each iteration $\tau$, 
+QKmeans alternates between two 
+optimization procedures i) one which computes the assignement vector $\rvt^{(\tau)}$ 
+of each training point to a cluster $k$, the matrix of centroids $U^{(\tau-1)}$ being
+fixed (and coming from the previous iteration) and ii) the reestimation of the centroids
+ $U^{(\tau)}$ given the new assignment $\rvt^{(\tau)}$. A synthetic view of the algorithm
+ is:
+\begin{subequations}
+\label{eq:qmeans}
+\begin{align}
+\rvt^{(\tau)} &= \argmin_{\rvt\in\llbracket K\rrbracket^n}\sum_{j=1}^n\|\rvx_j-\rvu_{t_j}^{(\tau-1)}\|_{2}^2\label{eq:assignment}\\
+U^{(\tau)} &= \argmin_{U\in\{\prod_{j=0}^QS_j\}}\|D^{(\tau)}\hat{X}^{(\tau)}-U\|_F^2+\sum_{q=0}^{Q} \delta_q(\mathcal{S}_q)\label{eq:reestimation}
+\end{align}
+\end{subequations}
+where $D^{(\tau)}=\diag\left({n_1^{(\tau)}},\ldots,{n_K^{(\tau)}}\right)^{1/2}$ is the square
+root of the diagonal matrix made of the sizes of each cluster, and $\hat{X}^{(\tau)}\doteq \left[\hat{\rvx}^{(\tau)}_1\cdots\hat{\rvx}^{(\tau)}_K\right]$
+is the $D\times K$ matrix that has the barycenter $\hat{\rvx}^{(\tau)}_k$ of cluster $k$ as
+its $k$th column, i.e.
+\begin{align}
+	\hat{\rvx}^{(\tau)}_k \doteq \frac{1}{n_k^{(\tau)}}\sum_{j:t_j^{(\tau)}=k}\rvx_j,
+\end{align}
+
+\todo[inline]{Find a compact way/notation to i) denote the set of products
+of sparse factors  and ii) the result of Palm4MSA. And then, unify the notation.}
+
+%As we show just below, QKmeans is guaranteed to converge.
+
+
+
+\begin{remark}[Assignment/Re-estimation trade-off.]
+A strategy to tackle this problem would be to first run the vanilla K-means algorithm,
+ obtain the matrix of centroids $U$ and then encode $U$ as a product of sparse matrices
+ using HierarchicalPalm4LED. This would however prevent us from taking advantage of 
+ the expected low complexity product that plays a role in the assignement step of 
+ the procedure.
+\end{remark}
+
+\todo[inline]{At some point, talk about the trade-off that we are playing with
+regarding the cost of the assignment and the cost of the re-estimation procedure.}
+
+
+As we will prove, the following result stands:
+\begin{proposition}
+Iterations over~\eqref{eq:assignment} and~\eqref{eq:reestimation} (and thus, QKmeans, Algorithm~\ref{algo:qmeans}) converge. 
+\end{proposition}
+\begin{proof}
+	The proof rests upon a rewriting of the objective function $g$ of~\eqref{eq:qmean_problem}. Given $U$ and $\rvt$, using $\hat{\rvx}_k$ to denote
+	the mean of cluster $k$ as determined by $\rvt$, we have, for any $k$
+\begin{align*}
+	\sum_{j: \rvt_j = k} &\left\|\rvx_j -\rvu_k\right\|^2
+	=\sum_{j: \rvt_j = k} \left\|\rvx_j -\hat{\rvx}_k+\hat{\rvx}_k-\rvu_k\right\|^2\\
+	& = \sum_{j: \rvt_j = k}\left(\|\rvx_j-\hat{\rvx}_k\|^2+\|\hat{\rvx}_k-\rvu_k\|^2-2\langle\rvx_j-\hat{\rvx}_k,\hat{\rvx}_k-\rvu_k\rangle\right)\notag\\
+	& = \sum_{j: \rvt_j = k}\|\rvx_j-\hat{\rvx}_k\|^2+n_k\|\hat{\rvx}_k-\rvu_k\|^2- 2\sum_{k=1}^{K}\left\langle\underbrace{\sum_{j: \rvt_j = k}(\rvx_j-\hat{\rvx}_k)}_{=0},\hat{\rvx}_k-\rvu_k\right\rangle\notag\\
+%	&= \sum_{k=1}^{K}\left[\sum_{j: \rvt_j = k}\|\rvx_j-\hat{\rvx}_k\|^2+n_k\|\hat{\rvx}_k-\rvu_k\|^2-\langle n_k\hat{\rvx}_k-n_k\hat{\rvx}_k,\hat{\rvx}_k-\rvu_k\rangle\right]\\
+	&= \sum_{j: \rvt_j = k}\|\rvx_j-\hat{\rvx}_k\|^2 + n_k\|\hat{\rvx}_k-\rvu_k\|^2
+\end{align*}
+whence, with a slight abuse of notation that discards
+sparsity enforcing term, $g$ might be rewritten as:
+\begin{align}
+	g(U,\rvt)&=\sum_{k=1}^K\sum_{j: \rvt_j = k}\left\|\rvx_j -\rvu_k\right\|^2=\sum_{k=1}^K\sum_{j: \rvt_j = k}\|\rvx_j-\hat{\rvx}_k\|^2 + \sum_{k=1}^Kn_k\|\hat{\rvx}_k-\rvu_k\|^2
+\end{align}
+
+Therefore, QKmeans iterates over the two steps, starting from some $U^{(0)}$:
+\begin{itemize}
+	\item $\rvt^{(\tau)} = \argmin_\rvt g(U^{(\tau-1)},\rvt)$
+	\item $U^{(\tau)}=\argmin_{U\in\{\prod_j\mathcal{S}_j\}}g(U,\rvt^{(\tau)})$
+\end{itemize}
+and $g(U^{(\tau)},\rvt^{(\tau)})\leq g(U^{(\tau-1)},\rvt^{(\tau)})\leq g(U^{(\tau-1)},\rvt^{(\tau-1)})$
+\todo[inline]{Rather say in the proposition that $g(U^{(\tau)},\rvt^{(\tau)})$ is nonincreasing?}
+\end{proof}
+
+\subsection{Convergence of QK-means}
+
+\todo[inline]{The convergence proof is straightforward, and I suggest 
+to put in (as done here) in the previous subsection. And I would skip the rest
+of this section.}
 
 \begin{algorithm}[t]
 	\caption{QuicK-means algorithm}
