@@ -1,22 +1,28 @@
+%!TEX root=neurips2019_qmeans.tex
+ 
 %\paragraph{Notations}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{table}[t]
 	\centering
-	\begin{tabular}{|r|c||r|c|}
-		\hline
-			number of data points & $N$ & data points  & $\rvx_1,\ldots, \rvx_N $  \\
-			dimension of a data point & $D$ & data matrix  & $ \rmX \in\mathbb{R}^{N\times D}$  \\
-				number of clusters & $K$ &  cluster centers   & $\rvu_1,\ldots, \rvu_K $  \\
-			cluster assignment vector & $\rvt$ & cluster center matrix & $\rmU\in\mathbb{R}^{K\times D}$ \\
-				number of sparse matrix factors& $Q$ & sparse matrices & $\rmS_1, \ldots, \rmS_Q$ \\
-			$L2$-norm, $L0$-norm& $\|\cdot\|$, $\|\cdot\|_0$ & Frobenius norm, 	spectral norm & $\|\cdot\|_F$, $\|\cdot\|_2$ \\
-		sparsity constraint sets & $\mathcal{E}_1, \ldots, \mathcal{E}_Q$  & sparsity enforcing functions & $\delta_{\mathcal{E}_1},\ldots,\delta_{\mathcal{E}_Q}$  \\
-		the set of interger $k$ less than $K$& $\intint{K}$ & current iteration & $\tau$   \\
-		\hline
+	\begin{footnotesize}
+	\begin{tabular}{cllcl}\\
+		\cline{1-2}\cline{4-5}\vspace*{1mm}
+		{\bf Symbol}  & {\bf Meaning}                      &  &    {\bf Symbol}          & {\bf Meaning}                    \\ 		\cline{1-2}\cline{4-5}
+		$N$           & number of data points              &  &    $\rvx_1,\ldots, \rvx_N $        &    data points            \\
+		$D$           & dimension of a data point          &  &    $\rmX \in\mathbb{R}^{N\times D}$&    data matrix            \\
+		$K$           & number of clusters                 &  &    $\rvu_1,\ldots, \rvu_K $        &    cluster centers        \\
+		$\rvt$        & cluster assignment vector          &  &    $\rmU\in\mathbb{R}^{K\times D}$ &    cluster center matrix  \\
+		$Q$           & number of sparse matrix factors    &  &    $\rmS_1, \ldots, \rmS_Q$        &    sparse matrices        \\
+		$\|\cdot\|$, $\|\cdot\|_0$ & $L_2$-norm, $L_0$-norm&  &    $\|\cdot\|_F$, $\|\cdot\|_2$    &    Frobenius norm, spectral norm  \\
+		$\mathcal{E}_1, \ldots, \mathcal{E}_Q$ & sparsity constraint sets           &  & $\delta_{\mathcal{E}_1},\ldots,\delta_{\mathcal{E}_Q}$ & 		sparsity enforcing functions   \\
+		$\intint{M}$  & the set of integers from $1$ to $M$ &  & $\tau$  &                       		current iteration  \\
+		\cline{1-2}\cline{4-5}        \\                                                                		
 	\end{tabular}
-	\caption{Notations used in this paper.}
+	\end{footnotesize}
+	
+	\caption{Notation used in this paper.}
 	\label{tab:notation}
 \end{table}
 \addtocounter{footnote}{0}
