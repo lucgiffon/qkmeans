@@ -1,0 +1,18 @@
+all:
+  kmeans_little:
+
+base:
+  seed: {"--seed": "range(3)"}
+  nystrom: ["--nystrom"]
+  assignation: ["--assignation-time"]
+  1nn: ["--1-nn"]
+  initialisation: {--initialization: ["uniform_sampling"]}
+
+base_little:
+  base:
+  dataset: ["--mnist","--fashion-mnist"]
+  nb_clusters: {"--nb-cluster": ["10", "16", "30"]}
+
+kmeans_little:
+  kmeans: ["kmeans"]
+  base_little:
