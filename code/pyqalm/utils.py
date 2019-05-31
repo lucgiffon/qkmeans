@@ -171,8 +171,16 @@ class ParameterManager(dict):
         self["--nb-cluster"] = int(self["--nb-cluster"])
         self["--nb-iteration"] = int(self["--nb-iteration"])
 
+        self["--sparsity-factor"] = int(self["--sparsity-factor"]) if self["--sparsity-factor"] is not None else None
+        self["--nb-iteration-palm"] = int(self["--nb-iteration-palm"]) if self["--nb-iteration-palm"] is not None else None
+
+        self.__init_nb_factors()
         self.__init_output_file()
         self.__init_seed()
+
+    def __init_nb_factors(self):
+        if self["--nb-factors"] is not None:
+            self["--nb-factors"] = int(self["--nb-factors"])
 
     def __init_output_file(self):
         out_file = get_random()
@@ -252,20 +260,6 @@ def compute_euristic_gamma(dataset_full, slice_size=1000):
         d_mat = r1 - 2 * d_mat + r2
         results.append(1/slice_size_tmp**2 * np.sum(d_mat))
     return 1. / np.mean(results)
-
-class ParameterManagerQmeans(ParameterManager):
-    def __init__(self, dct_params, **kwargs):
-        super().__init__(self, **dct_params, **kwargs)
-        self["--sparsity-factor"] = int(self["--sparsity-factor"])
-
-        self["--nb-iteration-palm"] = int(self["--nb-iteration-palm"])
-
-        self.__init_nb_factors()
-
-    def __init_nb_factors(self):
-        if self["--nb-factors"] is not None:
-            self["--nb-factors"] = int(self["--nb-factors"])
-
 
 def blobs_dataset():
     blob_size = 500000
