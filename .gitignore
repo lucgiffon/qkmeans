@@ -1,3 +1,7 @@
+!.gitkeep
+
+reports/figures/*
+
 arrayparam*txt
 reports.bakdir/*
 data/*
