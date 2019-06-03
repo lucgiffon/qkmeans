@@ -60,9 +60,12 @@ if __name__ == "__main__":
     datasets = {"Fashion Mnist": "--fashion-mnist",
                 "Mnist": "--mnist"}
 
+    dataset_dim = {"Fashion Mnist": 784,
+                "Mnist": 784}
+
     sparsity_values = sorted(set(df_results_qmeans["--sparsity-factor"]))
     nb_cluster_values = sorted(set(df_results_qmeans["--nb-cluster"]))
-    nb_factors = [int(np.log2(nb_cluster)) for nb_cluster in nb_cluster_values]
+
 
     tasks = ["assignation_mean_time",
                   "1nn_kmean_inference_time",
@@ -100,6 +103,7 @@ if __name__ == "__main__":
         datasets_col = datasets[dataset_name]
         df_dataset_qmeans = df_results_qmeans[df_results_qmeans[datasets_col]]
         df_dataset_kmeans = df_results_kmeans[df_results_kmeans[datasets_col]]
+        nb_factors = [min(int(np.log2(nb_cluster)), int(np.log2(dataset_dim[dataset_name]))) for nb_cluster in nb_cluster_values]
         for hierarchical_value in [True, False]:
             df_hierarchical = df_dataset_qmeans[df_dataset_qmeans["--hierarchical"] == hierarchical_value]
 
@@ -154,9 +158,3 @@ if __name__ == "__main__":
                 fig.tight_layout()
                 # plt.show()
                 plt.savefig(output_dir / title.replace(" ", "_").replace(":", ""))
-    # df_results_kmeans = build_df(dct_output_files_by_root, col_to_delete)
-    print("\n\n")
-    logger.warning("Le nombre de facteurs dans xaxisest calculé par rapport au nombre de clusters car la dimension est grande (784): corriger ça pour les expés où ça n'est pas le cas")
-
-
-    a=1
