@@ -3,7 +3,18 @@ from pyqalm.data_structures import SparseFactors
 from pyqalm.utils import constant_proj, get_lambda_proxsplincol
 
 
-def get_distances(X_data, centroids):
+def get_squared_froebenius_norm(data_arr):
+    if isinstance(data_arr, SparseFactors):
+        mat_centroids = data_arr.compute_product(return_array=False)
+        centroid_norms = np.linalg.norm(mat_centroids.toarray(), axis=1) ** 2
+        # centroid_norms = np.sqrt(centroids.power(2).sum(axis=1))
+    else:
+        centroid_norms = np.linalg.norm(data_arr, axis=1) ** 2
+
+    return centroid_norms
+
+
+def get_distances(X_data, centroids, precomputed_centroids_norm=None):
     """
     Return the matrix of distance between each data point and each centroid.
 
@@ -16,12 +27,10 @@ def get_distances(X_data, centroids):
     -------
     np.ndarray [k, n]
     """
-    if isinstance(centroids, SparseFactors):
-        mat_centroids = centroids.compute_product(return_array=False)
-        centroid_norms = np.linalg.norm(mat_centroids.toarray(), axis=1) ** 2
-        # centroid_norms = np.sqrt(centroids.power(2).sum(axis=1))
+    if precomputed_centroids_norm is not None:
+        centroid_norms = precomputed_centroids_norm
     else:
-        centroid_norms = np.linalg.norm(centroids, axis=1) ** 2
+        centroid_norms = get_squared_froebenius_norm(centroids)
 
     centroid_distances = centroid_norms[:, None] - 2 * centroids @ X_data.T
 

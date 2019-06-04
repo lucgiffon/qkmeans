@@ -1,0 +1,22 @@
+all:
+  qmeans_big:
+base:
+  seed: {"--seed": "range(3)"}
+  nystrom: ["--nystrom"]
+  assignation: ["--assignation-time"]
+  1nn: ["--1-nn"]
+  initialisation: {--initialization: ["uniform_sampling"]}
+
+base_big:
+  base:
+  nb_clusters: {"--nb-cluster": ["512", "1024", "2048"]}
+  dataset: ["--census", "--kddcup", "--blobs"]
+
+qmeans:
+  qmeans: ["qmeans"]
+  sparsity_factor: {"--sparsity-factor": "range(1, 6, 2)"}
+  hierarchical: ["--hierarchical", ""]
+
+qmeans_big:
+  qmeans:
+  base_big:

@@ -1,0 +1,28 @@
+all:
+  qmeans_little:
+  kmeans_little:
+
+base:
+  seed: {"--seed": "range(3)"}
+  nystrom: ["--nystrom"]
+  assignation: ["--assignation-time"]
+  1nn: ["--1-nn"]
+  initialisation: {--initialization: ["uniform_sampling"]}
+
+base_little:
+  base:
+  dataset: ["--mnist","--fashion-mnist"]
+  nb_clusters: {"--nb-cluster": ["10", "16", "30"]}
+
+qmeans:
+  qmeans: ["qmeans"]
+  sparsity_factor: {"--sparsity-factor": "range(1, 6, 2)"}
+  hierarchical: ["--hierarchical", ""]
+
+qmeans_little:
+  qmeans:
+  base_little:
+
+kmeans_little:
+  kmeans: ["kmeans"]
+  base_little:

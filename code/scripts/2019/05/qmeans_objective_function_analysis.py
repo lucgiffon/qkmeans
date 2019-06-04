@@ -41,13 +41,14 @@ import signal
 import docopt
 import logging
 import daiquiri
+import sys
 import time
 import numpy as np
 from pyqalm.data_structures import SparseFactors
-from pyqalm.utils import ResultPrinter, ParameterManager, ParameterManagerQmeans, ObjectiveFunctionPrinter, logger, timeout_signal_handler, compute_euristic_gamma
+from pyqalm.utils import ResultPrinter, ParameterManager, ObjectiveFunctionPrinter, logger, timeout_signal_handler, compute_euristic_gamma
 # todo graphical evaluation option
 from pyqalm.qk_means.qmeans_fast import qmeans
-from pyqalm.qk_means.utils import build_constraint_set_smart, get_distances
+from pyqalm.qk_means.utils import build_constraint_set_smart, get_distances, get_squared_froebenius_norm
 from pyqalm.qk_means.kmeans import kmeans
 from sklearn.neighbors import KNeighborsClassifier
 from scipy.sparse.linalg import LinearOperator
@@ -126,9 +127,10 @@ def main_qmeans(X, U_init):
 def make_assignation_evaluation(X, centroids):
     nb_eval = 100
     times = []
+    precomputed_centroid_norms = get_squared_froebenius_norm(centroids)
     for i in np.random.permutation(X.shape[0])[:nb_eval]:
         start_time = time.time()
-        get_distances(X[i].reshape(1, -1), centroids)
+        get_distances(X[i].reshape(1, -1), centroids, precomputed_centroids_norm=precomputed_centroid_norms)
         stop_time = time.time()
         times.append(stop_time - start_time)
 
@@ -224,7 +226,7 @@ def special_rbf_kernel(X, Y, gamma):
 
     def g(scal):
         if isinstance(scal, LinearOperator):
-            return np.exp(2 * gamma * (scal* np.ones(scal.shape)))
+            return np.exp(2 * gamma * (scal * np.ones(scal.shape)))
         else:
             return np.exp(2 * gamma * scal)
     return f(X).reshape(-1, 1) * g(X @ Y.transpose()) * f(Y).reshape(1, -1)
@@ -267,6 +269,7 @@ def make_nystrom_evaluation(x_train, U_centroids):
     resprinter.add(nystrom_results)
 
 if __name__ == "__main__":
+    logger.info("Command line: " + " ".join(sys.argv))
     arguments = docopt.docopt(__doc__)
     paraman = ParameterManager(arguments)
     initialized_results = dict((v, None) for v in lst_results_header)
@@ -294,15 +297,14 @@ if __name__ == "__main__":
         if paraman["kmeans"]:
             U_final, indicator_vector_final = main_kmeans(dataset["x_train"], U_init)
         elif paraman["qmeans"]:
-            paraman_q = ParameterManagerQmeans(arguments)
-            paraman.update(paraman_q)
+            # paraman_q = ParameterManagerQmeans(arguments)
+            # paraman.update(paraman_q)
             if paraman["--nb-factors"] is None:
                 paraman["--nb-factors"] = int(np.log2(min(U_init.shape)))
             paraman["--residual-on-right"] = True if U_init.shape[1] >= U_init.shape[0] else False
             U_final, indicator_vector_final = main_qmeans(dataset["x_train"], U_init)
         else:
             raise NotImplementedError("Unknown method.")
-
         np.save(paraman["--output-file_centroidprinter"], U_final, allow_pickle=True)
 
         if paraman["--assignation-time"]:

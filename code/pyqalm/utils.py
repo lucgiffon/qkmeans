@@ -171,11 +171,20 @@ class ParameterManager(dict):
         self["--nb-cluster"] = int(self["--nb-cluster"])
         self["--nb-iteration"] = int(self["--nb-iteration"])
 
+        self["--sparsity-factor"] = int(self["--sparsity-factor"]) if self["--sparsity-factor"] is not None else None
+        self["--nb-iteration-palm"] = int(self["--nb-iteration-palm"]) if self["--nb-iteration-palm"] is not None else None
+
+        self.__init_nb_factors()
         self.__init_output_file()
         self.__init_seed()
 
+    def __init_nb_factors(self):
+        if self["--nb-factors"] is not None:
+            self["--nb-factors"] = int(self["--nb-factors"])
+
     def __init_output_file(self):
         out_file = get_random()
+        self["--output-file"] = out_file
         if out_file is not None and len(out_file.split(".")) > 1:
             raise ValueError("Output file name should be given without any extension (no `.` in the string)")
         if out_file is not None:
@@ -252,22 +261,8 @@ def compute_euristic_gamma(dataset_full, slice_size=1000):
         results.append(1/slice_size_tmp**2 * np.sum(d_mat))
     return 1. / np.mean(results)
 
-class ParameterManagerQmeans(ParameterManager):
-    def __init__(self, dct_params, **kwargs):
-        super().__init__(self, **dct_params, **kwargs)
-        self["--sparsity-factor"] = int(self["--sparsity-factor"])
-
-        self["--nb-iteration-palm"] = int(self["--nb-iteration-palm"])
-
-        self.__init_nb_factors()
-
-    def __init_nb_factors(self):
-        if self["--nb-factors"] is not None:
-            self["--nb-factors"] = int(self["--nb-factors"])
-
-
 def blobs_dataset():
-    blob_size = 1000000
+    blob_size = 500000
     blob_features = 2000
     blob_centers = 5000
     X, y = datasets.make_blobs(n_samples=blob_size, n_features=blob_features, centers=blob_centers)
