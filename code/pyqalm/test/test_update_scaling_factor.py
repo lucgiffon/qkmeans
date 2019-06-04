@@ -19,6 +19,5 @@ class TestUpdateScalingFactor(unittest.TestCase):
         np.testing.assert_almost_equal(actual=actual, desired=desired)
 
 
-
 if __name__ == '__main__':
     unittest.main()

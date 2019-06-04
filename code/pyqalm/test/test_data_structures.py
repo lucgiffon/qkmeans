@@ -63,5 +63,86 @@ class TestSparseFactors(unittest.TestCase):
         print(S_loaded)
         # TODO test equality
 
+    def test_apply_L(self):
+        for n_factors in range(self.S.n_factors + 1):
+            if n_factors < self.S.n_factors:
+                d = np.min(self.S.shape)
+            else:
+                d = self.S.shape[1]
+            X_vec = np.random.randn(d)
+            X_mat = np.random.randn(d, 10)
+            for X in [X_vec, X_mat]:
+                if n_factors == 0:
+                    y_ref = X
+                elif n_factors == 1:
+                    y_ref = self.A[0] @ X
+                else:
+                    y_ref = np.linalg.multi_dot(self.A[:n_factors]) @ X
+                y_est = self.S.apply_L(n_factors=n_factors, X=X)
+                np.testing.assert_array_almost_equal(
+                    y_est,
+                    y_ref,
+                    err_msg='{} factors, {} data'.format(n_factors, X.shape))
+
+    def test_apply_LH(self):
+        for n_factors in range(self.S.n_factors + 1):
+            d = self.S.shape[0]
+            X_vec = np.random.randn(d)
+            X_mat = np.random.randn(d, 10)
+            for X in [X_vec, X_mat]:
+                if n_factors == 0:
+                    y_ref = X
+                elif n_factors == 1:
+                    y_ref = np.conjugate(self.A[0]).T @ X
+                else:
+                    L = np.linalg.multi_dot(self.A[:n_factors])
+                    y_ref = np.conjugate(L.T) @ X
+                y_est = self.S.apply_LH(n_factors=n_factors, X=X)
+                np.testing.assert_array_almost_equal(
+                    y_est,
+                    y_ref,
+                    err_msg='{} factors, {} data'.format(n_factors, X.shape))
+
+    def test_apply_R(self):
+        for n_factors in range(self.S.n_factors + 1):
+            if n_factors < self.S.n_factors:
+                d = np.min(self.S.shape)
+            else:
+                d = self.S.shape[0]
+            X_vec = np.random.randn(d)
+            X_mat = np.random.randn(10, d)
+            for X in [X_vec, X_mat]:
+                if n_factors == 0:
+                    y_ref = X
+                elif n_factors == 1:
+                    y_ref = X @ self.A[-1]
+                else:
+                    y_ref = X @ np.linalg.multi_dot(self.A[-n_factors:])
+                y_est = self.S.apply_R(n_factors=n_factors, X=X)
+                np.testing.assert_array_almost_equal(
+                    y_est,
+                    y_ref,
+                    err_msg='{} factors, {} data'.format(n_factors, X.shape))
+
+    def test_apply_RH(self):
+        for n_factors in range(self.S.n_factors + 1):
+            d = self.S.shape[1]
+            X_vec = np.random.randn(d)
+            X_mat = np.random.randn(10, d)
+            for X in [X_vec, X_mat]:
+                if n_factors == 0:
+                    y_ref = X
+                elif n_factors == 1:
+                    y_ref = X @ np.conjugate(self.A[-1].T)
+                else:
+                    R = np.linalg.multi_dot(self.A[-n_factors:])
+                    y_ref = X @ np.conjugate(R.T)
+                y_est = self.S.apply_RH(n_factors=n_factors, X=X)
+                np.testing.assert_array_almost_equal(
+                    y_est,
+                    y_ref,
+                    err_msg='{} factors, {} data'.format(n_factors, X.shape))
+
+
 if __name__ == '__main__':
     unittest.main()

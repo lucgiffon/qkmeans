@@ -160,7 +160,6 @@ class SparseFactors(LinearOperator):
         -------
         ndarray or csr_matrix
         """
-        # TODO test me
         X_ndim = X.ndim
         if X_ndim == 1:
             X = X[:, None]
@@ -185,7 +184,6 @@ class SparseFactors(LinearOperator):
         -------
         ndarray or csr_matrix
         """
-        # TODO test me
         X_ndim = X.ndim
         if X_ndim == 1:
             X = X[:, None]
@@ -210,10 +208,11 @@ class SparseFactors(LinearOperator):
         -------
         ndarray or csr_matrix
         """
-        # TODO test me
+        if n_factors == 0:
+            return X
         X_ndim = X.ndim
         if X_ndim == 1:
-            X = X[None, :]
+            X = X[:, None]
         else:
             X = X.T
         for a in self._lst_factors[-n_factors:]:
@@ -238,10 +237,11 @@ class SparseFactors(LinearOperator):
         -------
         ndarray or csr_matrix
         """
-        # TODO test me
+        if n_factors == 0:
+            return X
         X_ndim = X.ndim
         if X_ndim == 1:
-            X = X[None, :]
+            X = X[:, None]
         else:
             X = X.T
         for a in reversed(self._lst_factors[-n_factors:]):
