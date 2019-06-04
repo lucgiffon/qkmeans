@@ -13,7 +13,8 @@ from scipy.sparse.linalg import eigs, svds
 
 class SparseFactors(LinearOperator):
     def __init__(self, lst_factors=[]):
-        self._lst_factors = [csr_matrix(x) for x in lst_factors]
+        self._lst_factors = [x if isinstance(x, csr_matrix) else csr_matrix(x)
+                             for x in lst_factors]
         for i in range(len(lst_factors)):
             assert self._lst_factors[i].ndim == 2
         for i in range(len(lst_factors) - 1):
@@ -143,3 +144,109 @@ class SparseFactors(LinearOperator):
                 return np.linalg.norm(self.compute_product(), ord=2)
                 # return self.compute_spectral_norm(method='svds')
             return np.sqrt(np.real(a[0]))
+
+    def apply_L(self, n_factors, X):
+        """
+        Apply several left factors to the left
+
+        Parameters
+        ----------
+        n_factors : int
+            Number of first left factors to be applied
+        X : ndarray
+            Vector or matrix
+
+        Returns
+        -------
+        ndarray or csr_matrix
+        """
+        # TODO test me
+        X_ndim = X.ndim
+        if X_ndim == 1:
+            X = X[:, None]
+        for a in reversed(self._lst_factors[:n_factors]):
+            X = a.dot(X)
+        if X_ndim == 1:
+            X = X.reshape(-1)
+        return X
+
+    def apply_LH(self, n_factors, X):
+        """
+        Apply adjoint of several left factors to the left
+
+        Parameters
+        ----------
+        n_factors : int
+            Number of first left factors to be applied
+        X : ndarray
+            Vector or matrix
+
+        Returns
+        -------
+        ndarray or csr_matrix
+        """
+        # TODO test me
+        X_ndim = X.ndim
+        if X_ndim == 1:
+            X = X[:, None]
+        for a in self._lst_factors[:n_factors]:
+            X = a.getH().dot(X)
+        if X_ndim == 1:
+            X = X.reshape(-1)
+        return X
+
+    def apply_R(self, n_factors, X):
+        """
+        Apply several right factors to the right
+
+        Parameters
+        ----------
+        n_factors : int
+            Number of last right factors to be applied
+        X : ndarray
+            Vector or matrix
+
+        Returns
+        -------
+        ndarray or csr_matrix
+        """
+        # TODO test me
+        X_ndim = X.ndim
+        if X_ndim == 1:
+            X = X[None, :]
+        else:
+            X = X.T
+        for a in self._lst_factors[-n_factors:]:
+            X = a.transpose().dot(X)
+        if X_ndim == 1:
+            return X.reshape(-1)
+        else:
+            return X.T
+
+    def apply_RH(self, n_factors, X):
+        """
+        Apply adjoint of several right factors to the right
+
+        Parameters
+        ----------
+        n_factors : int
+            Number of last right factors to be applied
+        X : ndarray
+            Vector or matrix
+
+        Returns
+        -------
+        ndarray or csr_matrix
+        """
+        # TODO test me
+        X_ndim = X.ndim
+        if X_ndim == 1:
+            X = X[None, :]
+        else:
+            X = X.T
+        for a in reversed(self._lst_factors[-n_factors:]):
+            X = a.conjugate().dot(X)
+        if X_ndim == 1:
+            return X.reshape(-1)
+        else:
+            return X.T
