@@ -154,15 +154,6 @@ with $n_k \leftarrow |\{n: t_n^{(\tau)}=k\}|$
 
 \addVE{TODO: adapt \qkmeans to deal with the fixed factor $\mathcal{D}_{\sqrt{\rvn^{(\tau)}}}$}
 
-\addVE{TODO: complexity of \qkmeans
-\begin{itemize}
-\item assignation: 
-\begin{itemize}
-\item compute the product of the sparse factors in $\mathcal{O}\left (A^2\log A+AB\right )$ and the norm of each cluster center $\mathcal{O}\left (\nclusters\datadim\right )=\mathcal{O}\left (AB\right )$
-\item apply the operator to the data points in $\mathcal{O}\left (\nexamples\left(A\log A+B\right ) \right )$
-\end{itemize} 
-\end{itemize}
-}
 To show this convergence, we need to show that each update step in one iteration $\tau$ of the algorithm actually reduces the overall objective. To this end, we start by re-writing the objective at a given time-step $\tau$:
 %
 \begin{equation}
