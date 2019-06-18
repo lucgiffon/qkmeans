@@ -246,7 +246,7 @@ def make_nystrom_evaluation(x_train, U_centroids):
 
     nystrom_build_time = nystrom_build_stop_time - nystrom_build_start_time
 
-    n_sample = 5000
+    n_sample = 5000  # todo utiliser un plus grand sample pour mieux voir le gain de temps
     indexes_samples = np.random.permutation(x_train.shape[0])[:n_sample]
     sample = x_train[indexes_samples]
 
