@@ -108,11 +108,11 @@ if __name__ == "__main__":
 
                 for idx_nb_clust, clust_nbr in enumerate(lst_nb_cluster_values):
                     df_nb_clust = df_sparsy_val[df_sparsy_val["--nb-cluster"] == clust_nbr]
-                    # lst_centroids_seeds = []
+                    # lst_objectives_seeds = []
                     for oar_id in df_nb_clust["oar_id"]:
                         # get centroid matrix for each seed (refered by the oar id)
                         flat_centroids = dct_centroids[oar_id].compute_product(return_array=True)
-                        # lst_centroids_seeds.append(flat_centroids)
+                        # lst_objectives_seeds.append(flat_centroids)
                         show_centroids_from_vector(flat_centroids, "{} Qmeans {} clusters sparsity factor {} {}{}".format(dataset_name, clust_nbr, sparsy_val, oar_id.split(".")[-1], " hierarchical" if hierarchical_value else ""))
 
         # then deal with kmeans results
@@ -125,5 +125,5 @@ if __name__ == "__main__":
             for oar_id in df_nb_clust["oar_id"]:
                 # get centroid matrix for each seed (refered by the oar id)
                 flat_centroids = dct_centroids[oar_id]
-                # lst_centroids_seeds.append(flat_centroids)
+                # lst_objectives_seeds.append(flat_centroids)
                 show_centroids_from_vector(flat_centroids, "{} Kmeans {} clusters {}".format(dataset_name, clust_nbr, oar_id.split(".")[-1]))
