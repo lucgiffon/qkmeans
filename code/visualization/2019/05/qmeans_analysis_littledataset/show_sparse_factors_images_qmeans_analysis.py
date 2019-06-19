@@ -46,40 +46,38 @@ def get_centroids_and_df(path):
     df_results = build_df(src_result_dir, dct_output_files_by_root, col_to_delete)
     return dct_oarid_centroids, df_results
 
-def show_centroids_from_vector(arr_matrix_centroids, title):
-    nb_centroids = arr_matrix_centroids.shape[0]
-    nb_line = 3
-    nb_centroid_by_line = math.ceil(nb_centroids / nb_line)
 
-    # position = nb_line * 100 + nb_centroid_by_line * 10
-    fig = plt.figure(figsize=(max(nb_centroid_by_line, 7), nb_line))
+def show_sparse_factors(sparse_fact, title):
+    facts = sparse_fact.get_list_of_factors(copy=True)
+    nb_factors = len(facts)
+    fig = plt.figure()
+    plt.suptitle(title)
 
-    for i in range(nb_centroids):
-        tmp = i + 1
-        print(nb_centroids, nb_line, nb_centroid_by_line, tmp)
-        ax = plt.subplot(nb_line, nb_centroid_by_line, tmp)  # type: plt.Axes
-        # line_idx = i // nb_centroid_by_line
-        # col_idx = i % nb_centroid_by_line
-        # idx = line_idx + col_idx
-        reconstructed_centroid = arr_matrix_centroids[i].reshape((28, 28))
-        ax.imshow(reconstructed_centroid)
-        ax.set_xticks([])
-        ax.set_yticks([])
-        ax.set_aspect("equal")
+    for i_fac, fac in enumerate(f.todense() for f in facts):
+        plt.subplot(1, nb_factors, i_fac+1)
+        no_zero_indices = fac != 0
+        nb_no_zero = fac[no_zero_indices].size
+        plt.title("$\mathbf{S}_" + str(nb_factors-i_fac) + "^{final}$" + " {} val".format(nb_no_zero))
+        im = plt.imshow(np.abs(fac), aspect='auto', cmap=plt.get_cmap("gist_heat"))
+        box = plt.gca().get_position()
+        plt.gca().set_position([box.x0, box.y0, box.width, box.height * 0.95])
 
-    fig.suptitle(title)
-    # fig.tight_layout()
+    fig.subplots_adjust(right=0.8)
+    cbar_ax = fig.add_axes([0.85, 0.15, 0.05, 0.7])
+    fig.colorbar(im, cax=cbar_ax)
 
-    fig.subplots_adjust(top=0.9, wspace=0, hspace=0)
-    plt.savefig(output_dir / title.replace(" ", "_").replace(":", ""))
+    # plt.axis('scaled')
+    # plt.tight_layout()
+    # plt.subplots_adjust(top=0.65)
     # plt.show()
-
+    plt.savefig(output_dir / title.replace(" ", "_").replace(":", ""))
 
 if __name__ == "__main__":
 
     dct_centroids, df_results = get_centroids_and_df("/home/luc/PycharmProjects/qalm_qmeans/results/2019-05/qmeans_analysis_littledataset_3_80_ghz_cpu")
 
-    output_dir = pathlib.Path("/home/luc/PycharmProjects/qalm_qmeans/reports/figures/2019/05/qmeans_analysis_littledataset/centroids_display")
+    output_dir = pathlib.Path("/home/luc/PycharmProjects/qalm_qmeans/reports/figures/2019/05/qmeans_analysis_littledataset/sparse_factor_display")
+    output_dir.mkdir(parents=True, exist_ok=True)
 
     df_results_qmeans = df_results[df_results["qmeans"]]
     df_results_kmeans = df_results[df_results["kmeans"]]
@@ -114,19 +112,6 @@ if __name__ == "__main__":
                     # lst_objectives_seeds = []
                     for oar_id in df_nb_clust["oar_id"]:
                         # get centroid matrix for each seed (refered by the oar id)
-                        flat_centroids = dct_centroids[oar_id].compute_product(return_array=True)
+                        sparse_factors = dct_centroids[oar_id]
                         # lst_objectives_seeds.append(flat_centroids)
-                        show_centroids_from_vector(flat_centroids, "{} Qmeans {} clusters sparsity factor {} {}{}".format(dataset_name, clust_nbr, sparsy_val, oar_id.split(".")[-1], " hierarchical" if hierarchical_value else ""))
-
-        # then deal with kmeans results
-        ###############################
-
-        df_dataset_kmeans = df_results_kmeans[df_results_kmeans[datasets_col]]
-        for idx_nb_clust, clust_nbr in enumerate(lst_nb_cluster_values):
-            df_nb_clust = df_dataset_kmeans[df_dataset_kmeans["--nb-cluster"] == clust_nbr]
-            lst_centroids_seeds = []
-            for oar_id in df_nb_clust["oar_id"]:
-                # get centroid matrix for each seed (refered by the oar id)
-                flat_centroids = dct_centroids[oar_id]
-                # lst_objectives_seeds.append(flat_centroids)
-                show_centroids_from_vector(flat_centroids, "{} Kmeans {} clusters {}".format(dataset_name, clust_nbr, oar_id.split(".")[-1]))
+                        show_sparse_factors(sparse_factors, "{} Qmeans {} clusters sparsity factor {} {}{}".format(dataset_name, clust_nbr, sparsy_val, oar_id.split(".")[-1], " hierarchical" if hierarchical_value else ""))
