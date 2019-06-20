@@ -31,10 +31,9 @@ kddcup: data/external/kddcup.npz
 data/external/kddcup.npz:
 	$(PYTHON_INTERPRETER) src/data/make_dataset.py kddcup data/external
 
-kddcup: data/external/census.npz
+census: data/external/census.npz
 data/external/census.npz:
 	$(PYTHON_INTERPRETER) src/data/make_dataset.py census data/external
-
 
 
 ## Make Transforms
