@@ -5,8 +5,8 @@ from pyqalm.utils import constant_proj, get_lambda_proxsplincol
 
 def get_squared_froebenius_norm(data_arr):
     if isinstance(data_arr, SparseFactors):
-        mat_centroids = data_arr.compute_product(return_array=False)
-        centroid_norms = np.linalg.norm(mat_centroids.toarray(), axis=1) ** 2
+        mat_centroids = data_arr.compute_product(return_array=True)
+        centroid_norms = np.linalg.norm(mat_centroids, axis=1) ** 2
         # centroid_norms = np.sqrt(centroids.power(2).sum(axis=1))
     else:
         centroid_norms = np.linalg.norm(data_arr, axis=1) ** 2
@@ -92,9 +92,13 @@ def build_constraint_set_smart(left_dim, right_dim, nb_factors, sparsity_factor,
             if val == "constant_proj":
                 local_lst_constraints.append(constant_proj)
             elif val == "ident":
-                local_lst_constraints.append(lambda mat: mat)
+                lambda_func = lambda mat: mat
+                lambda_func.__name__ = "ident"
+                local_lst_constraints.append(lambda_func)
             else:
-                local_lst_constraints.append(get_lambda_proxsplincol(val))
+                lambda_func = get_lambda_proxsplincol(val)
+                lambda_func.__name__ = "proxsplincol_{}".format(val)
+                local_lst_constraints.append(lambda_func)
 
         return  local_lst_constraints
 

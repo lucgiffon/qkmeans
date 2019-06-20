@@ -25,6 +25,17 @@ from pyqalm.data_structures import SparseFactors
 from pyqalm.utils import get_lambda_proxsplincol, \
     constant_proj, logger
 
+def init_lst_factors(d_in, d_out, p_nb_factors):
+    min_K_d = min(d_in, d_out)
+
+    lst_factors = [np.eye(min_K_d) for _ in range(p_nb_factors)]
+
+    eye_norm = np.sqrt(d_in)
+    lst_factors[0] = np.eye(d_in) / eye_norm
+    lst_factors[1] = np.eye(d_in, min_K_d)
+    lst_factors[-1] = np.zeros((min_K_d, d_out))
+
+    return lst_factors
 
 def qmeans(X_data: np.ndarray,
            K_nb_cluster: int,
@@ -51,17 +62,13 @@ def qmeans(X_data: np.ndarray,
     residual_on_right = params_palm4msa["residual_on_right"]
 
     X_centroids_hat = copy.deepcopy(initialization)
-    min_K_d = min(X_centroids_hat.shape)
 
-    lst_factors = [np.eye(min_K_d) for _ in range(nb_factors)]
-
-    eye_norm = np.sqrt(K_nb_cluster)
-    lst_factors[0] = np.eye(K_nb_cluster) / eye_norm
-    lst_factors[1] = np.eye(K_nb_cluster, min_K_d)
-    lst_factors[-1] = np.zeros((min_K_d, X_centroids_hat.shape[1]))
+    lst_factors = init_lst_factors(K_nb_cluster, X_centroids_hat.shape[1], nb_factors)
 
     if graphical_display:
         lst_factors_init = copy.deepcopy(lst_factors)
+
+    eye_norm = np.sqrt(K_nb_cluster)
 
     _lambda_tmp, op_factors, U_centroids, nb_iter_by_factor, objective_palm = \
         hierarchical_palm4msa(
@@ -205,7 +212,7 @@ def qmeans(X_data: np.ndarray,
                     f_lambda_init=_lambda * np.sqrt(nb_examples),
                     nb_iter=nb_iter_palm,
                     update_right_to_left=True,
-                    residual_on_right=True,
+                    residual_on_right=residual_on_right,
                     graphical_display=False,
                     return_objective_function=False)
 
@@ -278,6 +285,8 @@ def qmeans(X_data: np.ndarray,
         # obj_fun_prev = obj_fun
 
         i_iter += 1
+
+    op_centroids = SparseFactors([lst_factors_[1] * _lambda] + lst_factors_[2:])
 
     # if return_objective_function:
     return objective_function[:i_iter], op_centroids, indicator_vector

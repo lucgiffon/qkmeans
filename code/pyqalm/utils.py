@@ -17,6 +17,8 @@ from numpy.linalg import multi_dot
 import daiquiri
 from pyqalm.palm.projection_operators import prox_splincol
 from pyqalm import project_dir
+from sklearn.datasets import fetch_lfw_people
+from sklearn.model_selection import train_test_split
 
 daiquiri.setup(level=logging.DEBUG)
 logger = daiquiri.getLogger("pyqalm")
@@ -174,6 +176,9 @@ class ParameterManager(dict):
         self["--sparsity-factor"] = int(self["--sparsity-factor"]) if self["--sparsity-factor"] is not None else None
         self["--nb-iteration-palm"] = int(self["--nb-iteration-palm"]) if self["--nb-iteration-palm"] is not None else None
 
+        self["--batch-assignation-time"] = int(self["--batch-assignation-time"]) if self["--batch-assignation-time"] is not None else None
+        self["--nystrom"] = int(self["--nystrom"]) if self["--nystrom"] is not None else None
+
         self.__init_nb_factors()
         self.__init_output_file()
         self.__init_seed()
@@ -193,8 +198,11 @@ class ParameterManager(dict):
             self["--output-file_centroidprinter"] = Path(out_file + "_centroids.npy")
 
     def __init_seed(self):
+        self["--seed"] = int(self["--seed"])
         if self["--seed"] is not None:
-            np.random.seed(int(self["--seed"]))
+            np.random.seed(self["--seed"])
+        else:
+            self["--seed"] = int(self["--seed"])
 
     def get_dataset(self):
         """
@@ -207,7 +215,10 @@ class ParameterManager(dict):
         """
         # todo normalize data before
         if self["--blobs"]:
-            return blobs_dataset()
+            blob_size = 500000
+            blob_features = 2000
+            blob_centers = 5000
+            return blobs_dataset(blob_size, blob_features, blob_centers)
         elif self["--census"]:
             return census_dataset()
         elif self["--kddcup"]:
@@ -218,6 +229,13 @@ class ParameterManager(dict):
             return mnist_dataset()
         elif self["--fashion-mnist"]:
             return fashion_mnist_dataset()
+        elif self["--light-blobs"]:
+            blob_size = 5000
+            blob_features = 784
+            blob_centers = 50
+            return blobs_dataset(blob_size, blob_features, blob_centers)
+        elif self["--lfw"]:
+            return lfw_dataset(self["--seed"])
         else:
             raise NotImplementedError("Unknown dataset.")
 
@@ -261,10 +279,7 @@ def compute_euristic_gamma(dataset_full, slice_size=1000):
         results.append(1/slice_size_tmp**2 * np.sum(d_mat))
     return 1. / np.mean(results)
 
-def blobs_dataset():
-    blob_size = 500000
-    blob_features = 2000
-    blob_centers = 5000
+def blobs_dataset(blob_size, blob_features, blob_centers):
     X, y = datasets.make_blobs(n_samples=blob_size, n_features=blob_features, centers=blob_centers)
     test_size = 1000
     X_train, X_test = X[:-test_size], X[-test_size:]
@@ -302,6 +317,17 @@ def mnist_dataset():
 
 def fashion_mnist_dataset():
     (X_train, y_train), (X_test, y_test) = fashion_mnist.load_data()
+    return {
+        "x_train": X_train.reshape(X_train.shape[0], -1),
+        "y_train": y_train,
+        "x_test": X_test.reshape(X_test.shape[0], -1),
+        "y_test": y_test
+    }
+
+def lfw_dataset(seed=None):
+    lfw_data = fetch_lfw_people(min_faces_per_person=50, resize=0.4)
+    X_train, X_test, y_train, y_test = train_test_split(lfw_data.data, lfw_data.target, test_size=0.33, random_state=seed)
+
     return {
         "x_train": X_train.reshape(X_train.shape[0], -1),
         "y_train": y_train,
