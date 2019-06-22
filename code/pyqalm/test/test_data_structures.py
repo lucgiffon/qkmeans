@@ -26,6 +26,15 @@ class TestSparseFactors(unittest.TestCase):
             (self.A[0].shape[0], self.A[-1].shape[-1]))
         np.testing.assert_array_equal(self.S.shape, self.P.shape)
 
+    def test_list_H(self):
+        self.assertEqual(len(self.S._lst_factors), len(self.S._lst_factors_H))
+        for i in range(self.S.n_factors):
+            np.testing.assert_array_almost_equal(
+                self.S._lst_factors[i].toarray(),
+                np.conjugate(self.S._lst_factors_H[-i-1].toarray().T),
+                err_msg='Factor #{}'.format(i)
+            )
+
     def test_product(self):
         np.testing.assert_array_almost_equal(self.P, self.S.compute_product())
 
