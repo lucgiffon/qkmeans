@@ -1,33 +1,15 @@
+%!TEX root=neurips2019_qmeans.tex
 \section{Preliminaries}
 \label{sec:background}
+We briefly review the basics of K-means and
+ give background on learning fast transforms.
+ %
+  To  assist  the  reading,  we  list  the notations used in the paper in Table~\ref{tab:notation}.
 
-In this section, we begin by introducing some notation and then review the basics of K-means and give some background about learning fast transforms.
-
-\subsection{Notations}
+%\subsection{Notations}
 
 
 \input{notations.tex}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\begin{table}[t]
-	\centering
-	\begin{tabular}{|r|c|l|}
-		\hline
-		indices &  $i$, $j$, $m$, $n$, $p$, $q$ &  small  Latin characters  \\
-		other integers &  $K$, $Q$, $N$, $\ldots$ &  capital  Latin characters \\
-	%	vector spaces\footnotemark & $\mathcal{X}$, $\mathcal{Y}$, $\mathcal{H}$, $\ldots$ & Calligraphic letters \\ 
-		vectors (or functions) & $\rvx$, $\rvt$, $\rvk$, $\ldots$ & small bold Latin characters \\
-		matrices  & $\rmX$, $\rmU$, $\rmK$, $\ldots$ & capital bold Latin characters \\
-		transpose & $\top$ & $\rmX^\top$ transpose of  $\rmX$ \\
-		\hline
-	\end{tabular}
-	\caption{Notations used in this paper.}
-	\label{tab:notation}
-\end{table}
-\addtocounter{footnote}{0}
-\footnotetext{We also use the standard notations such as $\mathbb{R}^n$ and $\mathbb{M}_n$.}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 
 
 
@@ -35,29 +17,41 @@ In this section, we begin by introducing some notation and then review the basic
 
 \subsection{K-means}
 \label{sec:kmeans}
-The K-means algorithm is used to partition a given set of observations $\rmX$ into a predefined number $\nclusters$ of clusters while minimizing the distance between the observations in each partition:
-
+The K-means algorithm is used to partition a set $\rmX=\{\rvx_1,\ldots,\rvx_N\}$ of $N$  vectors $\rvx_n\in\R^{\datadim}$ into a predefined number $\nclusters$ of clusters
+with the aim of minimizing the distance between each $\rvx_n$ to the center $\rvu_k\in\R^{D}$
+of the cluster $k$ it belongs to ---the center $\rvu_k$ of cluster $k$ is the
+ mean vector of the points assigned to cluster $k$.
+K-means attempts to solve
 \begin{equation}
 \label{eq:kmean_problem}
-    \argmin_{\rmU, \rvt} \sum_{k\in\intint{\nclusters}} \sum_{j: \rvt[n] = k} ||\rmX_{[n]} -\rmU_{[k]}||^2,
+    \argmin_{\rmU, \rvt} \sum_{k\in\intint{\nclusters}} \sum_{n: t_n = k} \|\rvx_{n} -\rvu_{k}\|^2,
 \end{equation}
 % autre écriture de l'objectif de k-means
 % = \argmin_{\rmU, \rvt} \sum_{k=1}^{K} c_k + \sum_{k=1}^{K} n_k||\hat{\rmU}_k - \rmU_k||^2
-where the matrix $\rmU \in \R^{\nclusters \times \datadim}$ is composed of the cluster centers and the indicator vector $\rvt \in  [\![\nclusters]\!]^\nexamples$ assigns each example to a cluster.
+where $\rmU=\{\rvu_1,\ldots,\rvu_K\}$ is the set of cluster centers and $\rvt \in  \intint{\nclusters}^{\nexamples}$ is the assignment vector that puts $\rvx_n$ in cluster $k$
+if $t_n=k$.
 
-The algorithm starts with an initialized set of $\nclusters$ cluster centers $\rmU_{[k]}^{(0)} \in \R^\datadim$, $k\in\intint{\nclusters}$. Along iterations indexed by $\tau$, it then alternates between (i) an assignment step where each point assignment is updated as
+
+\paragraph{Lloyd's algorithm.} The most popular procedure to (approximately) 
+solve the K-means problem is the iterative Lloyds algorithm, which alternates
+i) an assignment step that decides the current cluster to which each point $\rvx_n$
+belongs and ii) a reestimation step which refines the clusters and their centers.
+In little more detail, the algorithm starts with an initialized set of $\nclusters$
+ cluster centers $\rmU^{(0)}$ and proceeds as follows: at iteration $\tau$,
+  the assignments are updated as
 \begin{align}
 \label{eq:assignment_problem_kmeans}
-\forall n\in\intint{N}, \rvt[n] \leftarrow \argmin_{k \in [\![\nclusters]\!]} ||\rmX_{[n]} - \rmU_{[k]}^{(\tau-1)}||_2^2 = \argmin_{k \in [\![\nclusters]\!]} ||\rmU_{[k]}^{(\tau-1)}||_2^2 - 2 \left <\rmU_{[k]}^{(\tau-1)}, \rmX_{[n]}\right >
+\forall n\in\intint{N}, t_n \leftarrow \argmin_{k \in \intint{\nclusters]}} \left\|\rvx_{n} - \rvu_{k}^{(\tau-1)}\right\|_2^2 = \argmin_{k \in \intint{\nclusters}} \left\|\rvu_{k}^{(\tau-1)}\right\|_2^2 - 2 \left\langle\rvu_{k}^{(\tau-1)}, \rvx_{n}\right\rangle,
 \end{align}
-and (2) the update of each cluster center as the centroid of the data points assigned to this cluster:
+ the reestimation of the cluster centers is performed as
 \begin{align}
 \label{eq:center_update}
-\forall k\in\intint{K}, \rmU^{(\tau)}_k \leftarrow \frac{1}{n_k^{(\tau)}} \sum_{n: \rvt^{(\tau)}[n]= k} {\rmX_{[n]}}
+\forall k\in\intint{K}, \rvu^{(\tau)}_k \leftarrow \hat{\rvx}_k(\rvt^{(\tau)})\doteq\frac{1}{n_k^{(\tau)}} \sum_{n: t^{(\tau)}_n= k} {\rvx_{n}}
 \end{align}
-where $n_k^{(\tau)} \leftarrow |\{n: \rvt^{(\tau)}[n]=k\}|$ is the number of points in cluster $k$, at a total cost of $\mathcal{O}\left (\nexamples\datadim\right )$ operations.
+where $n_k^{(\tau)}\doteq |\{n: t^{(\tau)}_n=k\}|$ is the number of points in cluster $k$
+at time $\tau$ and $\hat{\rvx}_k(\rvt)$ is the mean vector of the elements of cluster $k$ according to assignment $\rvt$. %at a total cost of $\mathcal{O}\left (\nexamples\datadim\right )$ operations.
 
-The assignment step (\eqref{eq:assignment_problem_kmeans}) costs $\mathcal{O}(\nexamples\datadim\nclusters)$ operations while the center update (\eqref{eq:center_update}) is in $\mathcal{O}\left (\nexamples\datadim\right )$ operations. Hence, the bottleneck in the overall time complexity $\mathcal{O}(\nexamples\datadim\nclusters)$ is due to the assignment step. Once the clusters have been defined, assigning $\nexamples'$ new points to these clusters is performed via \eqref{eq:assignment_problem_kmeans} at the cost of $\mathcal{O}\left (\nexamples'\datadim\nclusters \right )$ operations.
+\paragraph{Complexity of Lloyd's algorithm.} The assignment step \eqref{eq:assignment_problem_kmeans} costs $\mathcal{O}(\nexamples\datadim\nclusters)$ operations while the update of the centers~\eqref{eq:center_update} costs $\mathcal{O}\left (\nexamples\datadim\right )$ operations. Hence, the bottleneck of the overall time complexity $\mathcal{O}(\nexamples\datadim\nclusters)$ is stems from the assignment step. Once the clusters have been defined, assigning $\nexamples'$ new points to these clusters is performed via \eqref{eq:assignment_problem_kmeans} at the cost of $\mathcal{O}\left (\nexamples'\datadim\nclusters \right )$ operations.
 
 The main contribution in this paper relies on the idea that \eqref{eq:assignment_problem_kmeans} may be computed more efficiently by approximating $\rmU$ as a fast operator.
 
@@ -101,21 +95,28 @@ The main contribution in this paper relies on the idea that \eqref{eq:assignment
 %We remark here that the computational bottleneck of this assignment lies in the computation of $\rmU_{[k]}^T\rvx$ for all $k$. This computation is also encountered in the assignment step (line \ref{line:kmeans:assignment}) of the Algorithm \ref{algo:kmeans}.
 
 
-\subsection{Learning fast transforms as the product of sparse matrices}
+\subsection{Learning Fast Transforms as the Product of Sparse Matrices}
 \label{sec:palm4msa}
 
-The success of some linear operators like Fourier or Hadamard transforms relies on both their mathematical properties and their ability to be computed in an efficient way, typically in $\mathcal{O}\left (M\log\left (M\right )\right )$ instead of $\mathcal{O}\left (M^2\right )$ operations when defined in dimension $M$. 
-The main idea of the related fast algorithm is that the matrix $\rmU\in\sR^{M\times M}$ characterizing such a linear operator can be written as the product $\rmU=\Pi_{q\in\intint{\nfactors}}\rmS_q$ of $\nfactors$ sparse matrices $\rmS_q$, with $Q=\mathcal{O}\left (\log M\right )$ and $\left \|\rmS_q\right \|_0=\mathcal{O}\left (M\right )$.
-As a consequence, for any vector $\rvx\in\sR^M$, $\rmU\rvx$ can be computed efficiently as $\mathcal{O}\left (\log M\right )$ products $\rmS_0 \left (\rmS_1 \left (\ldots \left (\rmS_{Q-1}\rvx\right )\right )\right )$ between a sparse matrix and a vector, the cost of each product being $\mathcal{O}\left (M\right )$.
+\paragraph{Structured linear operators as products of sparse matrices.}
+The popularity of some linear operators from $\R^{M}$ to $\R^{M}$ (with $M<\infty$)
+ like Fourier or Hadamard transforms comes from both their mathematical 
+ properties and their ability to compute the mapping of some $\rvx\in\R^M$ with efficiency, typically with $\mathcal{O}\left (M\log\left (M\right )\right )$ operations rather than 
+ $\mathcal{O}\left (M^2\right)$. 
+The main idea of the related fast algorithms is that the matrix $\rmU\in\sR^{M\times M}$ characterizing such linear operators can be written as the product $\rmU=\Pi_{q\in\intint{\nfactors}}\rmS_q$ of $\nfactors$ sparse matrices $\rmS_q$, with $Q=\mathcal{O}\left (\log M\right )$ and $\left \|\rmS_q\right \|_0=\mathcal{O}\left (M\right )$ \cite{LeMagoarou2016Flexible,Morgenstern:1975:LCC:321879.321881}:
+for any vector $\rvx\in\sR^M$, $\rmU\rvx$ can thus be computed as $\mathcal{O}\left (\log M\right )$ products $\rmS_0 \left (\rmS_1 \left (\ldots \left (\rmS_{Q-1}\rvx\right )\right )\right )$ between a sparse matrix and a vector, the cost of each product being $\mathcal{O}\left (M\right )$.
 
-When the linear operator $\rmU$ is an arbitrary matrix, one may approximate it with such a sparse-product structure by learning the factors $\left \lbrace\rmS_q\right \rbrace_{q\in\intint{Q}}$ in order to benefit from a fast algorithm.
-Recent works~\cite{LeMagoarou2016Flexible} have proposed algorithmic strategies to learn such a factorization. Based on the proximal alternating linearized minimization (PALM) algorithm~\cite{bolte2014proximal}, the PALM for Multi-layer Sparse Approximation (palm4MSA) algorithm~\cite{LeMagoarou2016Flexible} aims at approximating a matrix $\rmU\in\sR^{\nclusters\times\datadim}$ as a product of sparse matrices by solving
+\paragraph{Learning sparse decomposition of arbitrary operators.} When the linear operator $\rmU$ is an arbitrary matrix, one may approximate it with such a sparse-product structure by learning the factors $\left \lbrace\rmS_q\right \rbrace_{q\in\intint{Q}}$ in order to benefit from a fast algorithm.
+A recent contribution~\cite{LeMagoarou2016Flexible} has proposed algorithmic strategies to learn such a factorization. Based on the proximal alternating linearized minimization (PALM) algorithm~\cite{bolte2014proximal}, the PALM for Multi-layer Sparse Approximation (Palm4MSA) algorithm~\cite{LeMagoarou2016Flexible} aims at approximating a matrix $\rmU\in\sR^{\nclusters\times\datadim}$ as a product of sparse matrices by solving
 \begin{align}
 \label{eq:palm4msa}
-\min_{\left \lbrace\rmS_q\right \rbrace_{q\in\intint{Q}}} \left \|\rmU - \lambda \prod_{q\in\intint{\nfactors}}{\rmS_q}\right \|_F^2 + \sum_{q\in\intint{\nfactors}} \delta_q(\rmS_q)
+\min_{\left \lbrace\rmS_q\right \rbrace_{q\in\intint{Q}}} \left \|\rmU -  \prod_{q\in\intint{\nfactors}}{\rmS_q}\right \|_F^2 + \sum_{q\in\intint{\nfactors}} \delta_{\mathcal{E}_q}(\rmS_q)
 \end{align}
+where, for each $q\in\intint{Q}$, $\delta_{\mathcal{E}_q}$ is here to enforce (sparsity)
+constraints defined by the set $\mathcal{E}_q$ so that $\delta_{\mathcal{E}_q}(\rmS)=0$ 
+if $\rmS \in \mathcal{E}_q$ and $\delta_{\mathcal{E}_q}(\rmS)=+\infty$ otherwise.
 
-
+\iffalse
 TO BE COMPLETED + algo~\ref{algo:palm4msa} in appendix~\ref{sec:app:palm4msa}.
 
 A popular way for providing concise description of high-dimensional vectors $\rmU \in \R^{K \times d}$ is to compute a sparse representation using a dictionary:
@@ -142,8 +143,11 @@ Considering $\rmGamma$ being a sparse matrice too, it can be renamed as $\rmGamm
 \end{equation}
 %
 with the $\delta_j(\mathcal{S}_j) = 0$ if $\mathcal{S}_j \in \mathcal{E}_j$ being the sparsity constraints to satisfy on the associated $\mathcal{S}_j$.
+\fi
 
-Although this problem is highly non-convex, the authors derive an algorithm from the PALM algorithm \cite{bolte2014proximal}, which they call \textit{Hierarchical PALM4LED} to find a good local minima and give convergence guarantees to learn efficient dictionaries.
+Although this problem is non-convex and the computation of a global optimum cannot be
+ascertained, the authors of \cite{bolte2014proximal} derived an algorithm called \textit{Hierarchical PALM4LED} that is able to find good local minima and that has
+a version that is provably convergent.
 
 
 

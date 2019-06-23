@@ -301,7 +301,7 @@ def qmeans(X_data: np.ndarray,
 if __name__ == '__main__':
     np.random.seed(0)
     daiquiri.setup(level=logging.INFO)
-    small_dim = True
+    small_dim = False
     if small_dim:
         nb_clusters = 10
         nb_iter_kmeans = 10

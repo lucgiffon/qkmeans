@@ -6,6 +6,7 @@
 \usepackage{graphicx}
 \usepackage{color}
 \usepackage{enumitem}
+\usepackage{xspace}
 
 \def\rmGamma{{\mathbf{\Gamma}}}
 
@@ -17,3 +18,9 @@
 \def\nexamples{N}
 \def\nclusters{K}
 \def\nfactors{Q}
+
+\renewcommand{\algorithmiccomment}[1]{\hfill #1}
+\newcommand{\bigO}[1]{\mathcal{O}\left (#1\right )}
+\def\qkmeans{\texttt{QK-means}\xspace}
+\def\kmeans{\texttt{K-means}\xspace}
+\def\palm{\texttt{palm4MSA}\xspace}

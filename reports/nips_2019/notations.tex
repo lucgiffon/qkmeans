@@ -1,15 +1,69 @@
+%!TEX root=neurips2019_qmeans.tex
+ 
 %\paragraph{Notations}
 
-The notations frequently used in the paper are summarized in Table~\ref{tab:notation}. 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{table}[t]
+	\centering
+	\begin{footnotesize}
+	\begin{tabular}{cllcl}\\
+		\cline{1-2}\cline{4-5}\vspace*{1mm}
+		{\bf Symbol}  & {\bf Meaning}                      &  &    {\bf Symbol}          & {\bf Meaning}                    \\ 		\cline{1-2}\cline{4-5}
+		$N$           & number of data points              &  &    $\rvx_1,\ldots, \rvx_N $        &    data points            \\
+		$D$           & dimension of a data point          &  &    $\rmX \in\mathbb{R}^{N\times D}$&    data matrix            \\
+		$K$           & number of clusters                 &  &    $\rvu_1,\ldots, \rvu_K $        &    cluster centers        \\
+		$\rvt$        & cluster assignment vector          &  &    $\rmU\in\mathbb{R}^{K\times D}$ &    cluster center matrix  \\
+		$Q$           & number of sparse matrix factors    &  &    $\rmS_1, \ldots, \rmS_Q$        &    sparse matrices        \\
+		$\|\cdot\|$, $\|\cdot\|_0$ & $L_2$-norm, $L_0$-norm&  &    $\|\cdot\|_F$, $\|\cdot\|_2$    &    Frobenius norm, spectral norm  \\
+		$\mathcal{E}_1, \ldots, \mathcal{E}_Q$ & sparsity constraint sets           &  & $\delta_{\mathcal{E}_1},\ldots,\delta_{\mathcal{E}_Q}$ & 		sparsity enforcing functions   \\
+		$\intint{M}$  & the set of integers from $1$ to $M$ &  & $\tau$  &                       		current iteration  \\
+		\cline{1-2}\cline{4-5}        \\                                                                		
+	\end{tabular}
+	\end{footnotesize}
+	
+	\caption{Notation used in this paper.}
+	\label{tab:notation}
+\end{table}
+\addtocounter{footnote}{0}
+\footnotetext{We also use the standard notations such as $\mathbb{R}^n$ and $\mathbb{M}_n$.}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\begin{table}[t]
+%	\centering
+%	\begin{tabular}{|r|c|l|}
+%		\hline
+%		indices &  $i$, $j$, $m$, $n$, $p$, $q$ &  small  Latin characters  \\
+%		other integers &  $K$, $Q$, $N$, $\ldots$ &  capital  Latin characters \\
+%	%	vector spaces\footnotemark & $\mathcal{X}$, $\mathcal{Y}$, $\mathcal{H}$, $\ldots$ & Calligraphic letters \\ 
+%		vectors (or functions) & $\rvx$, $\rvt$, $\rvk$, $\ldots$ & small bold Latin characters \\
+%		matrices  & $\rmX$, $\rmU$, $\rmK$, $\ldots$ & capital bold Latin characters \\
+%		transpose & $\top$ & $\rmX^\top$ transpose of  $\rmX$ \\
+%		\hline
+%	\end{tabular}
+%	\caption{Notations used in this paper.}
+%	\label{tab:notation}
+%\end{table}
+%\addtocounter{footnote}{0}
+%\footnotetext{We also use the standard notations such as $\mathbb{R}^n$ and $\mathbb{M}_n$.}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%The notations frequently used in the paper are summarized in Table~\ref{tab:notation}. 
+%%
+%Throughout the paper we use $\nexamples$ as the number of data samples and $\datadim$ the dimensionality of a data point. 
+%$\rmX \in \R^{\nexamples \times \datadim}$ is the data matrix. 
+%For $K \in \sN$, we define $\intint{K}=\left \lbrace k\in \sN: 1 \leq k \leq K\right \rbrace$.
+%%
+%For a given vector $\rvv$, $\rvv[i]$ is the $i$th component of $\rvv$.
+%%
+%For a given matrix $\rmM$, the notation $\rmM_{[i]}$ (resp. $\rmM^{[i]}$) refers to the $i$th row (column) of $\rmM$, the entry at the $i$th row and the $j$th column is denoted by $\rmM[i,j]$, and $\|\rmM\|_F$ denotes the Frobenius norm, $\|\rmM\|_2$ the spectral norm and $\|\rmM\|_0$ counts the number of non-zero entries in $\rmM$. \addHK{other norms?}
 %
-Throughout the paper we use $\nexamples$ as the number of data samples and $\datadim$ the dimensionality of a data point. 
-$\rmX \in \R^{\nexamples \times \datadim}$ is the data matrix. 
-For $K \in \sN$, we define $\intint{K}=\left \lbrace k\in \sN: 1 \leq k \leq K\right \rbrace$.
 %
-For a given vector $\rvv$, $\rvv[i]$ is the $i$th component of $\rvv$.
 %
-For a given matrix $\rmM$, the notation $\rmM_{[i]}$ (resp. $\rmM^{[i]}$) refers to the $i$th row (column) of $\rmM$, the entry at the $i$th row and the $j$th column is denoted by $\rmM[i,j]$, and $\|\rmM\|_F$ denotes the Frobenius norm, $\|\rmM\|_2$ the spectral norm and $\|\rmM\|_0$ counts the number of non-zero entries in $\rmM$. \addHK{other norms?}
-
-
-
-
+%
+%\todo[inline]{The text is redundant with the table. In addition, we should remove the "small Latin character0", "capital Latin characters" as they do not provide any meaning. We should prefer the trick with the transpose.}
