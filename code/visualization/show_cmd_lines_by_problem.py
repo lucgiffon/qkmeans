@@ -10,8 +10,8 @@ from pyqalm.utils import logger
 from visualization.utils import get_dct_result_files_by_root, display_cmd_lines_from_root_name_list
 
 
-# src_results_dir = pathlib.Path("/home/luc/PycharmProjects/qalm_qmeans/results/2019/06/qmeans_analysis_littledataset_B")
-src_results_dir = pathlib.Path("/home/luc/PycharmProjects/qalm_qmeans/results/2019-05/qmeans_analysis_bigdataset_3_20_ghz_cpu_mem_gt_90")
+src_results_dir = pathlib.Path("/home/luc/PycharmProjects/qalm_qmeans/results/2019/06/qmeans_analysis_littledataset_B")
+# src_results_dir = pathlib.Path("/home/luc/PycharmProjects/qalm_qmeans/results/2019-05/qmeans_analysis_bigdataset_3_20_ghz_cpu_mem_gt_90")
 if __name__ == "__main__":
 
     dct_output_files_by_root = get_dct_result_files_by_root(src_results_dir)
@@ -25,12 +25,14 @@ if __name__ == "__main__":
                        'root_names_sucess': [],
                        'root_names_nothing_job_killed': [],
                        'root_names_nothing': [],
-                       'root_names_couldnotbebroadcast': []}
+                       'root_names_couldnotbebroadcast': [],
+                       'root_names_failure': []}
 
     for root_name, dct_files in dct_output_files_by_root.items():
         stderr_file = src_results_dir / (root_name + ".stderr")
         with open(stderr_file, 'r') as stderr_file:
             end_of_err_file = "".join(stderr_file.readlines()[-50:])
+
         if len(dct_files) == 0:
             if "KILLED" in end_of_err_file:
                 dct_root_names["root_names_nothing_job_killed"].append(root_name)
@@ -52,9 +54,19 @@ if __name__ == "__main__":
             elif "operands could not be broadcast together" in end_of_err_file:
                 dct_root_names["root_names_couldnotbebroadcast"].append(root_name)
             else:
+                print(end_of_err_file)
                 dct_root_names["root_names_unknown"].append(root_name)
         else:
-            dct_root_names["root_names_sucess"].append(root_name)
+            result_file = src_results_dir / dct_files["results"]
+            df = pd.read_csv(result_file)
+            if df["failure"].all():
+                if "Found array with 0 sample" in end_of_err_file:
+                    dct_root_names["root_names_clusternopoint"].append(root_name)
+                else:
+                    dct_root_names["root_names_failure"].append(root_name)
+                    print(end_of_err_file)
+            else:
+                dct_root_names["root_names_sucess"].append(root_name)
 
 
     for execution_kind, lst_root_names_execution_kind in dct_root_names.items():
