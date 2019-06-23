@@ -177,6 +177,7 @@ class ParameterManager(dict):
         self["--nb-iteration-palm"] = int(self["--nb-iteration-palm"]) if self["--nb-iteration-palm"] is not None else None
 
         self["--batch-assignation-time"] = int(self["--batch-assignation-time"]) if self["--batch-assignation-time"] is not None else None
+        self["--assignation-time"] = int(self["--assignation-time"]) if self["--assignation-time"] is not None else None
         self["--nystrom"] = int(self["--nystrom"]) if self["--nystrom"] is not None else None
 
         self.__init_nb_factors()
@@ -325,7 +326,7 @@ def fashion_mnist_dataset():
     }
 
 def lfw_dataset(seed=None):
-    lfw_data = fetch_lfw_people(min_faces_per_person=50, resize=0.4)
+    lfw_data = fetch_lfw_people(min_faces_per_person=1, resize=0.4)
     X_train, X_test, y_train, y_test = train_test_split(lfw_data.data, lfw_data.target, test_size=0.33, random_state=seed)
 
     return {

@@ -2,9 +2,9 @@
 Analysis of objective function during qmeans execution
 
 Usage:
-  qmeans_objective_function_analysis kmeans [-h] [-v] [--seed=int] (--blobs|--light-blobs|--census|--kddcup|--plants|--mnist|--fashion-mnist|--lfw) --nb-cluster=int --initialization=str [--nb-iteration=int] [--assignation-time] [--1-nn] [--nystrom=int] [--batch-assignation-time=int]
-  qmeans_objective_function_analysis kmeans palm [-h] [-v] [--seed=int] (--blobs|--light-blobs|--census|--kddcup|--plants|--mnist|--fashion-mnist|--lfw) --nb-cluster=int --initialization=str [--nb-iteration=int] [--assignation-time] [--1-nn] [--nystrom=int] [--batch-assignation-time=int] [--nb-iteration-palm=int] [--nb-factors=int] --sparsity-factor=int [--hierarchical]
-  qmeans_objective_function_analysis qmeans [-h] [-v] [--seed=int] (--blobs|--light-blobs|--census|--kddcup|--plants|--mnist|--fashion-mnist|--lfw) --nb-cluster=int --initialization=str [--nb-factors=int] --sparsity-factor=int [--hierarchical] [--nb-iteration=int] [--nb-iteration-palm=int] [--assignation-time] [--1-nn] [--nystrom=int] [--batch-assignation-time=int]
+  qmeans_objective_function_analysis kmeans [-h] [-v] [--seed=int] (--blobs|--light-blobs|--census|--kddcup|--plants|--mnist|--fashion-mnist|--lfw) --nb-cluster=int --initialization=str [--nb-iteration=int] [--assignation-time=int] [--1-nn] [--nystrom=int] [--batch-assignation-time=int]
+  qmeans_objective_function_analysis kmeans palm [-h] [-v] [--seed=int] (--blobs|--light-blobs|--census|--kddcup|--plants|--mnist|--fashion-mnist|--lfw) --nb-cluster=int --initialization=str [--nb-iteration=int] [--assignation-time=int] [--1-nn] [--nystrom=int] [--batch-assignation-time=int] [--nb-iteration-palm=int] [--nb-factors=int] --sparsity-factor=int [--hierarchical]
+  qmeans_objective_function_analysis qmeans [-h] [-v] [--seed=int] (--blobs|--light-blobs|--census|--kddcup|--plants|--mnist|--fashion-mnist|--lfw) --nb-cluster=int --initialization=str [--nb-factors=int] --sparsity-factor=int [--hierarchical] [--nb-iteration=int] [--nb-iteration-palm=int] [--assignation-time=int] [--1-nn] [--nystrom=int] [--batch-assignation-time=int]
 
 Options:
   -h --help                             Show this screen.
@@ -22,7 +22,7 @@ Dataset:
   --lfw                                 Use Labeled Faces in the Wild dataset.
 
 Tasks:
-  --assignation-time                    Evaluate assignation time for a single points when clusters have been defined.
+  --assignation-time=int                Evaluate assignation time for a single points when clusters have been defined.
   --batch-assignation-time=int          Evaluate assignation time for a matrix of points when clusters have been defined. The integer is the number of data points to be considered.
   --1-nn                                Evaluate inference time (by instance) and inference accuracy for 1-nn (available only for mnist and fashion-mnist datasets)
   --nystrom=int                         Evaluate reconstruction time and reconstruction accuracy for Nystrom approximation. The integer is the number of sample for which to compute the nystrom transformation.
@@ -73,7 +73,8 @@ lst_results_header = [
     "1nn_ball_tree_accuracy",
     "nystrom_build_time",
     "nystrom_inference_time",
-    "nystrom_sampled_error_reconstruction"
+    "nystrom_sampled_error_reconstruction",
+    "batch_assignation_mean_time"
 ]
 
 def main_kmeans(X, U_init):
@@ -146,8 +147,12 @@ def main_qmeans(X, U_init):
 
     return final_centroids, indicator_vector_final
 
-def make_assignation_evaluation(X, centroids):
-    nb_eval = 100
+def make_assignation_evaluation(X, centroids, nb_eval):
+    if nb_eval > X.shape[0]:
+        logger.warning("Batch size for assignation evaluation is bigger than data size. {} > {}. Using "
+                       "data size instead.".format(nb_eval, X.shape[0]))
+        nb_eval = X.shape[0]
+
     times = []
     precomputed_centroid_norms = get_squared_froebenius_norm(centroids)
     for i in np.random.permutation(X.shape[0])[:nb_eval]:
@@ -166,6 +171,21 @@ def make_assignation_evaluation(X, centroids):
 
 
 def make_batch_assignation_evaluation(X, centroids, size_batch):
+    """
+    Assign `size_batch` random samples of `X` to some of the centroids.
+    All the samples are assigned at the same time using a matrix-vector multiplication.
+    Time is recorded.
+
+    :param X: The input data from which to take the samples.
+    :param centroids: The centroids to which to assign the samples (must be of same dimension than `X`)
+    :param size_batch: The number of data points to assign
+
+    :return: None
+    """
+    if size_batch > X.shape[0]:
+        logger.warning("Batch size for batch assignation evaluation is bigger than data size. {} > {}. Using "
+                       "data size instead.".format(size_batch, X.shape[0]))
+        size_batch = X.shape[0]
 
     precomputed_centroid_norms = get_squared_froebenius_norm(centroids)
     indexes_batch = np.random.permutation(X.shape[0])[:size_batch]
@@ -178,8 +198,33 @@ def make_batch_assignation_evaluation(X, centroids, size_batch):
     })
 
 def make_1nn_evaluation(x_train, y_train, x_test, y_test, U_centroids, indicator_vector):
+    """
+    Do the 1-nearest neighbor classification using `x_train`, `y_train` as support and `x_test`, `y_test` as
+    evaluation set.
+
+    The scikilearn classifiers (brute, kdtree and balltree) are called only in the case where it is the kmeans version
+    of the program that is called (for simplicity purposes: not do it many times).
+
+    Time is recorded.
+    Classification accuracy is recorded.
+
+    :param x_train: Train data set as ndarray.
+    :param y_train: Train labels as categories in ndarray.
+    :param x_test: Test data as ndarray.
+    :param y_test: Test labels as categories.
+    :param U_centroids: The matrix of centroids as ndarray or SparseFactor object
+    :param indicator_vector: The indicator vector for this matrix of centroids and this train data.
+
+    :return:
+    """
 
     def scikit_evaluation(str_type):
+        """
+        Do the scikit learn version of nearest neighbor (used for comparison)
+
+        :param str_type:
+        :return:
+        """
         clf = KNeighborsClassifier(n_neighbors=1, algorithm=str_type)
         clf.fit(x_train, y_train)
 
@@ -201,7 +246,12 @@ def make_1nn_evaluation(x_train, y_train, x_test, y_test, U_centroids, indicator
         return inference_time
 
     def kmean_tree_evaluation():
+        """
+        Do the K-means partitioning version of nearest neighbor?=.
 
+        :return:
+        """
+        # for each cluster, there is a sub nearest neighbor classifier for points in that cluster.
         lst_clf_by_cluster = [KNeighborsClassifier(n_neighbors=1, algorithm="brute").fit(x_train[indicator_vector == i], y_train[indicator_vector == i]) for i in range(U_centroids.shape[0])]
 
         start_inference_time = time.time()
@@ -209,10 +259,10 @@ def make_1nn_evaluation(x_train, y_train, x_test, y_test, U_centroids, indicator
         indicator_vector_test = np.argmin(distances, axis=1)
         predictions = np.empty_like(y_test)
         for obs_idx, obs_test in enumerate(x_test):
+            # get the cluster to which belongs this data point and call the associated nearest neighbor classifier
             idx_cluster = indicator_vector_test[obs_idx]
             clf_cluster = lst_clf_by_cluster[idx_cluster]
             predictions[obs_idx] = clf_cluster.predict(obs_test.reshape(1, -1))[0]
-
         stop_inference_time = time.time()
         inference_time = (stop_inference_time - start_inference_time)
 
@@ -227,22 +277,28 @@ def make_1nn_evaluation(x_train, y_train, x_test, y_test, U_centroids, indicator
 
     logger.info("1 nearest neighbor with k-means search")
     kmean_tree_time = kmean_tree_evaluation()
+    #
     if paraman["kmeans"]:
         lst_knn_types = ["brute", "ball_tree", "kd_tree"]
         for knn_type in lst_knn_types:
+            # the classification must not take more than 10 times the time taken for the K means 1 nn classification or
+            # it will stop.
             signal.signal(signal.SIGALRM, timeout_signal_handler)
-            signal.alarm(int(kmean_tree_time * 10))
+            signal.alarm(int(kmean_tree_time * 10))  # start alarm
             try:
                 logger.info("1 nearest neighbor with {} search".format(knn_type))
                 scikit_evaluation(knn_type)
             except TimeoutError as te:
                 logger.warning("Timeout during execution of 1-nn with {} version: {}".format(knn_type, te))
-            signal.alarm(0)
+            signal.alarm(0)  # stop alarm for next evaluation
 
 
 def special_rbf_kernel(X, Y, gamma, norm_X, norm_Y):
     """
     Rbf kernel expressed under the form f(x)f(u)f(xy^T)
+
+    Can handle X and Y as Sparse Factors.
+
     :param X: n x d matrix
     :param Y: n x d matrix
     :return:
@@ -263,12 +319,30 @@ def special_rbf_kernel(X, Y, gamma, norm_X, norm_Y):
     return f(norm_X).reshape(-1, 1) * g(xyt) * f(norm_Y).reshape(1, -1)
 
 def make_nystrom_evaluation(x_train, U_centroids, n_sample):
+    """
+    Evaluation Nystrom construction time and approximation precision.
+
+    The approximation is based on a subsample of size n_sample of the input data set.
+
+    :param x_train: Input dataset as ndarray.
+    :param U_centroids: The matrix of centroids as ndarray or SparseFactor object
+    :param n_sample: The number of sample to take into account in the reconstruction (can't be too large)
+
+    :return:
+    """
+    if n_sample > x_train.shape[0]:
+        logger.warning("Batch size for nystrom evaluation is bigger than data size. {} > {}. Using "
+                       "data size instead.".format(n_sample, x_train.shape[0]))
+        n_sample = x_train.shape[0]
+
+    # Compute euristic gamma as the mean of euclidian distance between example
     gamma = compute_euristic_gamma(x_train)
 
-
+    # precompute the centroids norm for later use (optimization)
     centroids_norm = get_squared_froebenius_norm(U_centroids)
 
     ## TIME: nystrom build time
+    # nystrom build time is Nystrom preparation time for later use.
     ## START
     nystrom_build_start_time = time.time()
     basis_kernel_W = special_rbf_kernel(U_centroids, U_centroids, gamma, centroids_norm, centroids_norm)
@@ -288,6 +362,7 @@ def make_nystrom_evaluation(x_train, U_centroids, n_sample):
     real_kernel = special_rbf_kernel(sample, sample, gamma, samples_norm, samples_norm)
 
     ## TIME: nystrom inference time
+    # Nystrom inference time is the time for Nystrom transformation for all the samples.
     ## START
     nystrom_inference_time_start = time.time()
     nystrom_embedding = special_rbf_kernel(U_centroids, sample, gamma, centroids_norm, samples_norm).T @ normalization_
@@ -295,7 +370,7 @@ def make_nystrom_evaluation(x_train, U_centroids, n_sample):
     nystrom_inference_time_stop = time.time()
     ## STOP
 
-    nystrom_inference_time = nystrom_inference_time_stop - nystrom_inference_time_start
+    nystrom_inference_time = (nystrom_inference_time_stop - nystrom_inference_time_start) / n_sample
 
     sampled_froebenius_norm = np.linalg.norm(nystrom_approx_kernel_value - real_kernel)
 
@@ -385,12 +460,14 @@ if __name__ == "__main__":
             raise NotImplementedError("Unknown method.")
         np.save(paraman["--output-file_centroidprinter"], U_final, allow_pickle=True)
 
-        if paraman["--assignation-time"]:
-            logger.info("Start assignation time evaluation")
-            make_assignation_evaluation(dataset["x_train"], U_final)
+        if paraman["--assignation-time"] is not None:
+            logger.info("Start assignation time evaluation with {} samples".format(paraman["--assignation-time"]))
+            make_assignation_evaluation(dataset["x_train"], U_final, paraman["--assignation-time"])
 
         if paraman["--batch-assignation-time"] is not None:
             logger.info("Start batch assignation time evaluation with batch size {}".format(paraman["--batch-assignation-time"]))
+            make_batch_assignation_evaluation(dataset["x_train"], U_final, paraman["--batch-assignation-time"])
+
 
         if paraman["--1-nn"] and "x_test" in dataset.keys():
             logger.info("Start 1 nearest neighbor evaluation")

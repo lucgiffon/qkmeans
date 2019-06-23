@@ -143,3 +143,6 @@ class SparseFactors(LinearOperator):
                 return np.linalg.norm(self.compute_product(), ord=2)
                 # return self.compute_spectral_norm(method='svds')
             return np.sqrt(np.real(a[0]))
+
+    def get_nb_param(self):
+        return sum(csrm.nnz for csrm in self._lst_factors)

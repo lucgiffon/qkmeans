@@ -10,6 +10,7 @@ from pyqalm.utils import logger
 from visualization.utils import get_dct_result_files_by_root, display_cmd_lines_from_root_name_list
 
 
+# src_results_dir = pathlib.Path("/home/luc/PycharmProjects/qalm_qmeans/results/2019/06/qmeans_analysis_littledataset_B")
 src_results_dir = pathlib.Path("/home/luc/PycharmProjects/qalm_qmeans/results/2019-05/qmeans_analysis_bigdataset_3_20_ghz_cpu_mem_gt_90")
 if __name__ == "__main__":
 
@@ -29,7 +30,7 @@ if __name__ == "__main__":
     for root_name, dct_files in dct_output_files_by_root.items():
         stderr_file = src_results_dir / (root_name + ".stderr")
         with open(stderr_file, 'r') as stderr_file:
-            end_of_err_file = "".join(stderr_file.readlines()[-10:])
+            end_of_err_file = "".join(stderr_file.readlines()[-50:])
         if len(dct_files) == 0:
             if "KILLED" in end_of_err_file:
                 dct_root_names["root_names_nothing_job_killed"].append(root_name)
@@ -42,6 +43,7 @@ if __name__ == "__main__":
             elif "MemoryError" in end_of_err_file:
                 dct_root_names["root_names_memoryerror"].append(root_name)
             elif "scipy.sparse.linalg.eigen.arpack.arpack.ArpackError" in end_of_err_file:
+                # print(end_of_err_file)
                 dct_root_names["root_names_arpackerror"].append(root_name)
             elif "Some clusters have no point" in end_of_err_file:
                 dct_root_names["root_names_clusternopoint"].append(root_name)

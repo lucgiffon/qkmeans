@@ -123,8 +123,7 @@ def qmeans(X_data: np.ndarray,
 
         # U_centroids = _lambda * multi_dot(lst_factors[1:])
         lst_factors_ = op_factors.get_list_of_factors()
-        op_centroids = SparseFactors([lst_factors_[1] * _lambda]
-                                     + lst_factors_[2:])
+        op_centroids = SparseFactors([lst_factors_[1] * _lambda] + lst_factors_[2:])
 
         # if i_iter > 0 and return_objective_function:
         #     objective_function[i_iter, 0] = \
@@ -136,6 +135,7 @@ def qmeans(X_data: np.ndarray,
         # # then, Determine class membership of each point
         # # by picking the closest centroid
         # indicator_vector = np.argmin(distances, axis=1)
+
         indicator_vector = assign_points_to_clusters(X_data, op_centroids)
 
         # TODO return distances to assigned cluster in
@@ -152,23 +152,22 @@ def qmeans(X_data: np.ndarray,
         # assigned data point classes
 
         # get the number of observation in each cluster
+
         cluster_names, counts = np.unique(indicator_vector, return_counts=True)
         cluster_names_sorted = np.argsort(cluster_names)
 
-        # if len(counts) < K_nb_cluster:
-            # raise ValueError(
-            #     "Some clusters have no point. Aborting iteration {}"
-            #     .format(i_iter))
-
-        biggest_cluster = cluster_names[np.argmax(counts)]
+        biggest_cluster_index = np.argmax(counts)  # type: int
+        biggest_cluster = cluster_names[biggest_cluster_index]
         biggest_cluster_data = X_data[indicator_vector == biggest_cluster]
 
+        # check if all clusters still have points
         for c in range(K_nb_cluster):
             cluster_data = X_data[indicator_vector == c]
             if len(cluster_data) == 0:
-                logger.warning("cluster has lost data, add new cluster")
+                logger.warning("cluster has lost data, add new cluster. cluster idx: {}".format(c))
                 X_centroids_hat[c] = biggest_cluster_data[np.random.randint(len(biggest_cluster_data))].reshape(1, -1)
                 counts = list(counts)
+                counts[biggest_cluster_index] -= 1
                 counts.append(1)
                 counts = np.array(counts)
                 cluster_names_sorted = list(cluster_names_sorted)
@@ -182,12 +181,15 @@ def qmeans(X_data: np.ndarray,
         # diag_counts_sqrt_norm = np.linalg.norm(diag_counts_sqrt)  # todo analytic sqrt(n) instead of cumputing it with norm
         # diag_counts_sqrt_normalized = diag_counts_sqrt / diag_counts_sqrt_norm
         # analytic sqrt(n) instead of cumputing it with norm
+
         diag_counts_sqrt_normalized = csr_matrix(
             (np.sqrt(counts[cluster_names_sorted] / nb_examples),
              (np.arange(K_nb_cluster), np.arange(K_nb_cluster))))
         diag_counts_sqrt = np.sqrt(counts[cluster_names_sorted])
+
         # set it as first factor
         # lst_factors[0] = diag_counts_sqrt_normalized
+
         op_factors.set_factor(0, diag_counts_sqrt_normalized)
 
         if graphical_display:
@@ -263,6 +265,7 @@ def qmeans(X_data: np.ndarray,
             #                            _lambda_tmp * multi_dot(lst_factors))
 
         _lambda = _lambda_tmp / np.sqrt(nb_examples)
+
         # _lambda = _lambda_tmp
 
         # if return_objective_function:
@@ -272,6 +275,7 @@ def qmeans(X_data: np.ndarray,
 
         if i_iter >= 2:
             delta_objective_error = np.abs(objective_function[i_iter] - objective_function[i_iter-1]) / objective_function[i_iter-1] # todo vérifier que l'erreur absolue est plus petite que le threshold plusieurs fois d'affilée
+
         # if i_iter >= 1:
         #     if obj_fun_prev == 0:
         #         delta_objective_error = 0
