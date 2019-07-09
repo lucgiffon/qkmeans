@@ -7,6 +7,7 @@ base:
   seed: {"--seed": "range(5)"}
   nystrom: {"--nystrom": ["5000"]}
   assignation: {"--assignation-time": ["5000"]}
+  verbose: ["--verbose"]
   batch_assignation: {"--batch-assignation-time": ["5000"]}
   1nn: ["--1-nn"]
   initialisation: {--initialization: ["uniform_sampling"]}

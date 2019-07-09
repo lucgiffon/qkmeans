@@ -8,6 +8,7 @@ from copy import deepcopy
 
 from pathlib import Path
 
+import psutil
 from sklearn import datasets
 from keras.datasets import mnist, fashion_mnist
 
@@ -22,6 +23,30 @@ from sklearn.model_selection import train_test_split
 
 daiquiri.setup(level=logging.DEBUG)
 logger = daiquiri.getLogger("pyqalm")
+
+
+def log_memory_usage(context=None):
+    """Logs current memory usage stats.
+    See: https://stackoverflow.com/a/15495136
+
+    :return: None
+    """
+    if context is not None:
+        str_memory_usage = context + ":\t"
+    else:
+        str_memory_usage = ""
+
+    PROCESS = psutil.Process(os.getpid())
+    GIGA = 10 ** 9
+    UNIT = "Go"
+    # total, available, percent, used, free, _, _, _, _, _ = psutil.virtual_memory()
+    process_v_mem = psutil.virtual_memory()
+    total, available, used, free = process_v_mem.total / GIGA, process_v_mem.available / GIGA, process_v_mem.used / GIGA, process_v_mem.free / GIGA
+    percent = used / total * 100
+    proc = PROCESS.memory_info()[1] / GIGA
+    str_memory_usage += 'process = {} {unit}; total = {} {unit}; available = {} {unit}; used = {} {unit}; free = {} {unit}; percent = {:.2f} %'.format(proc, total, available, used, free, percent, unit=UNIT)
+    logger.debug(str_memory_usage)
+
 
 def get_side_prod(lst_factors, id_shape=(0,0)):
     """
@@ -216,9 +241,9 @@ class ParameterManager(dict):
         """
         # todo normalize data before
         if self["--blobs"]:
-            blob_size = 500000
+            blob_size = 50000
             blob_features = 2000
-            blob_centers = 5000
+            blob_centers = 50000
             return blobs_dataset(blob_size, blob_features, blob_centers)
         elif self["--census"]:
             return census_dataset()
