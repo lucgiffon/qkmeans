@@ -9,6 +9,7 @@ import numpy as np
 from scipy.sparse.linalg import LinearOperator
 from scipy.sparse import csr_matrix
 from scipy.sparse.linalg import eigs, svds
+from scipy.linalg import toeplitz
 
 
 class SparseFactors(LinearOperator):
@@ -299,3 +300,78 @@ class SparseFactors(LinearOperator):
             return X.reshape(-1)
         else:
             return X.T
+
+
+def permute_rows_cols_randomly(a):
+    """
+    Randomly permute the rows and columns of a matrix
+
+    Parameters
+    ----------
+    a : np.ndarray [n, m]
+        Matrix to be shuffled
+
+    Returns
+    -------
+    np.ndarray [n, m]
+        Shuffled matrix
+    """
+    # TODO testme
+    assert a.ndim == 2
+    return np.random.permutation(np.random.permutation(a).T).T
+
+
+def create_factor_from_mask(mask):
+    """
+    Create sparse factors with random non-zero entries from a mask
+
+    Parameters
+    ----------
+    mask : np.ndarray [n, m]
+        Boolean mask where True values indicate the position of non-zero
+        entries.
+
+    Returns
+    -------
+    np.ndarray [n, m]
+        Sparse matrix with non-zero entries drawn from a Gaussian distribution
+    """
+    # TODO testme
+    A = np.zeros(mask.shape)
+    A[mask] = np.random.randn(np.count_nonzero(mask))
+    return A
+
+
+def create_sparse_factors(axis_size, n_factors=None, sparsity_level=2):
+    """
+    Create sparse factors with a given sparsity level, created at random.
+
+    Parameters
+    ----------
+    axis_size : int
+        Number of rows and columns in sparse factors
+    n_factors : int
+        Number of factors. If None, set as the log2 of axis_size (rounded to
+        the nearest upper integer).
+    sparsity_level : int
+        Number of non-zero values per row and column.
+
+    Returns
+    -------
+    SparseFactors
+        Sparse factors created at random.
+    """
+    # TODO testme
+    if n_factors is None:
+        n_factors = int(np.ceil(np.log2(axis_size)))
+    c = np.array(
+        [1] * sparsity_level + [0] * (axis_size - sparsity_level),
+        dtype=bool)
+    r = np.array(
+        [1] + [0] * (axis_size - sparsity_level) + [1] * (sparsity_level - 1),
+        dtype=bool)
+    D = toeplitz(c, r)
+    factors = [create_factor_from_mask(permute_rows_cols_randomly(D))
+               for _ in range(n_factors)]
+    S = SparseFactors(factors)
+    return S
