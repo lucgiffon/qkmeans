@@ -342,14 +342,14 @@ def create_factor_from_mask(mask):
     return A
 
 
-def create_sparse_factors(axis_size, n_factors=None, sparsity_level=2):
+def create_sparse_factors(shape, n_factors=None, sparsity_level=2):
     """
     Create sparse factors with a given sparsity level, created at random.
 
     Parameters
     ----------
-    axis_size : int
-        Number of rows and columns in sparse factors
+    shape : tuple of int
+        2D shape of the reconstructed matrix
     n_factors : int
         Number of factors. If None, set as the log2 of axis_size (rounded to
         the nearest upper integer).
@@ -362,16 +362,60 @@ def create_sparse_factors(axis_size, n_factors=None, sparsity_level=2):
         Sparse factors created at random.
     """
     # TODO testme
+    min_col_lin = min(shape)
+
+    # get info on wether it is the leftmost factor or rightmost factor that is bigger than other
+    # (because of difference between dimension and all inner factors are square)
+    if shape[0] == min_col_lin:
+        min_left = True
+    else:
+        min_left = False
+
     if n_factors is None:
-        n_factors = int(np.ceil(np.log2(axis_size)))
-    c = np.array(
-        [1] * sparsity_level + [0] * (axis_size - sparsity_level),
+        n_factors = int(np.ceil(np.log2(min_col_lin)))
+
+    # little factors mask definition
+    # ------------------------------
+    first_col_of_tpltz = np.array(
+        [1] * sparsity_level + [0] * (min_col_lin - sparsity_level),
         dtype=bool)
-    r = np.array(
-        [1] + [0] * (axis_size - sparsity_level) + [1] * (sparsity_level - 1),
+    first_row_of_tpltz = np.array(
+        [1] + [0] * (min_col_lin - sparsity_level) + [1] * (sparsity_level - 1),
         dtype=bool)
-    D = toeplitz(c, r)
-    factors = [create_factor_from_mask(permute_rows_cols_randomly(D))
-               for _ in range(n_factors)]
+
+    input_toeplitz = (first_col_of_tpltz, first_row_of_tpltz)
+    little_tpltz_mask = toeplitz(*input_toeplitz)
+
+    # look like this:
+    # 1 0 0 1
+    # 1 1 0 0
+    # 0 1 1 0
+    # 0 0 1 1
+
+    # big factor mask definition: based on concatenating sub masks
+    # ------------------------------------------------------------
+    if min_left:
+        nb_submasks = shape[1] // shape[0]
+        residual_size = shape[1] % shape[0]
+        lst_submasks = [toeplitz(*input_toeplitz) for _ in range(nb_submasks)]
+        lst_submasks += [toeplitz(*input_toeplitz)[:, :residual_size]]
+
+        big_tpltz_mask = np.hstack(lst_submasks)
+
+        tpltz_masks = [little_tpltz_mask for _ in range(n_factors-1)] + [big_tpltz_mask]
+
+    else:
+        nb_submasks = shape[0] // shape[1]
+        residual_size = shape[0] % shape[1]
+        lst_submasks = [toeplitz(*input_toeplitz) for _ in range(nb_submasks)]
+        lst_submasks += [toeplitz(*input_toeplitz)[:residual_size]]
+
+        big_tpltz_mask = np.vstack(lst_submasks)
+
+        tpltz_masks = [big_tpltz_mask] + [little_tpltz_mask for _ in range(n_factors - 1)]
+
+    factors = [create_factor_from_mask(permute_rows_cols_randomly(tpltz_mask))
+                      for tpltz_mask in tpltz_masks]
+
     S = SparseFactors(factors)
     return S
