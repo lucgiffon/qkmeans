@@ -37,7 +37,7 @@ class Solver:
     def __call__(self, vector):
         axis_size = vector.shape[0]
         sparse_factors = create_sparse_factors(
-            axis_size=axis_size,
+            shape=(axis_size, axis_size),
             n_factors=int(np.ceil(np.log2(axis_size))),
             sparsity_level=self.sparsity_level)
 
