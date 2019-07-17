@@ -5,11 +5,11 @@
 % before loading neurips_2019
 
 % ready for submission
- \usepackage{neurips_2019}
+ %\usepackage{neurips_2019}
 
 % to compile a preprint version, e.g., for submission to arXiv, add add the
 % [preprint] option:
-%     \usepackage[preprint]{neurips_2019}
+     \usepackage[preprint]{neurips_2019}
 
 % to compile a camera-ready version, add the [final] option, e.g.:
 %   \usepackage[final]{neurips_2019}
@@ -47,26 +47,30 @@
 % \AND instead of \And before the third author name.
 
 \author{%
-  Luc Giffon\thanks{to be completed} \\
-  Affiliation\\
-  Address\\
-  \texttt{email} \\
+  Luc Giffon\\%\thanks{to be completed} \\
+Aix Marseille Univ, CNRS, LIS, Marseille, France\\
+%Aix Marseille Université, Université de Toulon, CNRS, LIS, Marseille, France\\
+%  Address\\
+%  \texttt{email} \\
   % examples of more authors
    \And
    Valentin Emiya\\
-  Affiliation\\
-  Address\\
-  \texttt{email} \\
+Aix Marseille Univ, CNRS, LIS, Marseille, France\\
+%Aix Marseille Université, Université de Toulon, CNRS, LIS, Marseille, France\\
+%  Address\\
+%  \texttt{email} \\
    \And
    Liva Ralaivola\\
-  Affiliation\\
-  Address\\
-  \texttt{email} \\
+  Criteo\\
+  Aix Marseille Univ, CNRS, LIS, Marseille, France\\
+%Aix Marseille Université, Université de Toulon, CNRS, LIS, Marseille, France\\
+%  \texttt{email} \\
    \And
    Hachem Kadri\\
-  Affiliation\\
-  Address\\
-  \texttt{email} \\
+Aix Marseille Univ, CNRS, LIS, Marseille, France\\
+%Aix Marseille Université, Université de Toulon, CNRS, LIS, Marseille, France\\
+%  Address\\
+  %\texttt{email} \\
   % Coauthor \\
   % Affiliation \\
   % Address \\
@@ -100,7 +104,7 @@
 \begin{abstract}
 	
 	K-means -- and the celebrated Lloyd algorithm -- is more than the clustering method it was originally designed to be. 
-	It has indeed proven pivotal to help increase the speed of many machine learning and data analysis techniques such as indexing, nearest-neighbor search and prediction, data compression, Radial Basis Function networks; its beneficial use has been shown to carry over to the acceleration of kernel machines (when using the Nyström method). 
+	It has indeed proven pivotal to help increase the speed of many machine learning and data analysis techniques such as indexing, nearest-neighbor search and prediction, data compression; its beneficial use has been shown to carry over to the acceleration of kernel machines (when using the Nyström method). 
 	Here, we propose a fast extension of K-means, dubbed QuicK-means, that rests on the idea of expressing the matrix of the $\nclusters$ centroids as a product of sparse matrices, a feat made possible by recent results devoted to find approximations of matrices as a product of sparse factors. Using such a decomposition squashes the complexity of the matrix-vector product between the factorized $\nclusters \times \datadim$ centroid matrix $\mathbf{U}$ and any vector from $\mathcal{O}(\nclusters \datadim)$ to $\mathcal{O}(A \log A+B)$, with $A=\min (\nclusters, \datadim)$ and $B=\max (\nclusters, \datadim)$, where $\datadim$ is the dimension of the training data. This drastic computational saving has a direct impact in the assignment process of a point to a cluster, meaning that it is not only tangible at prediction time, but also at training time, provided the factorization procedure is performed during Lloyd's algorithm. We precisely show that resorting to a factorization step at each iteration does not impair the convergence of the optimization scheme and that, depending on the context, it may entail a reduction of the training time. Finally, we provide discussions and numerical simulations that show the versatility of our computationally-efficient QuicK-means algorithm. 
 	
 %K-means -- and the celebrated Lloyd algorithm -- is more than the clustering method it was 

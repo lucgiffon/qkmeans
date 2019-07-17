@@ -1,7 +1,7 @@
 %!TEX root=neurips2019_qmeans.tex
 \section{Preliminaries}
 \label{sec:background}
-We briefly review the basics of K-means and
+We briefly review the basics of \kmeans and
  give background on learning fast transforms.
  %
   To  assist  the  reading,  we  list  the notations used in the paper in Table~\ref{tab:notation}.
@@ -15,13 +15,13 @@ We briefly review the basics of K-means and
 
 
 
-\subsection{K-means}
+\subsection{\kmeans}
 \label{sec:kmeans}
-The K-means algorithm is used to partition a set $\rmX=\{\rvx_1,\ldots,\rvx_N\}$ of $N$  vectors $\rvx_n\in\R^{\datadim}$ into a predefined number $\nclusters$ of clusters
+The \kmeans algorithm is used to partition a set $\rmX=\{\rvx_1,\ldots,\rvx_N\}$ of $N$  vectors $\rvx_n\in\R^{\datadim}$ into a predefined number $\nclusters$ of clusters
 with the aim of minimizing the distance between each $\rvx_n$ to the center $\rvu_k\in\R^{D}$
 of the cluster $k$ it belongs to ---the center $\rvu_k$ of cluster $k$ is the
  mean vector of the points assigned to cluster $k$.
-K-means attempts to solve
+\kmeans attempts to solve
 \begin{equation}
 \label{eq:kmean_problem}
     \argmin_{\rmU, \rvt} \sum_{k\in\intint{\nclusters}} \sum_{n: t_n = k} \|\rvx_{n} -\rvu_{k}\|^2,
@@ -33,7 +33,7 @@ if $t_n=k$.
 
 
 \paragraph{Lloyd's algorithm.} The most popular procedure to (approximately) 
-solve the K-means problem is the iterative Lloyds algorithm, which alternates
+solve the \kmeans problem is the iterative Lloyds algorithm, which alternates
 i) an assignment step that decides the current cluster to which each point $\rvx_n$
 belongs and ii) a reestimation step which refines the clusters and their centers.
 In little more detail, the algorithm starts with an initialized set of $\nclusters$
@@ -46,12 +46,12 @@ In little more detail, the algorithm starts with an initialized set of $\ncluste
  the reestimation of the cluster centers is performed as
 \begin{align}
 \label{eq:center_update}
-\forall k\in\intint{K}, \rvu^{(\tau)}_k \leftarrow \hat{\rvx}_k(\rvt^{(\tau)})\doteq\frac{1}{n_k^{(\tau)}} \sum_{n: t^{(\tau)}_n= k} {\rvx_{n}}
+\forall k\in\intint{K}, \rvu^{(\tau)}_k \leftarrow \hat{\rvx}_k(\rvt^{(\tau)}) \eqdef \frac{1}{n_k^{(\tau)}} \sum_{n: t^{(\tau)}_n= k} {\rvx_{n}}
 \end{align}
-where $n_k^{(\tau)}\doteq |\{n: t^{(\tau)}_n=k\}|$ is the number of points in cluster $k$
+where $n_k^{(\tau)}\eqdef |\{n: t^{(\tau)}_n=k\}|$ is the number of points in cluster $k$
 at time $\tau$ and $\hat{\rvx}_k(\rvt)$ is the mean vector of the elements of cluster $k$ according to assignment $\rvt$. %at a total cost of $\mathcal{O}\left (\nexamples\datadim\right )$ operations.
 
-\paragraph{Complexity of Lloyd's algorithm.} The assignment step \eqref{eq:assignment_problem_kmeans} costs $\mathcal{O}(\nexamples\datadim\nclusters)$ operations while the update of the centers~\eqref{eq:center_update} costs $\mathcal{O}\left (\nexamples\datadim\right )$ operations. Hence, the bottleneck of the overall time complexity $\mathcal{O}(\nexamples\datadim\nclusters)$ is stems from the assignment step. Once the clusters have been defined, assigning $\nexamples'$ new points to these clusters is performed via \eqref{eq:assignment_problem_kmeans} at the cost of $\mathcal{O}\left (\nexamples'\datadim\nclusters \right )$ operations.
+\paragraph{Complexity of Lloyd's algorithm.} The assignment step \eqref{eq:assignment_problem_kmeans} costs $\mathcal{O}(\nexamples\datadim\nclusters)$ operations while the update of the centers~\eqref{eq:center_update} costs $\mathcal{O}\left (\nexamples\datadim\right )$ operations. Hence, the bottleneck of the overall time complexity $\mathcal{O}(\nexamples\datadim\nclusters)$ stems from the assignment step. Once the clusters have been defined, assigning $\nexamples'$ new points to these clusters is performed via \eqref{eq:assignment_problem_kmeans} at the cost of $\mathcal{O}\left (\nexamples'\datadim\nclusters \right )$ operations.
 
 The main contribution in this paper relies on the idea that \eqref{eq:assignment_problem_kmeans} may be computed more efficiently by approximating $\rmU$ as a fast operator.
 
@@ -60,7 +60,7 @@ The main contribution in this paper relies on the idea that \eqref{eq:assignment
 % (ii) the new center-points $\rmU_{[k]}^{(\tau)}$s are computed as the means of the assignated $\rmX_{[n]}$ (Line \ref{line:kmeans:compute_means}) for a total of $\mathcal{O}\left (\nexamples\datadim\right )$ operations.
 
 %\begin{algorithm}
-%\caption{K-means algorithm}
+%\caption{\kmeans algorithm}
 %\label{algo:kmeans}
 %\begin{algorithmic}[1]
 %
@@ -101,9 +101,9 @@ The main contribution in this paper relies on the idea that \eqref{eq:assignment
 \paragraph{Structured linear operators as products of sparse matrices.}
 The popularity of some linear operators from $\R^{M}$ to $\R^{M}$ (with $M<\infty$)
  like Fourier or Hadamard transforms comes from both their mathematical 
- properties and their ability to compute the mapping of some $\rvx\in\R^M$ with efficiency, typically with $\mathcal{O}\left (M\log\left (M\right )\right )$ operations rather than 
- $\mathcal{O}\left (M^2\right)$. 
-The main idea of the related fast algorithms is that the matrix $\rmU\in\sR^{M\times M}$ characterizing such linear operators can be written as the product $\rmU=\Pi_{q\in\intint{\nfactors}}\rmS_q$ of $\nfactors$ sparse matrices $\rmS_q$, with $Q=\mathcal{O}\left (\log M\right )$ and $\left \|\rmS_q\right \|_0=\mathcal{O}\left (M\right )$ \cite{LeMagoarou2016Flexible,Morgenstern:1975:LCC:321879.321881}:
+ properties and their ability to compute the mapping of some input $\rvx\in\R^M$ with efficiency, typically in $\mathcal{O}\left (M\log\left (M\right )\right )$ rather than 
+ in $\mathcal{O}\left (M^2\right)$ operations .
+The main idea of the related fast algorithms is that the matrix $\rmU\in\sR^{M\times M}$ characterizing such linear operators can be written as the product $\rmU=\Pi_{q\in\intint{\nfactors}}\rmS_q$ of $\nfactors$ sparse matrices $\rmS_q$, with $Q=\mathcal{O}\left (\log M\right )$ factors and $\left \|\rmS_q\right \|_0=\mathcal{O}\left (M\right )$ non-zero coefficients per factor \cite{LeMagoarou2016Flexible,Morgenstern1975Linear}:
 for any vector $\rvx\in\sR^M$, $\rmU\rvx$ can thus be computed as $\mathcal{O}\left (\log M\right )$ products $\rmS_0 \left (\rmS_1 \left (\ldots \left (\rmS_{Q-1}\rvx\right )\right )\right )$ between a sparse matrix and a vector, the cost of each product being $\mathcal{O}\left (M\right )$.
 
 \paragraph{Learning sparse decomposition of arbitrary operators.} When the linear operator $\rmU$ is an arbitrary matrix, one may approximate it with such a sparse-product structure by learning the factors $\left \lbrace\rmS_q\right \rbrace_{q\in\intint{Q}}$ in order to benefit from a fast algorithm.
@@ -112,9 +112,8 @@ A recent contribution~\cite{LeMagoarou2016Flexible} has proposed algorithmic str
 \label{eq:palm4msa}
 \min_{\left \lbrace\rmS_q\right \rbrace_{q\in\intint{Q}}} \left \|\rmU -  \prod_{q\in\intint{\nfactors}}{\rmS_q}\right \|_F^2 + \sum_{q\in\intint{\nfactors}} \delta_{\mathcal{E}_q}(\rmS_q)
 \end{align}
-where, for each $q\in\intint{Q}$, $\delta_{\mathcal{E}_q}$ is here to enforce (sparsity)
-constraints defined by the set $\mathcal{E}_q$ so that $\delta_{\mathcal{E}_q}(\rmS)=0$ 
-if $\rmS \in \mathcal{E}_q$ and $\delta_{\mathcal{E}_q}(\rmS)=+\infty$ otherwise.
+where, for each $q\in\intint{Q}$, $\delta_{\mathcal{E}_q}(\rmS_q)=0$ 
+if $\rmS_q \in \mathcal{E}_q$ and $\delta_{\mathcal{E}_q}(\rmS_q)=+\infty$ otherwise, $\mathcal{E}_q$ being a constraint set that typically impose a sparsity structure on its elements, as well as some other contraint such as unit Frobenius norm (see~\ref{}\todo{add some details about scaling and $\lambda$ somewhere, maybe in appendix with the palm algorithm}).
 
 \iffalse
 TO BE COMPLETED + algo~\ref{algo:palm4msa} in appendix~\ref{sec:app:palm4msa}.

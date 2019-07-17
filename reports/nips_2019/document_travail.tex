@@ -195,8 +195,8 @@ for any $i \in [\![n]\!]$. This step is exactly identical in the K-means algorit
 \label{eq:qmeans_problem_t_fixed}
 \begin{split}
  \argmin_{\{ \mathcal{S}_1, \ldots,\mathcal{S}_Q\}, \lambda} & g(\{ \mathcal{S}_1, \ldots,\mathcal{S}_Q\}, \lambda, \rvt^{(\tau)}) = \argmin_{\{ \mathcal{S}_1, \ldots,\mathcal{S}_Q\}, \lambda} \sum_{k=1}^{K} \left( \sum_{j: \rvt^{(\tau)}_j = k} ||\rmX_j - \rmU_k||^2_2 + \sum_{j=1}^{Q} \delta_j(\mathcal{S}_j) \right) \\
- = & \argmin_{\{ \mathcal{S}_1, \ldots,\mathcal{S}_Q\}, \lambda}  ||\mathcal{D}_{\sqrt{\rvn^{(\tau)}}}~(\hat{\rmX}^{(\tau)} - \rmU)||_{\mathcal{F}} ^ 2  + \sum_{k=1}^{K} c_k^{(\tau)} +  \sum_{j=1}^{Q} \delta_j(\mathcal{S}_j)\\
-  = & \argmin_{\{ \mathcal{S}_1, \ldots,\mathcal{S}_Q\}, \lambda}  ||\mathcal{D}_{\sqrt{\rvn^{(\tau)}}}~(\hat{\rmX}^{(\tau)} - \rmU)||_{\mathcal{F}} ^ 2  +  \sum_{j=1}^{Q} \delta_j(\mathcal{S}_j)\\
+ = & \argmin_{\{ \mathcal{S}_1, \ldots,\mathcal{S}_Q\}, \lambda}  ||\rmD_{\sqrt{\rvn^{(\tau)}}}~(\hat{\rmX}^{(\tau)} - \rmU)||_{\mathcal{F}} ^ 2  + \sum_{k=1}^{K} c_k^{(\tau)} +  \sum_{j=1}^{Q} \delta_j(\mathcal{S}_j)\\
+  = & \argmin_{\{ \mathcal{S}_1, \ldots,\mathcal{S}_Q\}, \lambda}  ||\rmD_{\sqrt{\rvn^{(\tau)}}}~(\hat{\rmX}^{(\tau)} - \rmU)||_{\mathcal{F}} ^ 2  +  \sum_{j=1}^{Q} \delta_j(\mathcal{S}_j)\\
  s.t. ~ \rmU =& \lambda \prod_{j=1}^{Q}{\mathcal{S}_j}
 \end{split} 
 \end{equation}
@@ -205,7 +205,7 @@ where :
 
 \begin{itemize}
  \item $\sqrt{\rvn^{(\tau)}} \in {\R^{K}}$ is the pair-wise square root of the vector indicating the number of observation in each cluster at step $\tau$: $\rvn_k = |\{i: \rvt^\tau_i = k\}|$;
- \item $\mathcal{D}_\rvv \in \R^{K \times K}$ refers to a diagonal matrix with entries in the diagonal from a vector $\rvv$;
+ \item $\rmD_\rvv \in \R^{K \times K}$ refers to a diagonal matrix with entries in the diagonal from a vector $\rvv$;
  \item $\hat{\rmX}^{(\tau)} \in \R^{K \times d}$ refers to the real centroid matrix obtained at step $\tau$ \textit{w.r.t} the indicator vector at this step $\rvt^{(\tau)}$: $\hat{\rmX}^{(\tau)}_k = \frac{1}{\rvn_k}\sum_{j:\rvt^{(\tau)}_j = k} {\rmX_j}$. When $\rvt^{(\tau)}$ is fixed, this is constant.
  \item $c_k^{(\tau)} = \sum_{j: \rvt^{(\tau)}_j = k}^{}||\rmX_j - \hat{\rmX}_k^{(\tau)}||$ is constant \textit{w.r.t} $\{ \mathcal{S}_1, \ldots,\mathcal{S}_Q\}$ and $\lambda$.
 \end{itemize}
@@ -215,14 +215,14 @@ Again,  the minimization of the overall objective $g$ from Equation \ref{eq:qmea
 Note that the formulation of the problem in Equation \ref{eq:qmeans_problem_t_fixed} shows the connection between the K-means and \textit{Hierarchical PALM4LED} objectives, which allow to combine them without trouble. Indeed, we can set
 
 \begin{equation*}
-\rmA^{(\tau)} = \mathcal{D}_{\sqrt{\rvn^{(\tau)}}}~\hat{\rmX}^{(\tau)}
+\rmA^{(\tau)} = \rmD_{\sqrt{\rvn^{(\tau)}}}~\hat{\rmX}^{(\tau)}
 \end{equation*}
 and
 \begin{equation*}
-\rmB^{(\tau)} = \mathcal{D}_{\sqrt{\rvn^{(\tau)}}}~\rmU = \mathcal{D}_{\sqrt{\rvn^{(\tau)}}}~\lambda \prod_{j=1}^{Q}{\mathcal{S}_j} = \lambda \prod_{j=0}^{Q}{\mathcal{S}_j}
+\rmB^{(\tau)} = \rmD_{\sqrt{\rvn^{(\tau)}}}~\rmU = \rmD_{\sqrt{\rvn^{(\tau)}}}~\lambda \prod_{j=1}^{Q}{\mathcal{S}_j} = \lambda \prod_{j=0}^{Q}{\mathcal{S}_j}
 \end{equation*}
 
-with $\mathcal{S}_0$ fixed and equal to $\mathcal{D}_{\sqrt{\rvn^{(\tau)}}}$. The Equation \ref{eq:qmeans_problem_t_fixed} can then be rewritten 
+with $\mathcal{S}_0$ fixed and equal to $\rmD_{\sqrt{\rvn^{(\tau)}}}$. The Equation \ref{eq:qmeans_problem_t_fixed} can then be rewritten 
 
 \begin{equation}
 \begin{split}
@@ -253,7 +253,7 @@ Since \textit{Hierarchical PALM4LED} successivly update the $\mathcal{S}_j$s ind
 \STATE $\hat{\rmX}^{(\tau)}_k \leftarrow \frac{1}{n^\tau_k} \sum_{i: \rvt^\tau_i = k} {\rvx_i}$
 \ENDFOR
 \label{line:qmeans:endkmeans}
-\STATE $\rmA^{(\tau)} \leftarrow \mathcal{D}_{\sqrt{\rvn^{(\tau)}}}~\hat{\rmX}^{(\tau)} $
+\STATE $\rmA^{(\tau)} \leftarrow \rmD_{\sqrt{\rvn^{(\tau)}}}~\hat{\rmX}^{(\tau)} $
 \STATE $\{\mathcal{S}^{(\tau)}_1 \dots \mathcal{S}^{(\tau)}_{Q}\}, \lambda^{(\tau)} \leftarrow \argmin_{\{\mathcal{S}_1 \dots \mathcal{S}_Q, \lambda\}} ||\rmA^{(\tau)} - ~\lambda\prod_{j=0}^{Q}{\mathcal{S}_j}||_\mathcal{F}^2 + \sum_{j=0}^{Q} \delta_j(\mathcal{S}_j)$
 \STATE $\rmU^{(\tau)}_k \leftarrow \lambda^{(\tau)} \prod_{j=1}^{Q}{\mathcal{S}_j^{(\tau)}}$
 
