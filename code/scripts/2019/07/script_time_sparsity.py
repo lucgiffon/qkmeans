@@ -122,11 +122,11 @@ class SparsityTimeExperiment(Experiment):
         plt.legend()
 
 
+exp = SparsityTimeExperiment(force_reset=False)
 if __name__ == '__main__':
     from yafe.utils import generate_oar_script
     answer = input('1-Create experiment\n2-Run all\n3-Plot\n4-Run a job')
     if answer == '1':
-        exp = SparsityTimeExperiment(force_reset=False)
         exp.display_status()
         exp.add_tasks()
         exp.display_status()
