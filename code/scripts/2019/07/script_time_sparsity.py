@@ -36,10 +36,13 @@ class Solver:
 
     def __call__(self, vector):
         axis_size = vector.shape[0]
-        sparse_factors = create_sparse_factors(
-            shape=(axis_size, axis_size),
-            n_factors=int(np.ceil(np.log2(axis_size))),
-            sparsity_level=self.sparsity_level)
+        if self.sparsity_level is None:
+            sparse_factors = np.random.randn(axis_size, axis_size)
+        else:
+            sparse_factors = create_sparse_factors(
+                shape=(axis_size, axis_size),
+                n_factors=int(np.ceil(np.log2(axis_size))),
+                sparsity_level=self.sparsity_level)
 
         t0 = process_time()
         _ = sparse_factors @ vector
@@ -81,10 +84,10 @@ class SparsityTimeExperiment(Experiment):
                             )
 
     def add_tasks(self,
-                  data_params={'size': 2 ** np.arange(6, 13, 2),
+                  data_params={'size': 2 ** np.arange(6, 15),
                                'seed': np.arange(n_seeds, dtype=int)},
                   problem_params={'no_param': [0]},
-                  solver_params={'sparsity_level': [2, 4, 8, 16, 32]}):
+                  solver_params={'sparsity_level': [None, 2, 4, 8]}):
         Experiment.add_tasks(self,
                              data_params=data_params,
                              problem_params=problem_params,
@@ -95,33 +98,47 @@ class SparsityTimeExperiment(Experiment):
         results_pt = results.sel(problem_no_param=0, measure='Elapsed time PT')
         results_pt = results_pt.mean('data_seed')
         for sparsity in results_pt.solver_sparsity_level.values:
-            plt.semilogx(results_pt.data_size,
-                         results_pt.sel(solver_sparsity_level=sparsity),
-                         label='Sparsity level {}'.format(sparsity))
+            if sparsity is None:
+                plt.loglog(results_pt.data_size,
+                             results_pt.sel(solver_sparsity_level=sparsity),
+                             label='Dense')
+            else:
+                plt.loglog(results_pt.data_size,
+                             results_pt.sel(solver_sparsity_level=sparsity),
+                             label='Sparsity level {}'.format(sparsity))
 
-        results_pc = results.sel(problem_no_param=0, measure='Elapsed time PC')
-        results_pc = results_pc.mean('data_seed')
-        for sparsity in results_pc.solver_sparsity_level.values:
-            plt.loglog(results_pc.data_size,
-                       results_pc.sel(solver_sparsity_level=sparsity),
-                       '--',
-                       label='Sparsity level {}'.format(sparsity))
+        # results_pc = results.sel(problem_no_param=0, measure='Elapsed time PC')
+        # results_pc = results_pc.mean('data_seed')
+        # for sparsity in results_pc.solver_sparsity_level.values:
+        #     plt.loglog(results_pc.data_size,
+        #                results_pc.sel(solver_sparsity_level=sparsity),
+        #                '--',
+        #                label='Sparsity level {}'.format(sparsity))
 
         plt.xlabel('Size')
         plt.ylabel('Average running time (s)')
-        plt.title('Matrix-vector fast product')
+        plt.title('Matrix-vector product')
         plt.grid()
         plt.legend()
 
 
 if __name__ == '__main__':
-    run_all = input('Run all? (Y/N)')
-    if run_all == 'Y':
-        exp = SparsityTimeExperiment()
+    from yafe.utils import generate_oar_script
+    answer = input('1-Create experiment\n2-Run all\n3-Plot\n4-Run a job')
+    if answer == '1':
+        exp = SparsityTimeExperiment(force_reset=False)
         exp.display_status()
         exp.add_tasks()
         exp.display_status()
         exp.generate_tasks()
+        generate_oar_script(script_file_path=__file__,
+                            xp_var_name='exp',
+                            batch_size=20,
+                            oar_walltime='00:10:00',
+                            activate_env_command
+                            )
+    elif answer == '2':
+        exp = SparsityTimeExperiment(force_reset=False)
         exp.display_status()
         exp.launch_experiment()
         exp.display_status()
@@ -129,8 +146,11 @@ if __name__ == '__main__':
         exp.plot_results()
         plt.savefig(exp.name)
         plt.show()
-    else:
+    elif answer == '3':
         exp = SparsityTimeExperiment(force_reset=False)
         exp.plot_results()
         plt.savefig(exp.name)
         plt.show()
+    elif answer == '4':
+        exp = SparsityTimeExperiment(force_reset=False)
+        exp.launch_experiment(task_ids=[0])

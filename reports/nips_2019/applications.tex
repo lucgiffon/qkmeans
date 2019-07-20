@@ -1,10 +1,17 @@
-\section{Applications}
+\section{Experiments and applications}
 \label{sec:uses}
-The code of our method \qkmeans is available on request. %on-line\footnote{Anonymous URL.}.
+\subsection{Implementation details}
+The simulations have been conducted in Python, including for the \palm algorithm.
+Fast operators $\rmV$ based on sparse matrices $\rmS_q$ are implemented with \texttt{csr\_matrix} objects from the \texttt{scipy.linalg} package.
+The code of our method \qkmeans is available on request and will be available online soon.
+Running times are measured on computer grid with 3.8GHz-CPUs.
+
+
+%on-line\footnote{Anonymous URL.}.
 
 \subsection{Nyström approximation}
 
-Standard kernel machines are often impossible to use in large-scale applications because of their high computational cost associated with the kernel matrix $\rmK$ which has $O(n^2)$ storage and $O(n^2d)$ computational complexity: $\forall i,j \in [\![n]\!], \rmK_{i,j} = k(\rmX_i, \rmX_j)$. A well-known strategy to overcome this problem is to use the Nyström method which computes a low-rank approximation of the kernel matrix on the basis of some pre-selected landmark points. 
+Standard kernel machines are often impossible to use in large-scale applications because of their high computational cost associated with the kernel matrix $\rmK$ which has $O(n^2)$ storage and $O(n^2d)$ computational complexity: $\forall i,j \in\intint{\nexamples}, \rmK_{i,j} = k(\rvx_i, \rvx_j)$. A well-known strategy to overcome this problem is to use the Nyström method which computes a low-rank approximation of the kernel matrix on the basis of some pre-selected landmark points. 
 
 Given $K \ll n$ landmark points $\{\rmU_i\}_{i=1}^{K}$, the Nyström method gives the following approximation of the full kernel matrix:
 %

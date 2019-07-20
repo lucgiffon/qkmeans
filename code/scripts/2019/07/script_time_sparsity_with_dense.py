@@ -140,7 +140,7 @@ def plot_results(sparsy_exp, dense_exp):
 
 def run_sparsy_experiment():
     sparsy_experiment = Experiment(
-        name='Running time for varing sparsity',
+        name='Running time for varying sparsity',
         get_data=get_data,
         get_problem=Problem,
         get_solver=SparsySolver,
@@ -166,6 +166,7 @@ def run_sparsy_experiment():
     sparsy_experiment.display_status()
     sparsy_experiment.collect_results()
     return sparsy_experiment
+
 
 def run_dense_experiment():
     dense_experiment = Experiment(

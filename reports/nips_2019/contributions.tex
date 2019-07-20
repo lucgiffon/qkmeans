@@ -2,8 +2,6 @@
 
 \section{QuicK-means}
 \label{sec:contribution}
-\todo[inline]{Unify the notation and give it some aesthetics: $X_i$ for a vector is
-ugly and inconsistent with the table of notation, $\rvx_i$ should be preferred.}
 
 We here introduce our main contribution, QuicK-means (abbreviated by \qkmeans), 
 show its convergence property and analyze its computational complexity.
@@ -57,16 +55,18 @@ which proceeds in a similar way as Lloyd's algorithm by alternating an assignmen
 %	\hat{\rvx}^{(\tau)}_k \eqdef \frac{1}{n_k^{(\tau)}}\sum_{j:t_j^{(\tau)}=k}\rvx_j,
 %\end{align}
 
-\todo[inline]{Find a compact way/notation to i) denote the set of products
-of sparse factors  and ii) the result of Palm4MSA. And then, unify the notation.}
+%\todo[inline]{Find a compact way/notation to i) denote the set of products
+%of sparse factors  and ii) the result of Palm4MSA. And then, unify the notation.}
 
 \begin{algorithm}[t]
 	\caption{\qkmeans algorithm and its time complexity.}
 	\label{algo:qmeans}
 	\begin{algorithmic}[1]
 \REQUIRE $\rmX \in \R^{\nexamples \times \datadim}$, $\nclusters$, initialization $\left \lbrace \rmS_q^{(0)} : \rmS_q^{(0)} \in \mathcal{E}_q\right \rbrace_{q\in\intint{\nfactors}}$
+\COMMENT{$A \eqdef \min\left (\nclusters, \datadim\right )$}
 %\STATE $\rmV^{(0)} \eqdef \prod_{q\in\intint{\nfactors}}{\rmS_q^{(0)}}$
 \STATE Set $\rmV^{(0)} : \rvx \mapsto \prod_{q\in\intint{\nfactors}}{\rmS_q^{(0)}} \rvx$
+\COMMENT{$B \eqdef \max\left (\nclusters, \datadim\right )$}
 \FOR{$\tau=1, 2, \ldots$ until convergence}
 	\STATE $\rvt^{(\tau)} \eqdef \argmin_{\rvt \in \intint{\nclusters}^\nexamples} \sum_{n\in\intint{\nexamples}} {\left \|\rvx_n - \rvv^{(\tau -1)}_{t_n}\right \|^2}$
 	\COMMENT{$\mathcal{O}\left (\nexamples\left(A\log A+B\right ) + AB\right )$}
@@ -410,7 +410,7 @@ The hierarchical version of \palm proposed in~\cite{LeMagoarou2016Flexible} cons
 
 \paragraph{Complexity of the \qkmeans algorithm.} The overall complexity of \qkmeans is in $\bigO{\nexamples\left(A\log A+B\right ) + AB \log^2 A}$ when used with \palm and in $\bigO{\nexamples\left(A\log A+B\right ) + AB \log^3 A}$ when used with the hierarchical version of \palm. The time complexities of the main steps are given in Algorithm~\ref{algo:qmeans}. 
 
-The assignation step (line~\ref{line:qmeans:assignment} and Eq.~\eqref{eq:assignment_problem_kmeans}) benefits from the fast computation of $\rmU \rmX$ in~$\bigO{\nexamples\left(A\log A+B\right )}$ while the computation of the norms of the cluster centers is in $\bigO{AB}$.
+The assignation step (line~\ref{line:qmeans:assignment} and Eq.~\eqref{eq:assignment_problem_kmeans}) benefits from the fast computation of $\rmV \rmX$ in~$\bigO{\nexamples\left(A\log A+B\right )}$ while the computation of the norms of the cluster centers is in $\bigO{AB}$.
 One can see that the computational bottleneck of \kmeans is here reduced, which shows the advantage of using \qkmeans when $\nexamples$, $\nclusters$ and $\datadim$ are large.
 
 The computation of the centers of each cluster, given in line~\ref{line:qmeans:compute_means}, is the same as in \kmeans and takes $\bigO{\nexamples\datadim}$ operations.
