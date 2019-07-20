@@ -72,7 +72,7 @@ n_seeds = 10
 class SparsityTimeExperiment(Experiment):
     def __init__(self, force_reset=True):
         Experiment.__init__(self,
-                            name='Running time for varing sparsity',
+                            name='RunningTime4VaryingSparsity',
                             get_data=get_data,
                             get_problem=Problem,
                             get_solver=Solver,
