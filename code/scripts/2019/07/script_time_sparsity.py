@@ -135,7 +135,7 @@ if __name__ == '__main__':
                             xp_var_name='exp',
                             batch_size=20,
                             oar_walltime='00:10:00',
-                            activate_env_command
+                            activate_env_command='py36'
                             )
     elif answer == '2':
         exp = SparsityTimeExperiment(force_reset=False)
