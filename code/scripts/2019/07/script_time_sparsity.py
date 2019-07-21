@@ -66,7 +66,7 @@ def measure(solution_data, solved_data, task_params=None, source_data=None,
             }
 
 
-n_seeds = 10
+n_seeds = 30
 
 
 class SparsityTimeExperiment(Experiment):
@@ -84,7 +84,7 @@ class SparsityTimeExperiment(Experiment):
                             )
 
     def add_tasks(self,
-                  data_params={'size': 2 ** np.arange(6, 15),
+                  data_params={'size': 2 ** np.arange(6, 16),
                                'seed': np.arange(n_seeds, dtype=int)},
                   problem_params={'no_param': [0]},
                   solver_params={'sparsity_level': [None, 2, 4, 8]}):
@@ -133,8 +133,8 @@ if __name__ == '__main__':
         exp.generate_tasks()
         generate_oar_script(script_file_path=__file__,
                             xp_var_name='exp',
-                            batch_size=20,
-                            oar_walltime='00:10:00',
+                            batch_size=10,
+                            oar_walltime='01:00:00',
                             activate_env_command='py36'
                             )
     elif answer == '2':
