@@ -127,6 +127,7 @@ if __name__ == '__main__':
     from yafe.utils import generate_oar_script
     answer = input('1-Create experiment\n2-Run all\n3-Plot\n4-Run a job')
     if answer == '1':
+        exp = SparsityTimeExperiment(force_reset=True)
         exp.display_status()
         exp.add_tasks()
         exp.display_status()
@@ -135,7 +136,7 @@ if __name__ == '__main__':
                             xp_var_name='exp',
                             batch_size=10,
                             oar_walltime='01:00:00',
-                            activate_env_command='py36'
+                            activate_env_command='source activate py36'
                             )
     elif answer == '2':
         exp = SparsityTimeExperiment(force_reset=False)
