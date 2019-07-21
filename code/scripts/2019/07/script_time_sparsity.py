@@ -132,10 +132,11 @@ if __name__ == '__main__':
         exp.add_tasks()
         exp.display_status()
         exp.generate_tasks()
+        exp.display_status()
         generate_oar_script(script_file_path=__file__,
                             xp_var_name='exp',
                             batch_size=10,
-                            oar_walltime='01:00:00',
+                            oar_walltime='00:30:00',
                             activate_env_command='source activate py36'
                             )
     elif answer == '2':
@@ -155,3 +156,13 @@ if __name__ == '__main__':
     elif answer == '4':
         exp = SparsityTimeExperiment(force_reset=False)
         exp.launch_experiment(task_ids=[0])
+    elif answer == '5':
+        exp.display_status()
+        batch_size = input('Batch size')
+        generate_oar_script(script_file_path=__file__,
+                            xp_var_name='exp',
+                            batch_size=batch_size,
+                            oar_walltime='00:20:00',
+                            activate_env_command='source activate py36'
+                            )
+
