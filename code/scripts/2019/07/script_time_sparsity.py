@@ -159,7 +159,7 @@ if __name__ == '__main__':
         exp.launch_experiment(task_ids=[0])
     elif answer == '5':
         exp.display_status()
-        batch_size = input('Batch size?')
+        batch_size = int(input('Batch size?'))
         generate_oar_script(script_file_path=__file__,
                             xp_var_name='exp',
                             batch_size=batch_size,
