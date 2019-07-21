@@ -125,7 +125,8 @@ class SparsityTimeExperiment(Experiment):
 exp = SparsityTimeExperiment(force_reset=False)
 if __name__ == '__main__':
     from yafe.utils import generate_oar_script
-    answer = input('1-Create experiment\n2-Run all\n3-Plot\n4-Run a job')
+    answer = input('1-Create experiment\n2-Run all\n3-Plot\n4-Run a job\n5 '
+                   'Re-generate script\n')
     if answer == '1':
         exp = SparsityTimeExperiment(force_reset=True)
         exp.display_status()
@@ -158,7 +159,7 @@ if __name__ == '__main__':
         exp.launch_experiment(task_ids=[0])
     elif answer == '5':
         exp.display_status()
-        batch_size = input('Batch size')
+        batch_size = input('Batch size?')
         generate_oar_script(script_file_path=__file__,
                             xp_var_name='exp',
                             batch_size=batch_size,
