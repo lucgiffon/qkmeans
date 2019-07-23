@@ -208,6 +208,21 @@ class ParameterManager(dict):
         self.__init_nb_factors()
         self.__init_output_file()
         self.__init_seed()
+        self.__init_dataset()
+
+    def __init_dataset(self):
+        if self["--blobs"] is not None:
+            size_dim_clust = self["--blobs"].split("-")
+            try:
+                size_dim_clust = [int(elm) for elm in size_dim_clust]
+                if len(size_dim_clust) != 3:
+                    raise ValueError
+            except ValueError:
+                raise ValueError("Blobs chain malformed: {}. should be like 'size-dim-clusters'".format(self["--blobs"]))
+
+            self["blobs_size"] = size_dim_clust[0]
+            self["blobs_dim"] = size_dim_clust[1]
+            self["blobs_clusters"] = size_dim_clust[2]
 
     def __init_nb_factors(self):
         if self["--nb-factors"] is not None:
@@ -240,10 +255,10 @@ class ParameterManager(dict):
         :return:
         """
         # todo normalize data before
-        if self["--blobs"]:
-            blob_size = 50000
-            blob_features = 2000
-            blob_centers = 50000
+        if self["--blobs"] is not None:
+            blob_size = self["blobs_size"]
+            blob_features = self["blobs_dim"]
+            blob_centers = self["blobs_clusters"]
             return blobs_dataset(blob_size, blob_features, blob_centers)
         elif self["--census"]:
             return census_dataset()
@@ -306,15 +321,15 @@ def compute_euristic_gamma(dataset_full, slice_size=1000):
     return 1. / np.mean(results)
 
 def blobs_dataset(blob_size, blob_features, blob_centers):
-    X, y = datasets.make_blobs(n_samples=blob_size, n_features=blob_features, centers=blob_centers)
+    X, y = datasets.make_blobs(n_samples=blob_size, n_features=blob_features, centers=blob_centers, cluster_std=2.5)
     test_size = 1000
     X_train, X_test = X[:-test_size], X[-test_size:]
     y_train, y_test = y[:-test_size], y[-test_size:]
     return {
         "x_train": X_train.reshape(X_train.shape[0], -1),
-        # "y_train": y_train,
-        # "x_test": X_test.reshape(X_test.shape[0], -1),
-        # "y_test": y_test
+        "y_train": y_train,
+        "x_test": X_test.reshape(X_test.shape[0], -1),
+        "y_test": y_test
     }
 
 def census_dataset():

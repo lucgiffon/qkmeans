@@ -10,7 +10,7 @@ from pyqalm.utils import logger
 from visualization.utils import get_dct_result_files_by_root, display_cmd_lines_from_root_name_list
 
 
-src_results_dir = pathlib.Path("/home/luc/PycharmProjects/qalm_qmeans/results/2019/06/qmeans_analysis_littledataset_B")
+src_results_dir = pathlib.Path("/home/luc/PycharmProjects/qalm_qmeans/results/2019/07/qmeans_analysis_blobs_reasonable")
 # src_results_dir = pathlib.Path("/home/luc/PycharmProjects/qalm_qmeans/results/2019-05/qmeans_analysis_bigdataset_3_20_ghz_cpu_mem_gt_90")
 if __name__ == "__main__":
 
@@ -49,6 +49,7 @@ if __name__ == "__main__":
                 dct_root_names["root_names_arpackerror"].append(root_name)
             elif "Some clusters have no point" in end_of_err_file:
                 dct_root_names["root_names_clusternopoint"].append(root_name)
+                print(end_of_err_file)
             elif "KILLED" in end_of_err_file:
                 dct_root_names["root_names_jobkilled"].append(root_name)
             elif "operands could not be broadcast together" in end_of_err_file:
@@ -62,6 +63,7 @@ if __name__ == "__main__":
             if df["failure"].all():
                 if "Found array with 0 sample" in end_of_err_file:
                     dct_root_names["root_names_clusternopoint"].append(root_name)
+                    print(end_of_err_file)
                 else:
                     dct_root_names["root_names_failure"].append(root_name)
                     print(end_of_err_file)

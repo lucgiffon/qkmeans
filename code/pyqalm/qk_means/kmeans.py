@@ -35,13 +35,36 @@ def kmeans(X_data, K_nb_cluster, nb_iter, initialization):
 
         # Update centroid location using the newly
         # assigned data point classes
+        # for c in range(K_nb_cluster):
+        #     U_centroids_hat[c] = np.mean(X_data[indicator_vector == c], 0)
+
+        cluster_names, counts = np.unique(indicator_vector, return_counts=True)
+        cluster_names_sorted = np.argsort(cluster_names)
+
+
+
+        # check if all clusters still have points
         for c in range(K_nb_cluster):
-            U_centroids_hat[c] = np.mean(X_data[indicator_vector == c], 0)
+            biggest_cluster_index = np.argmax(counts)  # type: int
+            biggest_cluster = cluster_names[biggest_cluster_index]
+            biggest_cluster_data = X_data[indicator_vector == biggest_cluster]
+
+            cluster_data = X_data[indicator_vector == c]
+            if len(cluster_data) == 0:
+                logger.warning("cluster has lost data, add new cluster. cluster idx: {}".format(c))
+                U_centroids_hat[c] = biggest_cluster_data[np.random.randint(len(biggest_cluster_data))].reshape(1, -1)
+                counts = list(counts)
+                counts[biggest_cluster_index] -= 1
+                counts.append(1)
+                counts = np.array(counts)
+                cluster_names_sorted = list(cluster_names_sorted)
+                cluster_names_sorted.append(c)
+                cluster_names_sorted = np.array(cluster_names_sorted)
+            else:
+                U_centroids_hat[c] = np.mean(X_data[indicator_vector == c], 0)
 
         U_centroids = U_centroids_hat
 
-        if np.isnan(U_centroids_hat).any():
-            exit("Some clusters have no point. Aborting iteration {}".format(i_iter))
 
         if i_iter >= 1:
             delta_objective_error = np.abs(objective_function[i_iter] - objective_function[i_iter-1]) / objective_function[i_iter-1] # todo vérifier que l'erreur absolue est plus petite que le threshold plusieurs fois d'affilée

@@ -26,6 +26,14 @@ from pyqalm.utils import get_lambda_proxsplincol, \
     constant_proj, logger
 
 def init_lst_factors(d_in, d_out, p_nb_factors):
+    """
+    Return a simple initialization of a list of sparse factors in which all the factors are identity but the last one is zeros.
+
+    :param d_in: left dimension
+    :param d_out: right dimension
+    :param p_nb_factors: number of factors
+    :return:
+    """
     min_K_d = min(d_in, d_out)
 
     lst_factors = [np.eye(min_K_d) for _ in range(p_nb_factors)]
@@ -156,12 +164,13 @@ def qmeans(X_data: np.ndarray,
         cluster_names, counts = np.unique(indicator_vector, return_counts=True)
         cluster_names_sorted = np.argsort(cluster_names)
 
-        biggest_cluster_index = np.argmax(counts)  # type: int
-        biggest_cluster = cluster_names[biggest_cluster_index]
-        biggest_cluster_data = X_data[indicator_vector == biggest_cluster]
 
         # check if all clusters still have points
         for c in range(K_nb_cluster):
+            biggest_cluster_index = np.argmax(counts)  # type: int
+            biggest_cluster = cluster_names[biggest_cluster_index]
+            biggest_cluster_data = X_data[indicator_vector == biggest_cluster]
+
             cluster_data = X_data[indicator_vector == c]
             if len(cluster_data) == 0:
                 logger.warning("cluster has lost data, add new cluster. cluster idx: {}".format(c))
