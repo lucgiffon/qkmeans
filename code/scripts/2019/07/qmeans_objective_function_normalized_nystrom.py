@@ -1,11 +1,11 @@
 """
-Analysis of objective function during qmeans execution. This script is derived from `code/scripts/2019/07/qmeans_objective_function_analysis_store_distance_time.py`
-and add some logging on memory utilization of the script.
+Analysis of objective function during qmeans execution. This script is derived from `code/scripts/2019/07/qmeans_objective_function_analysis_better_timing.py`
+and change in nystrom evaluation that is now normalized.
 
 Usage:
-  qmeans_objective_function_analysis kmeans [-h] [-v] [--seed=int] (--blobs|--light-blobs|--census|--kddcup|--plants|--mnist|--fashion-mnist|--lfw) --nb-cluster=int --initialization=str [--nb-iteration=int] [--assignation-time=int] [--1-nn] [--nystrom=int] [--batch-assignation-time=int]
-  qmeans_objective_function_analysis kmeans palm [-h] [-v] [--seed=int] (--blobs|--light-blobs|--census|--kddcup|--plants|--mnist|--fashion-mnist|--lfw) --nb-cluster=int --initialization=str [--nb-iteration=int] [--assignation-time=int] [--1-nn] [--nystrom=int] [--batch-assignation-time=int] [--nb-iteration-palm=int] [--nb-factors=int] --sparsity-factor=int [--hierarchical]
-  qmeans_objective_function_analysis qmeans [-h] [-v] [--seed=int] (--blobs|--light-blobs|--census|--kddcup|--plants|--mnist|--fashion-mnist|--lfw) --nb-cluster=int --initialization=str [--nb-factors=int] --sparsity-factor=int [--hierarchical] [--nb-iteration=int] [--nb-iteration-palm=int] [--assignation-time=int] [--1-nn] [--nystrom=int] [--batch-assignation-time=int]
+  qmeans_objective_function_analysis kmeans [-h] [-v] [--seed=int] (--blobs str|--light-blobs|--census|--kddcup|--plants|--mnist|--fashion-mnist|--lfw) --nb-cluster=int --initialization=str [--nb-iteration=int] [--assignation-time=int] [--1-nn] [--nystrom=int] [--batch-assignation-time=int]
+  qmeans_objective_function_analysis kmeans palm [-h] [-v] [--seed=int] (--blobs str|--light-blobs|--census|--kddcup|--plants|--mnist|--fashion-mnist|--lfw) --nb-cluster=int --initialization=str [--nb-iteration=int] [--assignation-time=int] [--1-nn] [--nystrom=int] [--batch-assignation-time=int] [--nb-iteration-palm=int] [--nb-factors=int] --sparsity-factor=int [--hierarchical]
+  qmeans_objective_function_analysis qmeans [-h] [-v] [--seed=int] (--blobs str|--light-blobs|--census|--kddcup|--plants|--mnist|--fashion-mnist|--lfw) --nb-cluster=int --initialization=str [--nb-factors=int] --sparsity-factor=int [--hierarchical] [--nb-iteration=int] [--nb-iteration-palm=int] [--assignation-time=int] [--1-nn] [--nystrom=int] [--batch-assignation-time=int]
 
 Options:
   -h --help                             Show this screen.
@@ -13,8 +13,8 @@ Options:
   --seed=int                            The seed to use for numpy random module.
 
 Dataset:
-  --blobs                               Use blobs dataset from sklearn. # todo blobs dataset with K > d and d < K
-  --light-blobs                         Use blobs dataset from sklearn with few data for testing purposes. # todo blobs dataset with K > d and d < K
+  --blobs str                           Use blobs dataset from sklearn. Formatting is size-dimension-nbcluster
+  --light-blobs                         Use blobs dataset from sklearn with few data for testing purposes.
   --census                              Use census dataset.
   --kddcup                              Use Kddcupbio dataset.
   --plants                              Use plants dataset.
