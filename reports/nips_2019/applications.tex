@@ -2,15 +2,28 @@
 \label{sec:uses}
 \subsection{Implementation details}
 The simulations have been conducted in Python, including for the \palm algorithm.
-Fast operators $\rmV$ based on sparse matrices $\rmS_q$ are implemented with \texttt{csr\_matrix} objects from the \texttt{scipy.linalg} package.
-The code of our method \qkmeans is available on request and will be available online soon. \addLG{je serais d'avis de ne pas dire ça mais soit de dire qu'il est déjà disponible, soit de ne rien dire. Sachant qu'on ne peut pas dire qu'il est déjà disponible en ligne avant le processus de reviewing}
-Running times are measured on computer grid with 3.8GHz-CPUs.
+Running times are measured on computer grid with 3.8GHz-CPUs (2.5GHz in Figure~\ref{fig:time_csr}).
+Fast operators $\rmV$ based on sparse matrices $\rmS_q$ are implemented with \texttt{csr\_matrix} objects from the \texttt{scipy.linalg} package. 
+While more efficient implementations may be beneficial for larger deployment, our implementation is sufficient as a proof of concept for assessing the performance of the proposed approach. 
+In particular, the running times of fast operators of the form $\prod_{q\in\intint{\nfactors}}{\rmS_q}$ have been measured when applying to random vectors, for several sparsity levels: 
+as shown in Figure~\ref{fig:time_csr}, they are significantly faster than dense operators -- implemented as a \texttt{numpy.ndarray} matrix --, especially when the data size is larger than $10^3$.
+%The code of our method \qkmeans is available on request and will be available online soon. \addLG{je serais d'avis de ne pas dire ça mais soit de dire qu'il est déjà disponible, soit de ne rien dire. Sachant qu'on ne peut pas dire qu'il est déjà disponible en ligne avant le processus de reviewing}
 
-\subsection{Sparse factors multiplication}
 
-\subsubsection{Sparse factor object}
 
-\subsubsection{Cluster assignation}
+
+\begin{figure}[tbh]
+\centering
+\includegraphics[width=.8\textwidth]{RunningTime4VaryingSparsity.png}
+\caption{Running times, averaged over 30 runs, when applying dense or fast $\datadim \times \datadim$ operators to a set of 100 random vectors. The number of factors in fast operators equals $\log_2\left (\datadim\right )$ and the sparsity level denotes the number of non-zero coefficients per row and per column in each factor.}
+\label{fig:time_csr}
+\end{figure}
+
+%\subsection{Sparse factors multiplication}
+%
+%\subsubsection{Sparse factor object}
+
+\subsection{Clustering}
 
 %on-line\footnote{Anonymous URL.}.
 

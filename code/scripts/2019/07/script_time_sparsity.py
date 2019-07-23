@@ -93,19 +93,38 @@ class SparsityTimeExperiment(Experiment):
                              problem_params=problem_params,
                              solver_params=solver_params)
 
-    def plot_results(self):
+    def plot_results(self, with_area=True, fontsize=24, figsize=(14, 8),
+                     linewidth=3):
+        import matplotlib as mpl
+        mpl.rcParams['figure.figsize'] = figsize
+        mpl.rcParams['lines.linewidth'] = linewidth
+        mpl.rcParams['font.size'] = fontsize
+
+        plt.figure()
         results = self.load_results(array_type='xarray')
         results_pt = results.sel(problem_no_param=0, measure='Elapsed time PT')
-        results_pt = results_pt.mean('data_seed')
+        results_pt_mean = results_pt.mean('data_seed')
+        results_pt_min = results_pt.min('data_seed')
+        results_pt_max = results_pt.max('data_seed')
         for sparsity in results_pt.solver_sparsity_level.values:
             if sparsity is None:
-                plt.loglog(results_pt.data_size,
-                             results_pt.sel(solver_sparsity_level=sparsity),
-                             label='Dense')
+                line = plt.loglog(
+                    results_pt_mean.data_size,
+                    results_pt_mean.sel(solver_sparsity_level=sparsity),
+                    label='Dense')
             else:
-                plt.loglog(results_pt.data_size,
-                             results_pt.sel(solver_sparsity_level=sparsity),
-                             label='Sparsity level {}'.format(sparsity))
+                line = plt.loglog(
+                    results_pt_mean.data_size,
+                    results_pt_mean.sel(solver_sparsity_level=sparsity),
+                    label='Sparsity level {}'.format(sparsity))
+            if with_area:
+                plt.fill_between(
+                    results_pt.data_size,
+                    results_pt_min.sel(solver_sparsity_level=sparsity),
+                    results_pt_max.sel(solver_sparsity_level=sparsity),
+                    alpha=0.5,
+                    facecolor=line[0].get_color(),
+                    linestyle='None')
 
         # results_pc = results.sel(problem_no_param=0, measure='Elapsed time PC')
         # results_pc = results_pc.mean('data_seed')
@@ -115,9 +134,9 @@ class SparsityTimeExperiment(Experiment):
         #                '--',
         #                label='Sparsity level {}'.format(sparsity))
 
-        plt.xlabel('Size')
+        plt.xlabel('Data size $D$')
         plt.ylabel('Average running time (s)')
-        plt.title('Matrix-vector product')
+        # plt.title('Matrix-vector product')
         plt.grid()
         plt.legend()
 
@@ -125,6 +144,7 @@ class SparsityTimeExperiment(Experiment):
 exp = SparsityTimeExperiment(force_reset=False)
 if __name__ == '__main__':
     from yafe.utils import generate_oar_script
+
     answer = input('1-Create experiment\n2-Run all\n3-Plot\n4-Run a job\n5 '
                    'Re-generate script\n')
     if answer == '1':
@@ -151,8 +171,12 @@ if __name__ == '__main__':
         plt.show()
     elif answer == '3':
         exp = SparsityTimeExperiment(force_reset=False)
-        exp.plot_results()
+
+        exp.plot_results(with_area=False)
         plt.savefig(exp.name)
+
+        exp.plot_results(with_area=True)
+        plt.savefig(exp.name + '_with_area')
         plt.show()
     elif answer == '4':
         exp = SparsityTimeExperiment(force_reset=False)
@@ -166,4 +190,3 @@ if __name__ == '__main__':
                             oar_walltime='00:20:00',
                             activate_env_command='source activate py36'
                             )
-
