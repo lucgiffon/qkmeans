@@ -48,12 +48,12 @@ class Solver:
         _ = sparse_factors @ vector
         elapsed_time = process_time() - t0
 
-        t0_pc = perf_counter()
-        _ = sparse_factors @ vector
-        elapsed_time_pc = perf_counter() - t0_pc
+        # t0_pc = perf_counter()
+        # _ = sparse_factors @ vector
+        # elapsed_time_pc = perf_counter() - t0_pc
 
         return {'Elapsed time PT': elapsed_time,
-                'Elapsed time PC': elapsed_time_pc}
+                'Elapsed time PC': None}
 
     def __str__(self):
         return 'Solver with sparsity level {}'.format(self.sparsity_level)
