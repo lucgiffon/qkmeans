@@ -1,23 +1,53 @@
 \section{Experiments and applications}
 \label{sec:uses}
 \subsection{Experimental setting}
+
+\paragraph{Technical details}
 The simulations have been conducted in Python, including for the \palm algorithm.
 Running times are measured on computer grid with 3.8GHz-CPUs (2.5GHz in Figure~\ref{fig:time_csr}).
 Fast operators $\rmV$ based on sparse matrices $\rmS_q$ are implemented with \texttt{csr\_matrix} objects from the \texttt{scipy.linalg} package. 
 While more efficient implementations may be beneficial for larger deployment, our implementation is sufficient as a proof of concept for assessing the performance of the proposed approach. 
 In particular, the running times of fast operators of the form $\prod_{q\in\intint{\nfactors}}{\rmS_q}$ have been measured when applying to random vectors, for several sparsity levels: 
 as shown in Figure~\ref{fig:time_csr}, they are significantly faster than dense operators -- implemented as a \texttt{numpy.ndarray} matrix --, especially when the data size is larger than $10^3$.
-%The code of our method \qkmeans is available on request and will be available online soon. \addLG{je serais d'avis de ne pas dire ça mais soit de dire qu'il est déjà disponible, soit de ne rien dire. Sachant qu'on ne peut pas dire qu'il est déjà disponible en ligne avant le processus de reviewing}
-
-
 
 
 \begin{figure}[tbh]
 \centering
 \includegraphics[width=.8\textwidth]{RunningTime4VaryingSparsity.png}
-\caption{Running times, averaged over 30 runs, when applying dense or fast $\datadim \times \datadim$ operators to a set of 100 random vectors. The number of factors in fast operators equals $\log_2\left (\datadim\right )$ and the sparsity level denotes the number of non-zero coefficients per row and per column in each factor.}
+\caption{Running times, averaged over 30 runs, when applying dense or fast $\datadim \times \datadim$ operators to a set of 100 random vectors. The number of factors in fast operators equals $\log_2\left (\datadim\right )$ and the sparsity level denotes the number of non-zero coefficients per row and per column in each factor. \addLG{la figure 1 est très étrange: elle présente une vitesse d'exécution toujours plus rapide pour les opérateurs rapides, peu importe la taille de la matrice. Es-tu sur que cette figure correspond bien à un produit de facteurs sparses? Voir figure \ref{fig:time_csr_fixed_row_size}}}
 \label{fig:time_csr}
 \end{figure}
+
+\begin{figure}[tbh]
+\centering
+\includegraphics[width=.8\textwidth]{Run_time_sparsity_2.png}
+\caption{Running times, averaged over 30 runs, when applying dense or product of fast operators to a set of 100 random vectors. The number of factors in fast operators equals $\log_2\left (\#~row\right )$ and the sparsity level denotes the number of non-zero coefficients per row and per column in each factor.}
+\label{fig:time_csr_fixed_row_size}
+\end{figure}
+
+
+\paragraph{Datasets}
+We present results on real-world and toy datasets summarized in Table \ref{table:datasets}. On the one hand, the real world datasets \texttt{MNIST}~\cite{lecun-mnisthandwrittendigit-2010}, \texttt{Fashion-Mnist}~\cite{Pedregosa2011Scikit} and \texttt{Labeled Faces in the Wild}~\cite{Huang07e.:labeled} (\texttt{LFW}) are used to show --- quantitatively and qualitatively --- the good quality of the obtained centroids when using our method \qkmeans. On the other hand, we use the \texttt{blobs} synthetic dataset from \texttt{sklearn.dataset} to show the speed up offered by our method \qkmeans when the number of clusters and the dimensionality of the data are sufficiently large.
+%The code of our method \qkmeans is available on request and will be available online soon. \addLG{je serais d'avis de ne pas dire ça mais soit de dire qu'il est déjà disponible, soit de ne rien dire. Sachant qu'on ne peut pas dire qu'il est déjà disponible en ligne avant le processus de reviewing}
+
+\begin{table*}[!h]
+\centering
+\begin{tabular}{|c|c|c|c|c|c|}
+\hline
+\textbf{Dataset} & \textbf{Dimension}        & \textbf{\# classes} & \textbf{Training set size} & \textbf{Test set size} \\ \hline
+MNIST                   & 784   & 10        & 60 000    & 10 000               \\ \hline
+Fashion-MNIST           & 784   & 10        & 60 000    & 10 000               \\ \hline
+LFW                     & 1850  & 2529      & 8866      & N/A               \\ \hline
+Blobs (clusters std: 12)   & 2000  & 1000      & 29000      & 1000               \\ \hline
+\end{tabular}
+\caption{Datasets statistics}
+\label{tab:data}
+\end{table*}
+
+\paragraph{Algorithm implementation details}
+
+~\\
+
 
 %\subsection{Sparse factors multiplication}
 %
@@ -26,7 +56,6 @@ as shown in Figure~\ref{fig:time_csr}, they are significantly faster than dense 
 \todo[inline]{Parler ici de la configuration de \qkmeans: $Q\eqdef\log_2\left (A\right )$, critère d'arrêt (nombre d'itération, tolérance), ordre des mises à jours, palm4msa plutôt que la version hiérarchique, taille des matrices $\rmS_q$, scaling coefficient, définition de 	$\mathcal{E}_q$.
 }
 
-\todo[inline]{Présenter les données: blobs, MNIST et Fashion MNIST~\cite{Pedregosa2011Scikit}, en précisant les valeurs de $\nexamples$ et $\datadim$ pour les deux derniers. Dire que blobs est utilisé pour monter en dimension alors que les deux autres permettent d'illustrer les performances (expressivity, accuracy) sur des données réelles.}
 
 \subsection{Clustering}
 
