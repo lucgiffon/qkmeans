@@ -321,7 +321,7 @@ def compute_euristic_gamma(dataset_full, slice_size=1000):
     return 1. / np.mean(results)
 
 def blobs_dataset(blob_size, blob_features, blob_centers):
-    X, y = datasets.make_blobs(n_samples=blob_size, n_features=blob_features, centers=blob_centers, cluster_std=2.5)
+    X, y = datasets.make_blobs(n_samples=blob_size, n_features=blob_features, centers=blob_centers, cluster_std=12)
     test_size = 1000
     X_train, X_test = X[:-test_size], X[-test_size:]
     y_train, y_test = y[:-test_size], y[-test_size:]
