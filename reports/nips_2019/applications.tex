@@ -1,6 +1,6 @@
 \section{Experiments and applications}
 \label{sec:uses}
-\subsection{Implementation details}
+\subsection{Experimental setting}
 The simulations have been conducted in Python, including for the \palm algorithm.
 Running times are measured on computer grid with 3.8GHz-CPUs (2.5GHz in Figure~\ref{fig:time_csr}).
 Fast operators $\rmV$ based on sparse matrices $\rmS_q$ are implemented with \texttt{csr\_matrix} objects from the \texttt{scipy.linalg} package. 
@@ -23,11 +23,40 @@ as shown in Figure~\ref{fig:time_csr}, they are significantly faster than dense 
 %
 %\subsubsection{Sparse factor object}
 
+\todo[inline]{Parler ici de la configuration de \qkmeans: $Q\eqdef\log_2\left (A\right )$, critère d'arrêt (nombre d'itération, tolérance), ordre des mises à jours, palm4msa plutôt que la version hiérarchique, taille des matrices $\rmS_q$, scaling coefficient, définition de 	$\mathcal{E}_q$.
+}
+
+\todo[inline]{Présenter les données: blobs, MNIST et Fashion MNIST~\cite{Pedregosa2011Scikit}, en précisant les valeurs de $\nexamples$ et $\datadim$ pour les deux derniers. Dire que blobs est utilisé pour monter en dimension alors que les deux autres permettent d'illustrer les performances (expressivity, accuracy) sur des données réelles.}
+
 \subsection{Clustering}
 
+\todo[inline]{Commencer par MNIST et Fashion MNIST en montrant les imagettes et éventuellement les données quantitatives (histogramme?). Objectif: montrer que la qualité de l'approximation par un opérateur rapide est bonne, visuellement (jolies imagettes) et quantitativement (dégradation limitée). $\nclusters=30$ suffit. À quoi \qkmeans est comparé?}
+
+\todo[inline]{Montrer ensuite les temps d'assignation en mode batch 5000 sur blobs, cf. Figure~\ref{fig:clustering:blobs:assignation_time}. Objectif: montrer qu'à partir d'une certaine dimension, \qkmeans est plus rapide.}
 %on-line\footnote{Anonymous URL.}.
 
+\begin{figure}[tbh]
+\centering
+\includegraphics[width=.8\textwidth]{blobs_assignation_time.png}
+\todo[inline]{Figure to be updated: no title, legend inside, x axis renamed ``Number of cluster $\nclusters$'', $\nclusters=128$ and $\nclusters=256$.}
+\caption{Clustering blobs data: running times of the assignation step, averaged over \addVE{?} runs, \addVE{to be completed}.}
+\label{fig:clustering:blobs:assignation_time}
+\end{figure}
+
+\subsection{Nearest-neighbor search in a large dataset}
+\todo[inline]{Sur blobs seulement pour pouvoir être dans des dimensions où \qkmeans est plus rapide. Objectif: montrer la rapidité et une perte limitée de l'accuracy. Se comparer brute/ball tree/KD tree, ce qui donne une grande pertinence car ce sont déjà des approches efficaces. Afficher 2 figures: accuracy et inference time (ou distance time). Figure~\ref{fig:nn:blobs}.}
+
+\begin{figure}[tbh]
+\centering
+\includegraphics[width=.46\textwidth]{blobs_1nn_accuracy.png}
+\includegraphics[width=.46\textwidth]{blobs_1nn_inference_time.png}
+\todo[inline]{Figure to be updated: no title, legend inside, x axis renamed ``Number of cluster $\nclusters$'', $\nclusters=128$ and $\nclusters=256$, larger font size, add results for brute/ball tree/kd tree.}
+\caption{Nearest neighbor search on blobs data: accuracy (left) and running times (right) \addVE{to be completed}.}
+\label{fig:nn:blobs}
+\end{figure}
+
 \subsection{Nyström approximation}
+\todo[inline]{Sur blobs seulement pour pouvoir être dans des dimensions où \qkmeans est plus rapide. Objectif: montrer la rapidité et une perte limitée de l'accuracy. Se comparer brute/ball tree/KD tree, ce qui donne une grande pertinence car ce sont déjà des approches efficaces. Afficher 2 figures: accuracy et inference time (ou distance time). Figure~\ref{fig:nystrom:blobs}.}
 
 Standard kernel machines are often impossible to use in large-scale applications because of their high computational cost associated with the kernel matrix $\rmK$ which has $O(n^2)$ storage and $O(n^2d)$ computational complexity: $\forall i,j \in\intint{\nexamples}, \rmK_{i,j} = k(\rvx_i, \rvx_j)$. A well-known strategy to overcome this problem is to use the Nyström method which computes a low-rank approximation of the kernel matrix on the basis of some pre-selected landmark points. 
 
@@ -66,6 +95,15 @@ We propose to use our Q-means algorithm in order to learn directly the $\rmU$ ma
 
 
 Our algorithm could allow one to obtain an efficient Nyström approximation, while keeping the quality of the K-means landmark points which are expressed as a factorization of sparse matrix.  
+
+\begin{figure}[tbh]
+\centering
+\includegraphics[width=.46\textwidth]{blobs_nystrom_error.png}
+\includegraphics[width=.46\textwidth]{blobs_nystrom_inference_time.png}
+\todo[inline]{Figure to be updated: normalize error or represent something else, no title, legend inside, x axis renamed ``Number of cluster $\nclusters$'', $\nclusters=128$ and $\nclusters=256$, larger font size.}
+\caption{N\"ystrom approximation on blobs data: accuracy (left) and running times (right) \addVE{to be completed}.}
+\label{fig:nystrom:blobs}
+\end{figure}
 
 %{RBF networks}
 

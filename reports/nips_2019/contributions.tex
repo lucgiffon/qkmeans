@@ -202,7 +202,7 @@ where :
  \item $\sqrt{\rvn} \in \R^{\nclusters}$ is the pair-wise square root of the vector indicating the number of observations $n_k \eqdef \left | \left \lbrace n: t_n = k\right \rbrace \right |$  in each cluster $k$;
  \item $\rmD_{\sqrt{\rvn}} \in \R^{K \times K}$ refers to a diagonal matrix with vector $\sqrt{\rvn}$ on the diagonal;
  \item $\rmU\in \R^{K \times d}$ refers to the unconstrained centroid matrix obtained from the data matrix $\rmX$ and the indicator vector $\rvt$: $\rvu_k \eqdef \frac{1}{n_k}\sum_{n:t_n = k} {\rvx_n}$ (see Line~\ref{line:qmeans:compute_means});
- \item \addLG{$\rmD_{\sqrt{\rvn}} (\rmU - \rmV)$ is an extension of $\sqrt{n_k}\left (\rvu_k-\rvv_k\right )$ in matrix form such that $\left[\rmD_{\sqrt{\rvn}} (\rmU - \rmV) \right ]_k = \sqrt{n_k}\left (\rvu_k-\rvv_k\right )$;}
+ \item $\rmD_{\sqrt{\rvn}} (\rmU - \rmV)$ is the matrix with $\sqrt{n_k}\left (\rvu_k-\rvv_k\right )$ as $k$-th row;
  \item $c_k \eqdef \sum_{n: t_n = k}\norm{\rvx_n - \rvu_k}$ is constant w.r.t. $ \rmS_1, \ldots,\rmS_Q$;
  \item $\rmA \eqdef \rmD_{\sqrt{\rvn}} \rmU$ is the unconstrained centroid matrix reweighted by the size of each cluster (see Line~\ref{line:qmeans:A}).
 \end{itemize}
