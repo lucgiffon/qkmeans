@@ -54,7 +54,7 @@ from pyqalm.palm.qalm_fast import hierarchical_palm4msa
 from pyqalm.utils import ResultPrinter, ParameterManager, ObjectiveFunctionPrinter, logger, timeout_signal_handler, compute_euristic_gamma
 # todo graphical evaluation option
 from pyqalm.qk_means.qmeans_fast import qmeans, init_lst_factors
-from pyqalm.qk_means.utils import build_constraint_set_smart, get_distances, get_squared_froebenius_norm
+from pyqalm.qk_means.utils import build_constraint_set_smart, get_distances, get_squared_froebenius_norm_line_wise
 from pyqalm.qk_means.kmeans import kmeans
 from sklearn.neighbors import KNeighborsClassifier
 from scipy.sparse.linalg import LinearOperator
@@ -154,7 +154,7 @@ def make_assignation_evaluation(X, centroids, nb_eval):
         nb_eval = X.shape[0]
 
     times = []
-    precomputed_centroid_norms = get_squared_froebenius_norm(centroids)
+    precomputed_centroid_norms = get_squared_froebenius_norm_line_wise(centroids)
     for i in np.random.permutation(X.shape[0])[:nb_eval]:
         start_time = time.time()
         get_distances(X[i].reshape(1, -1), centroids, precomputed_centroids_norm=precomputed_centroid_norms)
@@ -187,7 +187,7 @@ def make_batch_assignation_evaluation(X, centroids, size_batch):
                        "data size instead.".format(size_batch, X.shape[0]))
         size_batch = X.shape[0]
 
-    precomputed_centroid_norms = get_squared_froebenius_norm(centroids)
+    precomputed_centroid_norms = get_squared_froebenius_norm_line_wise(centroids)
     indexes_batch = np.random.permutation(X.shape[0])[:size_batch]
     start_time = time.time()
     get_distances(X[indexes_batch], centroids, precomputed_centroids_norm=precomputed_centroid_norms)
@@ -339,7 +339,7 @@ def make_nystrom_evaluation(x_train, U_centroids, n_sample):
     gamma = compute_euristic_gamma(x_train)
 
     # precompute the centroids norm for later use (optimization)
-    centroids_norm = get_squared_froebenius_norm(U_centroids)
+    centroids_norm = get_squared_froebenius_norm_line_wise(U_centroids)
 
     ## TIME: nystrom build time
     # nystrom build time is Nystrom preparation time for later use.
