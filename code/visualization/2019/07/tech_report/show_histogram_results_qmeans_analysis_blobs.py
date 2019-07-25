@@ -135,6 +135,12 @@ if __name__ == "__main__":
         "kd_tree": "KD tree"
     }
 
+    color_by_sparsity = {
+        2: "g",
+        3: "b",
+        5: "c"
+    }
+
     for dataset_name in datasets:
         datasets_col = datasets[dataset_name]
         df_dataset_qmeans = df_results_qmeans[df_results_qmeans[datasets_col] != False]
@@ -168,7 +174,7 @@ if __name__ == "__main__":
                     # assignations_times_means_for_sparsity.append(mean_time_values)
                     # assignations_times_std_for_sparsity.append(std_time_values)
                     bars.append(ax.bar(x_indices + bar_width * idx_sparsy_val, mean_task_values, bar_width, yerr=std_task_values,
-                                       label='Sparsity {}'.format(sparsy_val), zorder=10))
+                                       label='QK-means sparsity {}'.format(sparsy_val), zorder=10, color=color_by_sparsity[sparsy_val]))
                     max_value_in_plot = max(max_value_in_plot, max((np.array(mean_task_values) + np.array(std_task_values))))
 
                     # display number of parameters
@@ -206,7 +212,7 @@ if __name__ == "__main__":
                 std_task_values_kmeans = [d.std() for d in task_values_kmeans]
                 offset_from_qmeans = 1  # offset from qmeans = 1 because directly after
                 bars.append(ax.bar(x_indices + bar_width * (len(sparsity_values)-1+offset_from_qmeans), mean_task_values_kmeans, bar_width, yerr=std_task_values_kmeans,
-                                   label='Kmeans', zorder=10))
+                                   label='Kmeans', zorder=10, color="r"))
                 max_value_in_plot = max(max_value_in_plot, max((np.array(mean_task_values_kmeans) + np.array(std_task_values_kmeans))))
 
                 # display number of parameters
@@ -251,7 +257,7 @@ if __name__ == "__main__":
                 # if "accuracy" in str_task and "LFW" not in dataset_name:
                 #     ax.set_ylim(bottom=0.8)
 
-                ax.set_ylim(top=max_value_in_plot * (1+1./3.))
+                ax.set_ylim(top=max_value_in_plot * (1+1./2.8))
 
                 ax.set_ylabel(y_axis_label_by_task[str_task])
                 ax.set_xlabel('Number of clusters K')
@@ -264,7 +270,7 @@ if __name__ == "__main__":
                 handles, labels = plt.gca().get_legend_handles_labels()
                 ncol = len(labels) // 3
                 # ax.legend(ncol=ncol, bbox_to_anchor=(0., -.3, 1., 0.102), mode="expand")
-                ax.legend(ncol=4)
+                ax.legend(ncol=2)
                 fig.set_size_inches(8, 6)
                 fig.tight_layout()
                 # plt.show()
