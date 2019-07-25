@@ -60,6 +60,8 @@ In such conditions, the complexity of each line is:
 \end{itemize}
 \addVE{Revoir le coût de la ligne 7 (tri/select+il manque le facteur de taille $AB$)}
 \todo[inline]{explain $\lambda$ as a factor. Maybe just renormalize $\rmS_1$ in order to keep $Q$ factors, with the $\lambda$ scaling factor being $\norm{\rmS_1}_F$}
+\todo[inline]{Clearly indicate that the factors are updated from right to left.}
+\todo[inline]{Define $\mathcal{E}_q$ with the sparsity constraint and the Frobenius-norm constraint.}
 \todo[inline]{add details about the hierarchical algorithm}
 %Each iteration takes $\mathcal{O}(Q(Qpq + Kd + q^2\log q^2) + K^2d)$\addLG{$q^2 \log q^2$ peut être remplacé par $q^2 + p\log p$ grâce à l'algo quickselect}. In the following analysis, we refer to the lines in Algorithm 2 of \cite{magoarou2014learning}. This algorithm is repeated here for simplicity (Algorithm \ref{algo:palm4msa}). Note that the displayed complexities are for one full iteration of the algorithm.
 %

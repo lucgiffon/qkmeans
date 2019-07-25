@@ -2,7 +2,7 @@
 \label{sec:uses}
 \subsection{Experimental setting}
 
-\paragraph{Technical details}
+\paragraph{Implementation details.}
 The simulations have been conducted in Python, including for the \palm algorithm.
 Running times are measured on computer grid with 3.8GHz-CPUs (2.5GHz in Figure~\ref{fig:time_csr}).
 Fast operators $\rmV$ based on sparse matrices $\rmS_q$ are implemented with \texttt{csr\_matrix} objects from the \texttt{scipy.linalg} package. 
@@ -14,7 +14,7 @@ as shown in Figure~\ref{fig:time_csr}, they are significantly faster than dense 
 \begin{figure}[tbh]
 \centering
 \includegraphics[width=.8\textwidth]{RunningTime4VaryingSparsity.png}
-\caption{Running times, averaged over 30 runs, when applying dense or fast $\datadim \times \datadim$ operators to a set of 100 random vectors. The number of factors in fast operators equals $\log_2\left (\datadim\right )$ and the sparsity level denotes the number of non-zero coefficients per row and per column in each factor. \addLG{la figure 1 est très étrange: elle présente une vitesse d'exécution toujours plus rapide pour les opérateurs rapides, peu importe la taille de la matrice. Es-tu sur que cette figure correspond bien à un produit de facteurs sparses? Voir figure \ref{fig:time_csr_fixed_row_size}}}
+\caption{Running times, averaged over 30 runs, when applying dense or fast $\datadim \times \datadim$ operators to a set of 100 random vectors. The number of factors in fast operators equals $\log_2\left (\datadim\right )$ and the sparsity level denotes the number of non-zero coefficients per row and per column in each factor. \addLG{la figure 1 est très étrange: elle présente une vitesse d'exécution toujours plus rapide pour les opérateurs rapides, peu importe la taille de la matrice. Es-tu sur que cette figure correspond bien à un produit de facteurs sparses? Voir figure \ref{fig:time_csr_fixed_row_size}}\addVE{J'ai fait tourner l'expé (dernière version de \texttt{script\_time\_sparsity.py}) sur le cluster avec un nombre plus importants de runs qu'avant et des dimensions plus importantes. Tu peux regarder une autre figure un peu plus détaillée \texttt{nips\_2019/figures/RunningTime4VaryingSparsity\_with\_area.png} où la zone colorée correspond à la zone de tous les temps mesurés (i.e., entre le min et le max): on voit que pour des petites dimensions, il y a une grosse variance sur le temps de calcul pour les matrices denses. Donc ces résultats ne me semblent pas incompatibles avec les tiens et ceux qu'on avait précédemment; l'essentiel reste à mon sens qu'il faut travailler en grande dimension. À noter que je viens de relancer les expés sur decoda2 car je l'avais fait jusqu'ici sur sensei1 où les CPU sont à 2 ou 2.5GHz.}}
 \label{fig:time_csr}
 \end{figure}
 
@@ -26,7 +26,7 @@ as shown in Figure~\ref{fig:time_csr}, they are significantly faster than dense 
 \end{figure}
 
 
-\paragraph{Datasets}
+\paragraph{Datasets.}
 We present results on real-world and toy datasets summarized in Table \ref{table:datasets}. On the one hand, the real world datasets \texttt{MNIST}~\cite{lecun-mnisthandwrittendigit-2010}, \texttt{Fashion-Mnist}~\cite{Pedregosa2011Scikit} and \texttt{Labeled Faces in the Wild}~\cite{Huang07e.:labeled} (\texttt{LFW}) are used to show --- quantitatively and qualitatively --- the good quality of the obtained centroids when using our method \qkmeans. On the other hand, we use the \texttt{blobs} synthetic dataset from \texttt{sklearn.dataset} to show the speed up offered by our method \qkmeans when the number of clusters and the dimensionality of the data are sufficiently large.
 %The code of our method \qkmeans is available on request and will be available online soon. \addLG{je serais d'avis de ne pas dire ça mais soit de dire qu'il est déjà disponible, soit de ne rien dire. Sachant qu'on ne peut pas dire qu'il est déjà disponible en ligne avant le processus de reviewing}
 
@@ -44,17 +44,22 @@ Blobs (clusters std: 12)   & 2000  & 1000      & 29000      & 1000              
 \label{tab:data}
 \end{table*}
 
-\paragraph{Algorithm implementation details}
-
-~\\
-
+\paragraph{Algorithm settings.} 
+The \qkmeans algorithm is used with $Q\eqdef\log_2\left (A\right )$ sparse factors, where  $A=\min\left (\nclusters, \datadim\right )$. 
+All factors $\rmS_q$ are with shape $A \times A$ except, depending on the shape of $\rmA$, the leftmost one ($\nclusters\times A$) or the rightmost one ($A\times\datadim$). 
+The sparsity constraint of each factor $\rmS_q$ is set in $\mathcal{E}_q$ and is governed by a global parameter denoted as \textit{sparsity level}, which indicates the desired number of non-zero coefficients in each row and in each column of $\rmS_q$. 
+Since the projection onto this set of structured-sparsity constraints may be computationally expensive, this projection is relaxed in the implementation of \palm and only guarantees that the number of non-zero coefficients in each row and each column is at least the sparsity level, as in~\cite{LeMagoarou2016Flexible}.
+The actual number of non-zero coefficients in the sparse factors is measured at the end of the optimization process and reported in the results.
+The sparse factors are updated using the \palm rather than its hierarchical version, since we observed that this was a better choice in terms of computational cost, with satisfying approximation results.
+Additional details about \palm are given in Appendix~
+The stopping criterion of \kmeans and \qkmeans consists of a tolerance set to $10^{-6}$ on the relative variation of the objective function and a maximum number of iterations set to ??\todo{nb-iteration?}. The same principle governs the stopping criterion of \palm with a tolerance set to $10^{-6}$ and a maximum number of iterations set to ??\todo{nb-iteration?}.
 
 %\subsection{Sparse factors multiplication}
 %
 %\subsubsection{Sparse factor object}
 
-\todo[inline]{Parler ici de la configuration de \qkmeans: $Q\eqdef\log_2\left (A\right )$, critère d'arrêt (nombre d'itération, tolérance), ordre des mises à jours, palm4msa plutôt que la version hiérarchique, taille des matrices $\rmS_q$, scaling coefficient, définition de 	$\mathcal{E}_q$.
-}
+%\todo[inline]{Parler ici de la configuration de \qkmeans: $Q\eqdef\log_2\left (A\right )$, critère d'arrêt (nombre d'itération, tolérance), ordre des mises à jours, palm4msa plutôt que la version hiérarchique, taille des matrices $\rmS_q$, scaling coefficient, définition de 	$\mathcal{E}_q$.
+%}
 
 
 \subsection{Clustering}
