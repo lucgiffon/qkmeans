@@ -45,6 +45,7 @@ Blobs (clusters std: 12)   & 2000  & 1000      & 29000      & 1000              
 \label{table:data}
 \end{table*}
 
+
 \paragraph{Algorithm settings.} 
 The \qkmeans algorithm is used with $Q\eqdef\log_2\left (A\right )$ sparse factors, where  $A=\min\left (\nclusters, \datadim\right )$. 
 All factors $\rmS_q$ are with shape $A \times A$ except, depending on the shape of $\rmA$, the leftmost one ($\nclusters\times A$) or the rightmost one ($A\times\datadim$). 
@@ -53,7 +54,7 @@ Since the projection onto this set of structured-sparsity constraints may be com
 The actual number of non-zero coefficients in the sparse factors is measured at the end of the optimization process and reported in the results.
 The sparse factors are updated using the \palm rather than its hierarchical version, since we observed that this was a better choice in terms of computational cost, with satisfying approximation results.
 Additional details about \palm are given in Appendix~\ref{sec:app:palm4msa}.
-The stopping criterion of \kmeans and \qkmeans consists of a tolerance set to $10^{-6}$ on the relative variation of the objective function and a maximum number of iterations set to 20. The same principle governs the stopping criterion of \palm with a tolerance set to $10^{-6}$ and a maximum number of iterations set to 300.
+The stopping criterion of \kmeans and \qkmeans consists of a tolerance set to $10^{-6}$ on the relative variation of the objective function and a maximum number of iterations set to 10 for the \texttt{Blobs}dataset and to 20 for others. The same principle governs the stopping criterion of \palm with a tolerance set to $10^{-6}$ and a maximum number of iterations set to 300.
 
 %\subsection{Sparse factors multiplication}
 %
@@ -64,7 +65,7 @@ The stopping criterion of \kmeans and \qkmeans consists of a tolerance set to $1
 
 \subsection{Clustering}
 
-\begin{figure}[p]
+\begin{figure}
 \begin{subfigure}[b]{.49\textwidth}
 \includegraphics[width=\textwidth]{mnist30_objective.png}
 \caption{MNIST, $\nclusters=30$: objective function.}
@@ -109,10 +110,6 @@ The stopping criterion of \kmeans and \qkmeans consists of a tolerance set to $1
 \label{fig:clustering:realdata}
 \end{figure}
 
-\todo[inline]{Figures~\ref{fig:mnist:objfun} and~\ref{fig:fmnist:objfun} to be updated: remove curves for sparsity 1 ; remove title; update legend text as ``Hierarch. QKmeans, sparsity level 3''; legend inside; y axis named ``Objective function''; larger font size; add grid (\texttt{plt.grid()}).}
-
-\todo[inline]{Figures~\ref{fig:mnist:kmeans:centroids} to~\ref{fig:fmnist:hqkmeans:centroids} to be updated: remove title, adjust height so that all figures fit in a single page; it may be more natural to use a greyscale colormap to display images; which sparsity level shall we choose? low sparsity to show that the worst case is still good or high sparsity to show the best case?}
-
 \paragraph{Approximation quality.} One important question is the ability of the fast-structure model to fit arbitrary data.
 Indeed, no theoretical result about the expressivity of such models is currently available.
 In order to assess this approximation quality, the MNIST et Fashion MNIST data have been clustered into $\nclusters=30$ clusters by \kmeans, \qkmeans and a variant of \qkmeans using the hierarchical version of \palm, with several sparsity levels.
@@ -137,7 +134,6 @@ Results reported in Figure~\ref{fig:clustering:blobs:assignation_time} show that
 \begin{figure}[tbh]
 \centering
 \includegraphics[width=.8\textwidth]{blobs_assignation_time.png}
-\todo[inline]{Figure to be updated: no title, legend inside, x axis renamed ``Number of cluster $\nclusters$'', $\nclusters=128$ and $\nclusters=256$; add grid (\texttt{plt.grid()}).}
 \caption{Clustering Blobs data: running times of the assignation step, averaged over 5 runs, for batches of $\nexamples=5000$ examples in dimension $\datadim=1000$. The vertical black lines are the standard deviation w.r.t. the runs and the average number of parameters actually learned  in the models are reported above those lines.\addVE{to be completed}.}
 \label{fig:clustering:blobs:assignation_time}
 \end{figure}
@@ -163,7 +159,7 @@ The running times reported in Figure~\ref{fig:nn:blobs:times} show a dramatic ad
 \caption{Running times.}
 \label{fig:nn:blobs:times}
 \end{subfigure}
-\todo[inline]{Figure to be updated: no title, legend inside, x axis renamed ``Number of cluster $\nclusters$'', $\nclusters=128$ and $\nclusters=256$, larger font size, add results for brute/ball tree/kd tree; add grid (\texttt{plt.grid()}).}
+
 \caption{Nearest neighbor search on blobs data. Results are averaged over 5 runs (vertical lines: standard deviation) and the average number of parameters actually learned is reported above each bar. \addVE{to be completed: how many runs?}. \addLG{les résultats avec brute/kdtree/balltree ne sont pas affichés car ils prennaient plus de 10 fois le temps de l'approximation avec K means -> peut-être montrer ces résultats de perf avec mnist/fashionmnsit}}
 \label{fig:nn:blobs}
 \end{figure}
@@ -213,7 +209,7 @@ Our algorithm could allow one to obtain an efficient Nyström approximation, whi
 \centering
 \includegraphics[width=.46\textwidth]{blobs_nystrom_error.png}
 \includegraphics[width=.46\textwidth]{blobs_nystrom_inference_time.png}
-\todo[inline]{Figure to be updated: normalize error or represent something else, no title, legend inside, x axis renamed ``Number of cluster $\nclusters$'', $\nclusters=128$ and $\nclusters=256$, larger font size; add grid (\texttt{plt.grid()}).}
+
 \caption{N\"ystrom approximation on blobs data: accuracy (left) and running times (right) \addVE{to be completed}.}
 \label{fig:nystrom:blobs}
 \end{figure}
