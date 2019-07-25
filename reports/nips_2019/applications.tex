@@ -109,7 +109,7 @@ The stopping criterion of \kmeans and \qkmeans consists of a tolerance set to $1
 \label{fig:clustering:realdata}
 \end{figure}
 
-\todo[inline]{Figures~\ref{fig:mnist:objfun} and~\ref{fig:fmnist:objfun} to be updated: remove curves for sparsity 1 ; remove title; update legend text as ``Hierarch. QKmeans, sparsity level 3''; legend inside; y axis named ``Objective function''; larger font size.}
+\todo[inline]{Figures~\ref{fig:mnist:objfun} and~\ref{fig:fmnist:objfun} to be updated: remove curves for sparsity 1 ; remove title; update legend text as ``Hierarch. QKmeans, sparsity level 3''; legend inside; y axis named ``Objective function''; larger font size; add grid (\texttt{plt.grid()}).}
 
 \todo[inline]{Figures~\ref{fig:mnist:kmeans:centroids} to~\ref{fig:fmnist:hqkmeans:centroids} to be updated: remove title, adjust height so that all figures fit in a single page; it may be more natural to use a greyscale colormap to display images; which sparsity level shall we choose? low sparsity to show that the worst case is still good or high sparsity to show the best case?}
 
@@ -137,20 +137,34 @@ Results reported in Figure~\ref{fig:clustering:blobs:assignation_time} show that
 \begin{figure}[tbh]
 \centering
 \includegraphics[width=.8\textwidth]{blobs_assignation_time.png}
-\todo[inline]{Figure to be updated: no title, legend inside, x axis renamed ``Number of cluster $\nclusters$'', $\nclusters=128$ and $\nclusters=256$.}
-\caption{Clustering Blobs data: running times of the assignation step, averaged over \addVE{?} runs, for batches of $\nexamples=5000$ examples in dimension $\datadim=2000$. The vertical black lines are the standard deviation w.r.t. the runs and the average number of actual parameters in the models are reported above those lines.\addVE{to be completed}.}
+\todo[inline]{Figure to be updated: no title, legend inside, x axis renamed ``Number of cluster $\nclusters$'', $\nclusters=128$ and $\nclusters=256$; add grid (\texttt{plt.grid()}).}
+\caption{Clustering Blobs data: running times of the assignation step, averaged over \addVE{?} runs, for batches of $\nexamples=5000$ examples in dimension $\datadim=2000$. The vertical black lines are the standard deviation w.r.t. the runs and the average number of parameters actually learned  in the models are reported above those lines.\addVE{to be completed}.}
 \label{fig:clustering:blobs:assignation_time}
 \end{figure}
 
 \subsection{Nearest-neighbor search in a large dataset}
-\todo[inline]{Sur blobs seulement pour pouvoir être dans des dimensions où \qkmeans est plus rapide. Objectif: montrer la rapidité et une perte limitée de l'accuracy. Se comparer brute/ball tree/KD tree, ce qui donne une grande pertinence car ce sont déjà des approches efficaces. Afficher 2 figures: accuracy et inference time (ou distance time). Figure~\ref{fig:nn:blobs}.}
+Nearest-neighbor search is a fundamental task that suffers from computational limitations when the dataset is large.
+Fast strategies have been proposed, e.g., using kd trees or ball trees.
+One may also use a clustering strategy to perform an approximate nearest-neighbor search: the query is first compared to $\nclusters$ centroids computed beforehand by clustering the whole dataset, and the nearest neighbor search is then performed among a lower number of data points, within the related cluster.
+We compare this strategy using \kmeans and \qkmeans against the \texttt{scikit-learn} implementation~\cite{Pedregosa2011Scikit} of the nearest-neighbor search (naive search, kd tree, ball tree).
+Results are reported in Figure~\ref{fig:nn:blobs}.
+As shown in Figure~\ref{fig:nn:blobs:accuracy}, the accuracy of the approximate nearest neighbor search is above $0.99$ \todo{Accuracy $>0.99$ to be checked} for all the tested variants of \qkmeans, which is an solid evidence about the reliability of the approach.
+The running times reported in Figure~\ref{fig:nn:blobs:times} show a dramatic advantage of using a clustering-based approximate search\todo{to be completed by reporting the actual acceleration ratio obtained by \qkmeans over the three sklearn options.}.
 
 \begin{figure}[tbh]
 \centering
-\includegraphics[width=.46\textwidth]{blobs_1nn_accuracy.png}
-\includegraphics[width=.46\textwidth]{blobs_1nn_inference_time.png}
-\todo[inline]{Figure to be updated: no title, legend inside, x axis renamed ``Number of cluster $\nclusters$'', $\nclusters=128$ and $\nclusters=256$, larger font size, add results for brute/ball tree/kd tree.}
-\caption{Nearest neighbor search on blobs data: accuracy (left) and running times (right) \addVE{to be completed}.}
+\begin{subfigure}[b]{.49\textwidth}
+\includegraphics[width=\textwidth]{blobs_1nn_accuracy.png}
+\caption{Accuracy.}
+\label{fig:nn:blobs:accuracy}
+\end{subfigure}
+\begin{subfigure}[b]{.49\textwidth}
+\includegraphics[width=\textwidth]{blobs_1nn_inference_time.png}
+\caption{Running times.}
+\label{fig:nn:blobs:times}
+\end{subfigure}
+\todo[inline]{Figure to be updated: no title, legend inside, x axis renamed ``Number of cluster $\nclusters$'', $\nclusters=128$ and $\nclusters=256$, larger font size, add results for brute/ball tree/kd tree; add grid (\texttt{plt.grid()}).}
+\caption{Nearest neighbor search on blobs data. Results are averaged over ??runs (vertical lines: standard deviation) and the average number of parameters actually learned is reported above each bar. \addVE{to be completed: how many runs?}.}
 \label{fig:nn:blobs}
 \end{figure}
 
@@ -199,7 +213,7 @@ Our algorithm could allow one to obtain an efficient Nyström approximation, whi
 \centering
 \includegraphics[width=.46\textwidth]{blobs_nystrom_error.png}
 \includegraphics[width=.46\textwidth]{blobs_nystrom_inference_time.png}
-\todo[inline]{Figure to be updated: normalize error or represent something else, no title, legend inside, x axis renamed ``Number of cluster $\nclusters$'', $\nclusters=128$ and $\nclusters=256$, larger font size.}
+\todo[inline]{Figure to be updated: normalize error or represent something else, no title, legend inside, x axis renamed ``Number of cluster $\nclusters$'', $\nclusters=128$ and $\nclusters=256$, larger font size; add grid (\texttt{plt.grid()}).}
 \caption{N\"ystrom approximation on blobs data: accuracy (left) and running times (right) \addVE{to be completed}.}
 \label{fig:nystrom:blobs}
 \end{figure}
