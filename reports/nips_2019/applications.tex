@@ -27,8 +27,9 @@ as shown in Figure~\ref{fig:time_csr}, they are significantly faster than dense 
 
 
 \paragraph{Datasets.}
-We present results on real-world and toy datasets summarized in Table \ref{table:datasets}. On the one hand, the real world datasets \texttt{MNIST}~\cite{lecun-mnisthandwrittendigit-2010}, \texttt{Fashion-Mnist}~\cite{Pedregosa2011Scikit} and \texttt{Labeled Faces in the Wild}~\cite{Huang07e.:labeled} (\texttt{LFW}) are used to show --- quantitatively and qualitatively --- the good quality of the obtained centroids when using our method \qkmeans. On the other hand, we use the \texttt{blobs} synthetic dataset from \texttt{sklearn.dataset} to show the speed up offered by our method \qkmeans when the number of clusters and the dimensionality of the data are sufficiently large.
+We present results on real-world and toy datasets summarized in Table \ref{table:data}. On the one hand, the real world datasets \texttt{MNIST}~\cite{lecun-mnisthandwrittendigit-2010}, \texttt{Fashion-Mnist}~\cite{Pedregosa2011Scikit} and \texttt{Labeled Faces in the Wild}~\cite{Huang07e.:labeled} (\texttt{LFW}) are used to show --- quantitatively and qualitatively --- the good quality of the obtained centroids when using our method \qkmeans. On the other hand, we use the \texttt{blobs} synthetic dataset from \texttt{sklearn.dataset} to show the speed up offered by our method \qkmeans when the number of clusters and the dimensionality of the data are sufficiently large.
 %The code of our method \qkmeans is available on request and will be available online soon. \addLG{je serais d'avis de ne pas dire ça mais soit de dire qu'il est déjà disponible, soit de ne rien dire. Sachant qu'on ne peut pas dire qu'il est déjà disponible en ligne avant le processus de reviewing}
+
 
 \begin{table*}[!h]
 \centering
@@ -41,7 +42,7 @@ LFW                     & 1850  & 2529      & 8866      & N/A               \\ \
 Blobs (clusters std: 12)   & 2000  & 1000      & 29000      & 1000               \\ \hline
 \end{tabular}
 \caption{Datasets statistics}
-\label{tab:data}
+\label{table:data}
 \end{table*}
 
 \paragraph{Algorithm settings.} 
@@ -52,7 +53,7 @@ Since the projection onto this set of structured-sparsity constraints may be com
 The actual number of non-zero coefficients in the sparse factors is measured at the end of the optimization process and reported in the results.
 The sparse factors are updated using the \palm rather than its hierarchical version, since we observed that this was a better choice in terms of computational cost, with satisfying approximation results.
 Additional details about \palm are given in Appendix~\ref{sec:app:palm4msa}.
-The stopping criterion of \kmeans and \qkmeans consists of a tolerance set to $10^{-6}$ on the relative variation of the objective function and a maximum number of iterations set to ??\todo{nb-iteration?}. The same principle governs the stopping criterion of \palm with a tolerance set to $10^{-6}$ and a maximum number of iterations set to ??\todo{nb-iteration?}.
+The stopping criterion of \kmeans and \qkmeans consists of a tolerance set to $10^{-6}$ on the relative variation of the objective function and a maximum number of iterations set to 20. The same principle governs the stopping criterion of \palm with a tolerance set to $10^{-6}$ and a maximum number of iterations set to 300.
 
 %\subsection{Sparse factors multiplication}
 %
@@ -128,8 +129,8 @@ Although some degradation may be observed in some images, one can note that each
 \paragraph{Clustering assignation times.}
 Higher dimensions are required to assess the computational benefits of the proposed approach, as shown here.
 The assignation times of the clustering procedure were measured on the Blobs dataset.
-The centroid matrices are with shape $\nclusters \times \datadim$ with $\datadim=2000$ and $\nclusters\in\left \lbrace 128, 256\right \rbrace$.
-Results reported in Figure~\ref{fig:clustering:blobs:assignation_time} show that in this setting and with the current implementation, the computational advantage of \qkmeans is observed for the higher number of clusters $\nclusters=256$.
+The centroid matrices are with shape $\nclusters \times \datadim$ with $\datadim=1000$  and $\nclusters\in\left \lbrace 128, 256, 512\right \rbrace$.
+Results reported in Figure~\ref{fig:clustering:blobs:assignation_time} show that in this setting and with the current implementation, the computational advantage of \qkmeans is observed for the higher number of clusters $\nclusters=512$.
 
 %\todo[inline]{Montrer ensuite les temps d'assignation en mode batch 5000 sur blobs, cf. Figure~\ref{fig:clustering:blobs:assignation_time}. Objectif: montrer qu'à partir d'une certaine dimension, \qkmeans est plus rapide.}
 %on-line\footnote{Anonymous URL.}.
@@ -138,7 +139,7 @@ Results reported in Figure~\ref{fig:clustering:blobs:assignation_time} show that
 \centering
 \includegraphics[width=.8\textwidth]{blobs_assignation_time.png}
 \todo[inline]{Figure to be updated: no title, legend inside, x axis renamed ``Number of cluster $\nclusters$'', $\nclusters=128$ and $\nclusters=256$; add grid (\texttt{plt.grid()}).}
-\caption{Clustering Blobs data: running times of the assignation step, averaged over \addVE{?} runs, for batches of $\nexamples=5000$ examples in dimension $\datadim=2000$. The vertical black lines are the standard deviation w.r.t. the runs and the average number of parameters actually learned  in the models are reported above those lines.\addVE{to be completed}.}
+\caption{Clustering Blobs data: running times of the assignation step, averaged over 5 runs, for batches of $\nexamples=5000$ examples in dimension $\datadim=1000$. The vertical black lines are the standard deviation w.r.t. the runs and the average number of parameters actually learned  in the models are reported above those lines.\addVE{to be completed}.}
 \label{fig:clustering:blobs:assignation_time}
 \end{figure}
 
@@ -148,7 +149,7 @@ Fast strategies have been proposed, e.g., using kd trees or ball trees.
 One may also use a clustering strategy to perform an approximate nearest-neighbor search: the query is first compared to $\nclusters$ centroids computed beforehand by clustering the whole dataset, and the nearest neighbor search is then performed among a lower number of data points, within the related cluster.
 We compare this strategy using \kmeans and \qkmeans against the \texttt{scikit-learn} implementation~\cite{Pedregosa2011Scikit} of the nearest-neighbor search (naive search, kd tree, ball tree).
 Results are reported in Figure~\ref{fig:nn:blobs}.
-As shown in Figure~\ref{fig:nn:blobs:accuracy}, the accuracy of the approximate nearest neighbor search is above $0.99$ \todo{Accuracy $>0.99$ to be checked} for all the tested variants of \qkmeans, which is an solid evidence about the reliability of the approach.
+As shown in Figure~\ref{fig:nn:blobs:accuracy}, the accuracy of the approximate nearest neighbor search is above $0.99$ \todo{Accuracy $>0.99$ to be checked} for all the tested variants of \qkmeans, which is an solid evidence about the reliability of the approach. \addLG{Faire plutôt un grand tableau qui recense tous les résultats d'accuracy sur tous les jeux de données}
 The running times reported in Figure~\ref{fig:nn:blobs:times} show a dramatic advantage of using a clustering-based approximate search\todo{to be completed by reporting the actual acceleration ratio obtained by \qkmeans over the three sklearn options.}.
 
 \begin{figure}[tbh]
@@ -164,7 +165,7 @@ The running times reported in Figure~\ref{fig:nn:blobs:times} show a dramatic ad
 \label{fig:nn:blobs:times}
 \end{subfigure}
 \todo[inline]{Figure to be updated: no title, legend inside, x axis renamed ``Number of cluster $\nclusters$'', $\nclusters=128$ and $\nclusters=256$, larger font size, add results for brute/ball tree/kd tree; add grid (\texttt{plt.grid()}).}
-\caption{Nearest neighbor search on blobs data. Results are averaged over ??runs (vertical lines: standard deviation) and the average number of parameters actually learned is reported above each bar. \addVE{to be completed: how many runs?}.}
+\caption{Nearest neighbor search on blobs data. Results are averaged over 5 runs (vertical lines: standard deviation) and the average number of parameters actually learned is reported above each bar. \addVE{to be completed: how many runs?}. \addLG{les résultats avec brute/kdtree/balltree ne sont pas affichés car ils prennaient plus de 10 fois le temps de l'approximation avec K means -> peut-être montrer ces résultats de perf avec mnist/fashionmnsit}}
 \label{fig:nn:blobs}
 \end{figure}
 
