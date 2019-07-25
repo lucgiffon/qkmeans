@@ -34,7 +34,7 @@ We present results on real-world and toy datasets summarized in Table \ref{table
 \centering
 \begin{tabular}{|c|c|c|c|c|c|}
 \hline
-\textbf{Dataset} & \textbf{Dimension}        & \textbf{\# classes} & \textbf{Training set size} & \textbf{Test set size} \\ \hline
+\textbf{Dataset} & \textbf{Data dim.} $\datadim$        & \textbf{\# classes} & \textbf{Training set size} $\nexamples$ & \textbf{Test set size} $\nexamples'$ \\ \hline
 MNIST                   & 784   & 10        & 60 000    & 10 000               \\ \hline
 Fashion-MNIST           & 784   & 10        & 60 000    & 10 000               \\ \hline
 LFW                     & 1850  & 2529      & 8866      & N/A               \\ \hline
@@ -51,7 +51,7 @@ The sparsity constraint of each factor $\rmS_q$ is set in $\mathcal{E}_q$ and is
 Since the projection onto this set of structured-sparsity constraints may be computationally expensive, this projection is relaxed in the implementation of \palm and only guarantees that the number of non-zero coefficients in each row and each column is at least the sparsity level, as in~\cite{LeMagoarou2016Flexible}.
 The actual number of non-zero coefficients in the sparse factors is measured at the end of the optimization process and reported in the results.
 The sparse factors are updated using the \palm rather than its hierarchical version, since we observed that this was a better choice in terms of computational cost, with satisfying approximation results.
-Additional details about \palm are given in Appendix~
+Additional details about \palm are given in Appendix~\ref{sec:app:palm4msa}.
 The stopping criterion of \kmeans and \qkmeans consists of a tolerance set to $10^{-6}$ on the relative variation of the objective function and a maximum number of iterations set to ??\todo{nb-iteration?}. The same principle governs the stopping criterion of \palm with a tolerance set to $10^{-6}$ and a maximum number of iterations set to ??\todo{nb-iteration?}.
 
 %\subsection{Sparse factors multiplication}
@@ -64,16 +64,81 @@ The stopping criterion of \kmeans and \qkmeans consists of a tolerance set to $1
 
 \subsection{Clustering}
 
-\todo[inline]{Commencer par MNIST et Fashion MNIST en montrant les imagettes et éventuellement les données quantitatives (histogramme?). Objectif: montrer que la qualité de l'approximation par un opérateur rapide est bonne, visuellement (jolies imagettes) et quantitativement (dégradation limitée). $\nclusters=30$ suffit. À quoi \qkmeans est comparé?}
+\begin{figure}[p]
+\begin{subfigure}[b]{.49\textwidth}
+\includegraphics[width=\textwidth]{mnist30_objective.png}
+\caption{MNIST, $\nclusters=30$: objective function.}
+\label{fig:mnist:objfun}
+\end{subfigure}
+\begin{subfigure}[b]{.49\textwidth}
+\includegraphics[width=\textwidth]{fashmnist30_objective.png}
+\caption{Fashion-MNIST, $\nclusters=30$: objective function.}
+\label{fig:fmnist:objfun}
+\end{subfigure}
+\begin{subfigure}[t]{.49\textwidth}
+\includegraphics[width=\textwidth]{mnist30_kmeans_centroids.png}
+\caption{\kmeans centroids.}
+\label{fig:mnist:kmeans:centroids}
+\end{subfigure}
+\begin{subfigure}[t]{.49\textwidth}
+\includegraphics[width=\textwidth]{fashmnist30_kmeans_centroids.png}
+\caption{\kmeans centroids.}
+\label{fig:fmnist:kmeans:centroids}
+\end{subfigure}
+\begin{subfigure}[t]{.49\textwidth}
+\includegraphics[width=\textwidth]{mnist30_qkmeans_centroids.png}
+\caption{\qkmeans centroids.}
+\label{fig:mnist:qkmeans:centroids}
+\end{subfigure}
+\begin{subfigure}[t]{.49\textwidth}
+\includegraphics[width=\textwidth]{fashmnist30_qkmeans_centroids.png}
+\caption{\qkmeans centroids.}
+\label{fig:fmnist:qkmeans:centroids}
+\end{subfigure}
+\begin{subfigure}[t]{.49\textwidth}
+\includegraphics[width=\textwidth]{mnist30_hqkmeans_centroids.png}
+\caption{Hierarchical-\palm \qkmeans centroids.}
+\label{fig:mnist:hqkmeans:centroids}
+\end{subfigure}
+\begin{subfigure}[t]{.49\textwidth}
+\includegraphics[width=\textwidth]{fashmnist30_hqkmeans_centroids.png}
+\caption{Hierarchical-\palm \qkmeans centroids.}
+\label{fig:fmnist:hqkmeans:centroids}
+\end{subfigure}
+\caption{Clustering results on MNIST (left) and Fashion-MNIST (right) for $\nclusters=30$ clusters.}
+\label{fig:clustering:realdata}
+\end{figure}
 
-\todo[inline]{Montrer ensuite les temps d'assignation en mode batch 5000 sur blobs, cf. Figure~\ref{fig:clustering:blobs:assignation_time}. Objectif: montrer qu'à partir d'une certaine dimension, \qkmeans est plus rapide.}
+\todo[inline]{Figures~\ref{fig:mnist:objfun} and~\ref{fig:fmnist:objfun} to be updated: remove curves for sparsity 1 ; remove title; update legend text as ``Hierarch. QKmeans, sparsity level 3''; legend inside; y axis named ``Objective function''; larger font size.}
+
+\todo[inline]{Figures~\ref{fig:mnist:kmeans:centroids} to~\ref{fig:fmnist:hqkmeans:centroids} to be updated: remove title, adjust height so that all figures fit in a single page; it may be more natural to use a greyscale colormap to display images; which sparsity level shall we choose? low sparsity to show that the worst case is still good or high sparsity to show the best case?}
+
+\paragraph{Approximation quality.} One important question is the ability of the fast-structure model to fit arbitrary data.
+Indeed, no theoretical result about the expressivity of such models is currently available.
+In order to assess this approximation quality, the MNIST et Fashion MNIST data have been clustered into $\nclusters=30$ clusters by \kmeans, \qkmeans and a variant of \qkmeans using the hierarchical version of \palm, with several sparsity levels.
+Results are reported in Figure~\ref{fig:clustering:realdata}.
+In Figures~\ref{fig:mnist:objfun} and~\ref{fig:fmnist:objfun}, one can observe that the objective function of \qkmeans is decreasing in a similar way as \kmeans over iterations.
+In particular, the use of the fast-structure model does not seem to slow the procedure down.
+At the end of the iterations, the value of objective function for \qkmeans is slightly above that of \kmeans.
+As expected, the sparser the model, the more degradation in the objective function.
+However, even very sparse models do not degrade the results significantly.
+The approximation quality can be assessed visually, in a more subjective and interpretable way, in Figures~\ref{fig:mnist:kmeans:centroids} to~\ref{fig:fmnist:hqkmeans:centroids} where the obtained centroids are displayed as images.
+Although some degradation may be observed in some images, one can note that each image obtained with \qkmeans clearly represents a single visual item without noticeable interference with other items.
+
+\paragraph{Clustering assignation times.}
+Higher dimensions are required to assess the computational benefits of the proposed approach, as shown here.
+The assignation times of the clustering procedure were measured on the Blobs dataset.
+The centroid matrices are with shape $\nclusters \times \datadim$ with $\datadim=2000$ and $\nclusters\in\left \lbrace 128, 256\right \rbrace$.
+Results reported in Figure~\ref{fig:clustering:blobs:assignation_time} show that in this setting and with the current implementation, the computational advantage of \qkmeans is observed for the higher number of clusters $\nclusters=256$.
+
+%\todo[inline]{Montrer ensuite les temps d'assignation en mode batch 5000 sur blobs, cf. Figure~\ref{fig:clustering:blobs:assignation_time}. Objectif: montrer qu'à partir d'une certaine dimension, \qkmeans est plus rapide.}
 %on-line\footnote{Anonymous URL.}.
 
 \begin{figure}[tbh]
 \centering
 \includegraphics[width=.8\textwidth]{blobs_assignation_time.png}
 \todo[inline]{Figure to be updated: no title, legend inside, x axis renamed ``Number of cluster $\nclusters$'', $\nclusters=128$ and $\nclusters=256$.}
-\caption{Clustering blobs data: running times of the assignation step, averaged over \addVE{?} runs, \addVE{to be completed}.}
+\caption{Clustering Blobs data: running times of the assignation step, averaged over \addVE{?} runs, for batches of $\nexamples=5000$ examples in dimension $\datadim=2000$. The vertical black lines are the standard deviation w.r.t. the runs and the average number of actual parameters in the models are reported above those lines.\addVE{to be completed}.}
 \label{fig:clustering:blobs:assignation_time}
 \end{figure}
 
