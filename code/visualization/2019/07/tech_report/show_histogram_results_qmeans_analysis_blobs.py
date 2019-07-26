@@ -170,7 +170,13 @@ if __name__ == "__main__":
             for str_task in tasks:
                 nb_kmeans_palm = len(sparsity_values) * 2
                 # extra_bars = 1 + nb_kmeans_palm if "1nn_kmean" not in str_task else 3 + nb_kmeans_palm # for 1nn there are also the other methods (ball_tree, kd_tree, to plot)
-                extra_bars = 0 if "1nn_kmean" not in str_task else 3
+                if "1nn_kmean" in str_task:
+                    extra_bars = 3
+                elif "nystrom_sampled_error_reconstruction" in str_task:
+                    extra_bars = 1
+                else:
+                    extra_bars = 0
+
                 bar_width = 0.9 / (len(sparsity_values) + extra_bars + 1)
                 fig, ax = plt.subplots()
                 plt.grid(zorder=-10)
@@ -257,6 +263,27 @@ if __name__ == "__main__":
                 #         #             horizontalalignment='center',
                 #         #             verticalalignment='bottom',
                 #         #             rotation='vertical')
+
+                if "nystrom_sampled_error_reconstruction" in str_task:
+                    offset_from_qmeans = 1 # offset from qmeans =1 because there are both kmeans first
+                    str_task_special_1nn = "nystrom_sampled_error_reconstruction_uniform"
+                    task_values_nystrom_uniform = [pd.to_numeric(df_dataset_kmeans[df_dataset_kmeans["--nb-cluster"] == clust_nbr][str_task_special_1nn], errors="coerce") for clust_nbr in nb_cluster_values]
+                    mean_task_values_nystrom_uniform = [d.mean() for d in task_values_nystrom_uniform]
+                    std_task_values_nystrom_uniform = [d.std() for d in task_values_nystrom_uniform]
+
+                    bars.append(ax.bar(x_indices + bar_width * (len(sparsity_values) + offset_from_qmeans), mean_task_values_nystrom_uniform, bar_width, yerr=std_task_values_nystrom_uniform,
+                                       label="Uniform sampling", zorder=10, color="m"))
+
+                    for idx_bar, xcoor in enumerate(x_indices + bar_width * (len(sparsity_values) + offset_from_qmeans)):
+                        nb_param = df_dataset_kmeans[df_dataset_kmeans["--nb-cluster"] == nb_cluster_values[idx_bar]]["nb_param_centroids"].mean()
+                        ax.text(xcoor, mean_task_values_nystrom_uniform[idx_bar] + std_task_values_nystrom_uniform[idx_bar], ' {}'.format(int(round(nb_param))),
+                                horizontalalignment='center',
+                                verticalalignment='bottom',
+                                rotation='vertical')
+
+                    max_value_in_plot = max(max_value_in_plot, max(np.array(mean_task_values_nystrom_uniform) + np.array(std_task_values_nystrom_uniform)))
+
+
 
                 title = '{}: {}'.format(dataset_name, str_task) + (" Hierarchical version" if hierarchical_value else "")
                 if str_task == "batch_assignation_mean_time":
