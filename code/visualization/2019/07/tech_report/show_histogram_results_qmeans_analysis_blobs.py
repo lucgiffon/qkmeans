@@ -42,14 +42,21 @@ def get_df(path):
 
 
 if __name__ == "__main__":
-    suf_path = "2019/07/qmeans_analysis_blobs_log2_clusters_bis"
+    # suf_path = "2019/07/qmeans_analysis_blobs_log2_clusters_bis"
+    suf_path = "2019/07/qmeans_analysis_blobs_log2_clusters_bis_higherdim"
     input_dir = "/home/luc/PycharmProjects/qalm_qmeans/results/" + suf_path
     output_dir = "/home/luc/PycharmProjects/qalm_qmeans/reports/figures/"+ "2019/07/tech_report" + "/histogrammes"
     output_dir = pathlib.Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
+    suf_path_1024 = "2019/07/qmeans_analysis_blobs_log2_clusters_bis_higherdim_1024"
+    input_dir_1024 = "/home/luc/PycharmProjects/qalm_qmeans/results/" + suf_path_1024
 
-    df_results = get_df(input_dir)
+
+    df_results_no_1024 = get_df(input_dir)
+    # df_results_1024 = get_df(input_dir_1024)
+    # df_results = pd.concat([df_results_no_1024, df_results_1024])
+    df_results = df_results_no_1024
     df_results_kmeans = df_results[df_results["kmeans"]]
 
     df_results = pd.concat([df_results, df_results_kmeans])
