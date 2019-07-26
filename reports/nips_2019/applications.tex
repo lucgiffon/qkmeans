@@ -14,7 +14,7 @@ as shown in Figure~\ref{fig:time_csr}, they are significantly faster than dense 
 \begin{figure}[tbh]
 \centering
 \includegraphics[width=.8\textwidth]{RunningTime4VaryingSparsity.png}
-\caption{Running times, averaged over 30 runs, when applying dense or fast $\datadim \times \datadim$ operators to a set of 100 random vectors. The number of factors in fast operators equals $\log_2\left (\datadim\right )$ and the sparsity level denotes the number of non-zero coefficients per row and per column in each factor. \addLG{la figure 1 est très étrange: elle présente une vitesse d'exécution toujours plus rapide pour les opérateurs rapides, peu importe la taille de la matrice. Es-tu sur que cette figure correspond bien à un produit de facteurs sparses? Voir figure \ref{fig:time_csr_fixed_row_size}}\addVE{J'ai fait tourner l'expé (dernière version de \texttt{script\_time\_sparsity.py}) sur le cluster avec un nombre plus importants de runs qu'avant et des dimensions plus importantes. Tu peux regarder une autre figure un peu plus détaillée \texttt{nips\_2019/figures/RunningTime4VaryingSparsity\_with\_area.png} où la zone colorée correspond à la zone de tous les temps mesurés (i.e., entre le min et le max): on voit que pour des petites dimensions, il y a une grosse variance sur le temps de calcul pour les matrices denses. Donc ces résultats ne me semblent pas incompatibles avec les tiens et ceux qu'on avait précédemment; l'essentiel reste à mon sens qu'il faut travailler en grande dimension. À noter que je viens de relancer les expés sur decoda2 car je l'avais fait jusqu'ici sur sensei1 où les CPU sont à 2 ou 2.5GHz.}}
+\caption{Running times, averaged over 30 runs, when applying dense or fast $\datadim \times \datadim$ operators to a set of 100 random vectors. The number of factors in fast operators equals $\log_2\left (\datadim\right )$ and the sparsity level denotes the number of non-zero coefficients per row and per column in each factor.}
 \label{fig:time_csr}
 \end{figure}
 
@@ -54,7 +54,7 @@ Since the projection onto this set of structured-sparsity constraints may be com
 The actual number of non-zero coefficients in the sparse factors is measured at the end of the optimization process and reported in the results.
 The sparse factors are updated using the \palm rather than its hierarchical version, since we observed that this was a better choice in terms of computational cost, with satisfying approximation results.
 Additional details about \palm are given in Appendix~\ref{sec:app:palm4msa}.
-The stopping criterion of \kmeans and \qkmeans consists of a tolerance set to $10^{-6}$ on the relative variation of the objective function and a maximum number of iterations set to 10 for the \texttt{Blobs}dataset and to 20 for others. The same principle governs the stopping criterion of \palm with a tolerance set to $10^{-6}$ and a maximum number of iterations set to 300.
+The stopping criterion of \kmeans and \qkmeans consists of a tolerance set to $10^{-6}$ on the relative variation of the objective function and a maximum number of iterations set to 10 for the \texttt{Blobs}dataset and to 20 for others. The same principle governs the stopping criterion of \palm with a tolerance set to $10^{-6}$ and a maximum number of iterations set to 300. Each experiment have been replicated using different seed value for random initialisation. Competing techniques share the same seed values, hence share the same initialisation of centroids.
 
 %\subsection{Sparse factors multiplication}
 %
@@ -125,8 +125,8 @@ Although some degradation may be observed in some images, one can note that each
 \paragraph{Clustering assignation times.}
 Higher dimensions are required to assess the computational benefits of the proposed approach, as shown here.
 The assignation times of the clustering procedure were measured on the Blobs dataset.
-The centroid matrices are with shape $\nclusters \times \datadim$ with $\datadim=1000$  and $\nclusters\in\left \lbrace 128, 256, 512\right \rbrace$.
-Results reported in Figure~\ref{fig:clustering:blobs:assignation_time} show that in this setting and with the current implementation, the computational advantage of \qkmeans is observed for the higher number of clusters $\nclusters=512$.
+The centroid matrices are with shape $\nclusters \times \datadim$ with $\datadim=2000$  and $\nclusters\in\left \lbrace 128, 256, 512\right \rbrace$.
+Results reported in Figure~\ref{fig:clustering:blobs:assignation_time} show that in this setting and with the current implementation, the computational advantage of \qkmeans is observed for the highest number of clusters $\nclusters=512$.
 
 %\todo[inline]{Montrer ensuite les temps d'assignation en mode batch 5000 sur blobs, cf. Figure~\ref{fig:clustering:blobs:assignation_time}. Objectif: montrer qu'à partir d'une certaine dimension, \qkmeans est plus rapide.}
 %on-line\footnote{Anonymous URL.}.
@@ -139,33 +139,96 @@ Results reported in Figure~\ref{fig:clustering:blobs:assignation_time} show that
 \end{figure}
 
 \subsection{Nearest-neighbor search in a large dataset}
-Nearest-neighbor search is a fundamental task that suffers from computational limitations when the dataset is large.
+The Nearest-neighbor search is a fundamental task that suffers from computational limitations when the dataset is large.
 Fast strategies have been proposed, e.g., using kd trees or ball trees.
 One may also use a clustering strategy to perform an approximate nearest-neighbor search: the query is first compared to $\nclusters$ centroids computed beforehand by clustering the whole dataset, and the nearest neighbor search is then performed among a lower number of data points, within the related cluster.
-We compare this strategy using \kmeans and \qkmeans against the \texttt{scikit-learn} implementation~\cite{Pedregosa2011Scikit} of the nearest-neighbor search (naive search, kd tree, ball tree).
-Results are reported in Figure~\ref{fig:nn:blobs}.
-As shown in Figure~\ref{fig:nn:blobs:accuracy}, the accuracy of the approximate nearest neighbor search is above $0.99$ \todo{Accuracy $>0.99$ to be checked} for all the tested variants of \qkmeans, which is an solid evidence about the reliability of the approach. \addLG{Faire plutôt un grand tableau qui recense tous les résultats d'accuracy sur tous les jeux de données}
-The running times reported in Figure~\ref{fig:nn:blobs:times} show a dramatic advantage of using a clustering-based approximate search\todo{to be completed by reporting the actual acceleration ratio obtained by \qkmeans over the three sklearn options.}.
+We compare this strategy using \kmeans and \qkmeans against the \texttt{scikit-learn} implementation~\cite{Pedregosa2011Scikit} of the nearest-neighbor search (brute force search, kd tree, ball tree).
+Inference time results on the \texttt{Blobs} dataset are reported in Figure~\ref{fig:nn:blobs} and accuracy results are displayed in Table~\ref{table:results_blobs}. 
+% As shown in Figure~\ref{fig:nn:blobs:accuracy}, the accuracy of the approximate nearest neighbor search is above $0.99$ \todo{Accuracy $>0.99$ to be checked} for all the tested variants of \qkmeans, which is an solid evidence about the reliability of the approach.
+The running times reported in Figure~\ref{fig:nn:blobs} show a dramatic advantage of using a clustering-based approximate search \todo{to be completed by reporting the actual acceleration ratio obtained by \qkmeans over the three sklearn options.} and this advantage is even stronger with the clustering obtained by our \qkmeans method. This speed-up comes at a cost though, we can see a drop in classification performance in Table~\ref{table:results_blobs}. 
 
 \begin{figure}[tbh]
 \centering
-\begin{subfigure}[b]{.49\textwidth}
-\includegraphics[width=\textwidth]{blobs_1nn_accuracy.png}
-\caption{Accuracy.}
-\label{fig:nn:blobs:accuracy}
-\end{subfigure}
-\begin{subfigure}[b]{.49\textwidth}
+%\begin{subfigure}[b]{.49\textwidth}
+%\includegraphics[width=\textwidth]{blobs_1nn_accuracy.png}
+%\caption{Accuracy.}
+%\label{fig:nn:blobs:accuracy}
+%\end{subfigure}
+%\begin{subfigure}[b]{.49\textwidth}
 \includegraphics[width=\textwidth]{blobs_1nn_inference_time.png}
-\caption{Running times.}
+%\caption{Running times.}
 \label{fig:nn:blobs:times}
-\end{subfigure}
+%\end{subfigure}
 
-\caption{Nearest neighbor search on blobs data. Results are averaged over 5 runs (vertical lines: standard deviation) and the average number of parameters actually learned is reported above each bar. \addVE{to be completed: how many runs?}. \addLG{les résultats avec brute/kdtree/balltree ne sont pas affichés car ils prennaient plus de 10 fois le temps de l'approximation avec K means -> peut-être montrer ces résultats de perf avec mnist/fashionmnsit}}
+\caption{Running time of nearest neighbor search on blobs data. Results are averaged over 5 runs (vertical lines: standard deviation) and the average number of parameters actually learned is reported above each bar. The results for the Brute Force Search, KD Tree and Ball Tree are not displayed because they were longer than 10 times the K-means search version.}
 \label{fig:nn:blobs}
 \end{figure}
 
+ 
+\begin{table}[]
+
+\centering
+\begin{tabular}{@{}l|l@{}}
+\toprule
+                                    & Accuracy \texttt{Blobs} \\ \midrule
+1NN Brute force search              & N/A   \\
+1NN KD Tree                         & N/A   \\
+1NN Ball Tree                       & N/A   \\ \midrule
+1NN K-means 128 Clusters            &       \\
+1NN K-means 256 Clusters            &       \\
+1NN K-means 512 Clusters            &       \\ \midrule
+1NN QK-means 128 Clusters           &       \\
+1NN QK-means 256 Clusters           &       \\
+1NN QK-means 512 Clusters           &       \\ \midrule \midrule
+Nyström K-means + SVM 128 Clusters  &       \\
+Nyström K-means + SVM 256 Clusters  &       \\
+Nyström K-means + SVM 512 Clusters  &       \\ \midrule
+Nyström QK-means + SVM 128 Clusters &       \\
+Nyström QK-means + SVM 256 Clusters &       \\
+Nyström QK-means + SVM 512 Clusters &       \\ \bottomrule
+\end{tabular}
+
+\caption{Results on the classification task on \texttt{Blobs} dataset. Results are averaged over 5 runs. ``N/A'' denotes experiments that did not finish.}
+\label{table:results_blobs}
+
+\end{table}
+
+\begin{table}[]
+
+\centering
+\begin{tabular}{@{}l|l@{}|l@{}}
+\toprule
+                                    & Accuracy \texttt{MNIST} & Accuracy \texttt{Fashion-MNIST} \\ \midrule
+1NN Brute force search              &   &    \\
+1NN KD Tree                         &   &    \\
+1NN Ball Tree                       &   &    \\ \midrule
+1NN K-means 10 Clusters            &   &    \\
+1NN K-means 16 Clusters            &   &    \\
+1NN K-means 30 Clusters            &   &    \\ \midrule
+1NN QK-means 10 Clusters           &   &    \\
+1NN QK-means 16 Clusters           &   &    \\
+1NN QK-means 30 Clusters           &   &    \\ \midrule \midrule
+% Nyström K-means + SVM 10 Clusters  &       \\
+% Nyström K-means + SVM 16 Clusters  &       \\
+% Nyström K-means + SVM 30 Clusters  &       \\ \midrule
+% Nyström QK-means + SVM 10 Clusters &       \\
+% Nyström QK-means + SVM 16 Clusters &       \\
+% Nyström QK-means + SVM 30 Clusters &       \\ \bottomrule
+\end{tabular}
+
+\caption{Results on the classification task on the \texttt{MNIST} and \texttt{Fashion-MNIST} datasets. Results are averaged over 5 runs. ``N/A'' denotes experiments that did not finish.}
+\label{table:results_mnist_fmnist}
+
+\end{table}
+\todo{Ajouter les résultats Nyström + SVM aux jeux de données MNIST et Fashion Mnist}
+
 \subsection{Nyström approximation}
+
+In this sub-section, we show how we can take advantage of the fast-operator obtained as output of our \qkmeans algorithm in order to speed-up the computation in the Nyström approximation. We start by giving background knowledge on the Nyström approximation then we present some recent work aiming at accelarting it using well know fast-transform method. We finally stem on this work to present a novel approach based on our \qkmeans algorithm.
+
 \todo[inline]{Sur blobs seulement pour pouvoir être dans des dimensions où \qkmeans est plus rapide. Objectif: montrer la rapidité et une perte limitée de l'accuracy. Se comparer brute/ball tree/KD tree, ce qui donne une grande pertinence car ce sont déjà des approches efficaces. Afficher 2 figures: accuracy et inference time (ou distance time). Figure~\ref{fig:nystrom:blobs}.}
+
+\subsubsection{Background on the Nyström approximation}
 
 Standard kernel machines are often impossible to use in large-scale applications because of their high computational cost associated with the kernel matrix $\rmK$ which has $O(n^2)$ storage and $O(n^2d)$ computational complexity: $\forall i,j \in\intint{\nexamples}, \rmK_{i,j} = k(\rvx_i, \rvx_j)$. A well-known strategy to overcome this problem is to use the Nyström method which computes a low-rank approximation of the kernel matrix on the basis of some pre-selected landmark points. 
 
@@ -203,7 +266,7 @@ Depending on the $\rmH$ matrix chosen, it is possible to improve the time comple
 We propose to use our Q-means algorithm in order to learn directly the $\rmU$ matrix in the Nyström approximation so that the matrix-vector multiplication $\rmU \rvx$ is cheap to compute, but the structure of $\rmU$ is not constrained by some pre-defined transform matrix. We propose to take the objective $\rmU$ matrix as the K-means matrix of $\rmX$ since it has been shown to achieve good reconstruction accuracy in the Nyström method.
 
 
-Our algorithm could allow one to obtain an efficient Nyström approximation, while keeping the quality of the K-means landmark points which are expressed as a factorization of sparse matrix.  
+Our algorithm could allow one to obtain an efficient Nyström approximation, while not reducing too much the quality of the K-means landmark points which are expressed as a factorization of sparse matrix. 
 
 \begin{figure}[tbh]
 \centering
