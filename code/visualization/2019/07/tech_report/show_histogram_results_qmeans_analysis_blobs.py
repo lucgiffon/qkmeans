@@ -100,7 +100,9 @@ if __name__ == "__main__":
                   "traintime",
                   "1nn_kmean_accuracy",
     "batch_assignation_mean_time",
-             "1nn_get_distance_time"
+             "1nn_get_distance_time",
+    "nystrom_svm_accuracy",
+    "nystrom_svm_time"
     ]
 
     x_indices = np.arange(len(nb_cluster_values))
@@ -114,7 +116,10 @@ if __name__ == "__main__":
         "traintime": "linear",
         "1nn_kmean_accuracy": "linear",
     "batch_assignation_mean_time": "linear",
-        "1nn_get_distance_time": "linear"
+        "1nn_get_distance_time": "linear",
+
+    "nystrom_svm_accuracy": "linear",
+    "nystrom_svm_time": "linear"
     }
 
     y_axis_label_by_task = {
@@ -126,7 +131,9 @@ if __name__ == "__main__":
         "traintime": "time (s)",
         "1nn_kmean_accuracy": "accuracy",
         "batch_assignation_mean_time": "time (s)",
-        "1nn_get_distance_time": "time(s)"
+        "1nn_get_distance_time": "time(s)",
+    "nystrom_svm_accuracy": "accuracy",
+    "nystrom_svm_time": "time(s)"
     }
 
     nb_sample_batch_assignation_mean_time = set(df_results["--batch-assignation-time"].dropna().values.astype(int)).pop()
