@@ -1,26 +1,37 @@
 \section{Conclusion}
 \label{sec:conclusion}
 
-In this paper, we proposed a new algorithm with convergence proof, that allows to learn a matrix of \kmeans center-points with sparse factorization constraint. We provide complexity analysis showing, that this particular matrix may speed up further machine learning algorithms that would usually make use of the standard K-means center-point matrix. In particular, we show that this algorithm could be used in the context of the Nyström approximation.
+In this paper, we have proposed a variant of the \kmeans algorithm, named \qkmeans, designed to achieve a similar goal -- clustering data points around $\nclusters$ learned centroids -- with a much lower computational complexity as the dimension of the data, the number of examples and the number of clusters get high. Our approach is based on the approximation of the centroid matrix by an operator structured as a product of a small number of sparse matrices, resulting in a low time and space complexity when applied to data vectors.
+We have shown the convergence properties of the proposed algorithm and provided its complexity analysis.
 
-This paper does not contain any experimental results as it describes ongoing work. In the following, %next subsection (Section \ref{sec:foreseen_experiments}), 
-we discuss foreseen experiments that would aim at illustrating the speed gain when using our method, while not reducing the overall accuracy in machine learning settings.
+An implementation prototype has been run in several core machine learning use cases including clustering, nearest-neighbor search and Nystr\"om approximation. The experimental results illustrate the computational gain in high dimension at inference time as well as the good approximation qualities of the proposed model.
+
+Beyond these modeling, algorithmic and experimental contributions to low-complexity high-dimensional machine learning, we have identified several important questions that are still to be addressed.
+First, although learning the fast-structure operator has been nicely integrated in the training algorithm with an advantageous theoretical time and space complexity, exhibiting gains in actual running times has not been achieved yet for the \qkmeans learning procedure, compared to \kmeans.
+This may be obtained in even higher dimensions than in the proposed experimental settings, which may require a new version of \qkmeans using batches of data in order to process amounts of data that do not fit in memory.
+Second, the expressiveness of the fast-structure model is still to be theoretically studied, while our experiments seems to show that arbitrary matrices may be well fitted by such models.
+\todo[inline]{Any other perspective?}
+
+%a new algorithm with convergence proof, that allows to learn a matrix of \kmeans center-points with sparse factorization constraint. We provide complexity analysis showing, that this particular matrix may speed up further machine learning algorithms that would usually make use of the standard K-means center-point matrix. In particular, we show that this algorithm could be used in the context of the Nyström approximation.
+
+%This paper does not contain any experimental results as it describes ongoing work. In the following, %next subsection (Section \ref{sec:foreseen_experiments}), 
+%we discuss foreseen experiments that would aim at illustrating the speed gain when using our method, while not reducing the overall accuracy in machine learning settings.
+%%
+%%Last but not least, we discuss in the Section \ref{sec:discussion} 
+%We also discuss a broader scope of application of our algorithm and some possible theoretical advantages.
 %
-%Last but not least, we discuss in the Section \ref{sec:discussion} 
-We also discuss a broader scope of application of our algorithm and some possible theoretical advantages.
-
-\subsection{Foreseen experiments}
-\label{sec:foreseen_experiments}
-
-Our algorithm will be evaluated on the same metrics than \cite{si2016computationally} on the Nyström approximation, namely the reconstruction error of the kernel matrix and the accuracy error in subsequent machine learning experiments. Those errors will be considered with respect to the computation speed. The considered baseline will be Nyström with simple \kmeans selected landmark points and, obviously, the efficient Nyström algorithm proposed in \cite{si2016computationally}.
-
-\subsection{Discussion}
-\label{sec:discussion}
-
-The algorithm we propose, \textit{Q-means}, could be applied to any other method that uses the \kmeans algorithm in its initialization. The \kmeans Nyström method is only one instance of such algorithm but we can already think of other examples, such as some nearest neighbour search algorithm based on the K-means clustering of the input space \cite{wang2011fast}.
-
-Finally, the sparse factorization constraint for the \kmeans center point matrix may play the role of a regularization, with parameter being the number of values in each factor. 
-We wish to investigate also this property more thoroughly from both theoretical and experimental point of view.
+%\subsection{Foreseen experiments}
+%\label{sec:foreseen_experiments}
+%
+%Our algorithm will be evaluated on the same metrics than \cite{si2016computationally} on the Nyström approximation, namely the reconstruction error of the kernel matrix and the accuracy error in subsequent machine learning experiments. Those errors will be considered with respect to the computation speed. The considered baseline will be Nyström with simple \kmeans selected landmark points and, obviously, the efficient Nyström algorithm proposed in \cite{si2016computationally}.
+%
+%\subsection{Discussion}
+%\label{sec:discussion}
+%
+%The algorithm we propose, \textit{Q-means}, could be applied to any other method that uses the \kmeans algorithm in its initialization. The \kmeans Nyström method is only one instance of such algorithm but we can already think of other examples, such as some nearest neighbour search algorithm based on the K-means clustering of the input space \cite{wang2011fast}.
+%
+%Finally, the sparse factorization constraint for the \kmeans center point matrix may play the role of a regularization, with parameter being the number of values in each factor. 
+%We wish to investigate also this property more thoroughly from both theoretical and experimental point of view.
 %This is just an intuition for now and this must be investigated more thoroughly from both the theoretical and experimental point of view.
 
 %\begin{itemize}
