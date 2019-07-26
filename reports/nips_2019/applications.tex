@@ -126,7 +126,7 @@ Although some degradation may be observed in some images, one can note that each
 Higher dimensions are required to assess the computational benefits of the proposed approach, as shown here.
 The assignation times of the clustering procedure were measured on the Blobs dataset.
 The centroid matrices are with shape $\nclusters \times \datadim$ with $\datadim=1000$  and $\nclusters\in\left \lbrace 128, 256, 512\right \rbrace$.
-Results reported in Figure~\ref{fig:clustering:blobs:assignation_time} show that in this setting and with the current implementation, the computational advantage of \qkmeans is observed for the higher number of clusters $\nclusters=512$.
+Results reported in Figure~\ref{fig:clustering:blobs:assignation_time} show that in this setting and with the current implementation, the computational advantage of \qkmeans is observed in high dimension, for $\nclusters=256$ and $\nclusters=512$ clusters. It is worth noticing that when $K$ increases, the running times are not affected that much for \qkmeans while it significantly grows for \kmeans. These trends are directly related to the number of model parameters that are reported in the figure.
 
 %\todo[inline]{Montrer ensuite les temps d'assignation en mode batch 5000 sur blobs, cf. Figure~\ref{fig:clustering:blobs:assignation_time}. Objectif: montrer qu'à partir d'une certaine dimension, \qkmeans est plus rapide.}
 %on-line\footnote{Anonymous URL.}.
