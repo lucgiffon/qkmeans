@@ -168,27 +168,27 @@ The running times reported in Figure~\ref{fig:nn:blobs} show a dramatic advantag
 \begin{table}[]
 
 \centering
-\begin{tabular}{@{}l|l@{}}
+\begin{tabular}{@{}l|P{2.5cm}}
 \toprule
                                     & Accuracy \texttt{Blobs} \\ \midrule
 1NN Brute force search              & N/A   \\
 1NN KD Tree                         & N/A   \\
-1NN Ball Tree                       & N/A   \\ \midrule
-1NN K-means 128 Clusters            &       \\
-1NN K-means 256 Clusters            &       \\
-1NN K-means 512 Clusters            &       \\ \midrule
-1NN QK-means 128 Clusters           &       \\
-1NN QK-means 256 Clusters           &       \\
-1NN QK-means 512 Clusters           &       \\ \midrule \midrule
-Nyström K-means + SVM 128 Clusters  &       \\
-Nyström K-means + SVM 256 Clusters  &       \\
-Nyström K-means + SVM 512 Clusters  &       \\ \midrule
-Nyström QK-means + SVM 128 Clusters &       \\
-Nyström QK-means + SVM 256 Clusters &       \\
-Nyström QK-means + SVM 512 Clusters &       \\ \bottomrule
+1NN Ball Tree                       & N/A   \\ \midrule \midrule
+1NN K-means 128 Clusters            & 0.96      \\
+1NN K-means 256 Clusters            & 0.97      \\
+1NN K-means 512 Clusters            & 0.99      \\ \midrule
+1NN QK-means 128 Clusters           & 0.74     \\
+1NN QK-means 256 Clusters           & 0.66      \\
+1NN QK-means 512 Clusters           & 0.66      \\ \midrule \midrule
+Nyström K-means + SVM 128 Clusters  & 0.98      \\
+Nyström K-means + SVM 256 Clusters  & 1.0      \\
+Nyström K-means + SVM 512 Clusters  & 1.0      \\ \midrule
+Nyström QK-means + SVM 128 Clusters & 0.95      \\
+Nyström QK-means + SVM 256 Clusters & 1.0      \\
+Nyström QK-means + SVM 512 Clusters & 1.0      \\ \bottomrule
 \end{tabular}
 
-\caption{Results on the classification task on \texttt{Blobs} dataset. Results are averaged over 5 runs. ``N/A'' denotes experiments that did not finish.}
+\caption{Results on the classification task on \texttt{Blobs} dataset. Results are averaged over 5 runs. ``N/A'' denotes experiments that did not finish. Only results with sparsity value 5 are displayed for \qkmeans experiments.}
 \label{table:results_blobs}
 
 \end{table}
@@ -196,12 +196,12 @@ Nyström QK-means + SVM 512 Clusters &       \\ \bottomrule
 \begin{table}[]
 
 \centering
-\begin{tabular}{@{}l|l@{}|l@{}}
+\begin{tabular}{@{}l|P{2.5cm}|P{2.5cm}}
 \toprule
                                     & Accuracy \texttt{MNIST} & Accuracy \texttt{Fashion-MNIST} \\ \midrule
 1NN Brute force search              &   &    \\
 1NN KD Tree                         &   &    \\
-1NN Ball Tree                       &   &    \\ \midrule
+1NN Ball Tree                       &   &    \\ \midrule \midrule
 1NN K-means 10 Clusters            &   &    \\
 1NN K-means 16 Clusters            &   &    \\
 1NN K-means 30 Clusters            &   &    \\ \midrule
@@ -220,13 +220,11 @@ Nyström QK-means + SVM 512 Clusters &       \\ \bottomrule
 \label{table:results_mnist_fmnist}
 
 \end{table}
-\todo{Ajouter les résultats Nyström + SVM aux jeux de données MNIST et Fashion Mnist}
+
 
 \subsection{Nyström approximation}
 
 In this sub-section, we show how we can take advantage of the fast-operator obtained as output of our \qkmeans algorithm in order to speed-up the computation in the Nyström approximation. We start by giving background knowledge on the Nyström approximation then we present some recent work aiming at accelarting it using well know fast-transform method. We finally stem on this work to present a novel approach based on our \qkmeans algorithm.
-
-\todo[inline]{Sur blobs seulement pour pouvoir être dans des dimensions où \qkmeans est plus rapide. Objectif: montrer la rapidité et une perte limitée de l'accuracy. Se comparer brute/ball tree/KD tree, ce qui donne une grande pertinence car ce sont déjà des approches efficaces. Afficher 2 figures: accuracy et inference time (ou distance time). Figure~\ref{fig:nystrom:blobs}.}
 
 \subsubsection{Background on the Nyström approximation}
 
@@ -265,13 +263,19 @@ Depending on the $\rmH$ matrix chosen, it is possible to improve the time comple
 
 We propose to use our Q-means algorithm in order to learn directly the $\rmU$ matrix in the Nyström approximation so that the matrix-vector multiplication $\rmU \rvx$ is cheap to compute, but the structure of $\rmU$ is not constrained by some pre-defined transform matrix. We propose to take the objective $\rmU$ matrix as the K-means matrix of $\rmX$ since it has been shown to achieve good reconstruction accuracy in the Nyström method.
 
+Our algorithm allow to obtain an efficient Nyström approximation, while not reducing too much the quality of the K-means landmark points which are expressed as a factorization of sparse matrix. 
 
-Our algorithm could allow one to obtain an efficient Nyström approximation, while not reducing too much the quality of the K-means landmark points which are expressed as a factorization of sparse matrix. 
+\subsubsection{Results}
+
+In Figure~\ref{fig:nystrom:blobs}, we clearly see the speed-up offered using the \qkmeans method on the \texttt{Blobs} dataset. We also note that the \qkmeans approach still gives better reconstruction error than the Nyström method based on uniform sampling although they are slightly worse than the one obtained with the \kmeans centroids. 
+
+\todo[inline]{Ajouter les résultats Nyström + SVM aux jeux de données MNIST et Fashion Mnist}
+From a more practical point of view, we show in Table~\ref{table:results_blobs} and Table~\ref{table:results_mnist_fmnist} that the Nyström approximation based on \qkmeans can then be used in a linear SVM and achieve as good performance as the one based on the \kmeans approach.
 
 \begin{figure}[tbh]
 \centering
-\includegraphics[width=.46\textwidth]{blobs_nystrom_error.png}
-\includegraphics[width=.46\textwidth]{blobs_nystrom_inference_time.png}
+\includegraphics[width=.49\textwidth]{blobs_nystrom_error.png}
+\includegraphics[width=.49\textwidth]{blobs_nystrom_inference_time.png}
 
 \caption{N\"ystrom approximation on blobs data: accuracy (left) and running times (right) \addVE{to be completed}.}
 \label{fig:nystrom:blobs}
