@@ -201,22 +201,22 @@ Nyström QK-means + SVM 512 Clusters & 1.0      \\ \bottomrule
 \centering
 \begin{tabular}{@{}l|P{2.5cm}|P{2.5cm}}
 \toprule
-                                    & Accuracy \texttt{MNIST} & Accuracy \texttt{Fashion-MNIST} \\ \midrule
-1NN Brute force search              &     &    \\
-1NN KD Tree                         &   &    \\
-1NN Ball Tree                       &   &    \\ \midrule \midrule
-1NN K-means 10 Clusters            &   &    \\
-1NN K-means 16 Clusters            &   &    \\
-1NN K-means 30 Clusters            &   &    \\ \midrule
-1NN QK-means 10 Clusters           &   &    \\
-1NN QK-means 16 Clusters           &   &    \\
-1NN QK-means 30 Clusters           &   &    \\ \midrule \midrule
-Nyström K-means + SVM 10 Clusters  &       \\
-Nyström K-means + SVM 16 Clusters  &       \\
-Nyström K-means + SVM 30 Clusters  &       \\ \midrule
-Nyström QK-means + SVM 10 Clusters &       \\
-Nyström QK-means + SVM 16 Clusters &       \\
-Nyström QK-means + SVM 30 Clusters &       \\ \bottomrule
+                                    & Accuracy \texttt{Fashion-MNIST} & Accuracy \texttt{MNIST} \\ \midrule
+1NN Brute force search              &  0.85   &  0.97 \\
+1NN KD Tree                         & 0.85  &  0.97  \\
+1NN Ball Tree                       & 0.85  &  0.97  \\ \midrule \midrule
+1NN K-means 10 Clusters            & 0.84  &  0.96  \\
+1NN K-means 16 Clusters            & 0.84  &  0.96  \\
+1NN K-means 30 Clusters            & 0.84  &  0.96  \\ \midrule
+1NN QK-means 10 Clusters           & 0.84  &  0.96  \\
+1NN QK-means 16 Clusters           & 0.84  &  0.96  \\
+1NN QK-means 30 Clusters           & 0.84  &  0.96  \\ \midrule \midrule
+Nyström K-means + SVM 10 Clusters  &  0.71  & 0.74  \\
+Nyström K-means + SVM 16 Clusters  &  0.75  & 0.83  \\
+Nyström K-means + SVM 30 Clusters  &  0.78  & 0.88  \\ \midrule
+Nyström QK-means + SVM 10 Clusters &  0.71  & 0.74  \\
+Nyström QK-means + SVM 16 Clusters &  0.74  & 0.82  \\
+Nyström QK-means + SVM 30 Clusters &  0.77  & 0.88  \\ \bottomrule
 \end{tabular}
 
 \caption{Results on the classification task on the \texttt{MNIST} and \texttt{Fashion-MNIST} datasets. Results are averaged over 5 runs. ``N/A'' denotes experiments that did not finish.}
@@ -274,9 +274,9 @@ Our algorithm allow to obtain an efficient Nyström approximation, while not red
 
 In Figure~\ref{fig:nystrom:blobs}, we clearly see the speed-up offered using the \qkmeans method on the \texttt{Blobs} dataset. We also note that the \qkmeans approach still gives better reconstruction error than the Nyström method based on uniform sampling although they are slightly worse than the one obtained with the \kmeans centroids. 
 
-\todo[inline]{Ajouter les résultats Nyström + SVM aux jeux de données MNIST et Fashion Mnist}
 From a more practical point of view, we show in Table~\ref{table:results_blobs} and Table~\ref{table:results_mnist_fmnist} that the Nyström approximation based on \qkmeans can then be used in a linear SVM and achieve as good performance as the one based on the \kmeans approach.
 
+\todo[inline]{diviser cette figure des resultats de nystrom en deux sous figures et modifier la légende en fonction}
 \begin{figure}[tbh]
 \centering
 \includegraphics[width=.49\textwidth]{blobs_nystrom_error.png}
