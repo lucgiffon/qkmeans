@@ -137,7 +137,7 @@ Results reported in Figure~\ref{fig:clustering:blobs:assignation_time} show that
 \begin{figure}[tbh]
 \centering
 \includegraphics[width=.8\textwidth]{blobs_assignation_time.png}
-\caption{Clustering Blobs data: running times of the assignation step, averaged over 5 runs, for batches of $\nexamples=5000$ examples in dimension $\datadim=1000$. The vertical black lines are the standard deviation w.r.t. the runs and the average number of parameters actually learned  in the models are reported above those lines.\addVE{to be completed}.}
+\caption{Clustering Blobs data: running times of the assignation step, averaged over 5 runs. The vertical black lines are the standard deviation w.r.t. the runs and the average number of parameters actually learned  in the models are reported above those lines.\addVE{to be completed}.}
 \label{fig:clustering:blobs:assignation_time}
 \end{figure}
 
@@ -227,7 +227,9 @@ Nyström QK-means + SVM 512 Clusters & 1.0      \\ \bottomrule
 
 \subsection{Nyström approximation}
 
-In this sub-section, we show how we can take advantage of the fast-operator obtained as output of our \qkmeans algorithm in order to speed-up the computation in the Nyström approximation. We start by giving background knowledge on the Nyström approximation then we present some recent work aiming at accelarting it using well know fast-transform method. We finally stem on this work to present a novel approach based on our \qkmeans algorithm.
+In this sub-section, we show how we can take advantage of the fast-operator obtained as output of our \qkmeans algorithm in order to speed-up the computation in the Nyström approximation. 
+We start by giving background knowledge on the Nyström approximation then we present some recent work aiming at accelerating it using well know fast-transform method. 
+We finally stem on this work to present a novel approach based on our \qkmeans algorithm.
 
 \subsubsection{Background on the Nyström approximation}
 
