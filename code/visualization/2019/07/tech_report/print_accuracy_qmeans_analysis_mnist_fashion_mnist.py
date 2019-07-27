@@ -55,17 +55,17 @@ if __name__ == "__main__":
     df_results_kmeans = df_results_kmeans[np.logical_not(kmeans_palm_indexes)]
 
     datasets = {
-        # "Fashion Mnist": "--fashion-mnist",
-        # "Mnist": "--mnist",
-        "Blobs": "--blobs",
+        "Fashion Mnist": "--fashion-mnist",
+        "Mnist": "--mnist",
+        # "Blobs": "--blobs",
         # "LFW": "--lfw"
     }
 
     dataset_dim = {
-        # "Fashion Mnist": 784,
-        # "Mnist": 784,
+        "Fashion Mnist": 784,
+        "Mnist": 784,
         # "LFW": 1850,
-        "Blobs": 2000
+        # "Blobs": 2000
     }
 
     # shapes = {"Fashion Mnist": (28, 28),
@@ -115,8 +115,8 @@ if __name__ == "__main__":
     for dataset_name in datasets:
         print(dataset_name)
         datasets_col = datasets[dataset_name]
-        df_dataset_qmeans = df_results_qmeans[df_results_qmeans[datasets_col] != False]
-        df_dataset_kmeans = df_results_kmeans[df_results_kmeans[datasets_col] != False]
+        df_dataset_qmeans = df_results_qmeans[df_results_qmeans[datasets_col] == True]
+        df_dataset_kmeans = df_results_kmeans[df_results_kmeans[datasets_col] == True]
         df_dataset_kmeans_palm = df_results_kmeans_palm[df_results_kmeans_palm[datasets_col] == True]
         nb_factors = [min(int(np.log2(nb_cluster)), int(np.log2(dataset_dim[dataset_name]))) for nb_cluster in nb_cluster_values]
         for hierarchical_value in hierarchical_values:
@@ -164,3 +164,16 @@ if __name__ == "__main__":
                     clust_nb = nb_cluster_values[i_val]
                     std_val = std_task_values_kmeans[i_val]
                     print("Cluster nb: {} - {}: {} +/- {}".format(clust_nb, str_task, mean_val, std_val))
+
+                # # for nearest neighbor: add other bars for brute, kdtree and balltree
+                if "1nn_kmean" in str_task:
+                    # offset_from_qmeans = 1 + len(sparsity_values) # offset from qmeans =3 because there are both kmeans first
+                    for idx_other_1nn, str_other_1nn in enumerate(other_1nn_methods):
+                        str_task_special_1nn = str_task.replace("kmean", str_other_1nn)
+                        task_values_kmeans = [pd.to_numeric(df_dataset_kmeans[df_dataset_kmeans["--nb-cluster"] == clust_nbr][str_task_special_1nn], errors="coerce") for clust_nbr in nb_cluster_values]
+                        mean_task_values_kmeans = [d.mean() for d in task_values_kmeans]
+                        std_task_values_kmeans = [d.std() for d in task_values_kmeans]
+                        for i_val, _ in enumerate(mean_task_values_kmeans):
+                            mean_val = mean_task_values_kmeans[i_val]
+                            std_val = std_task_values_kmeans[i_val]
+                            print("{}: {} - {}: {} +/- {}".format(str_other_1nn, clust_nb, str_task, mean_val, std_val))
