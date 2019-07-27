@@ -52,11 +52,14 @@ if __name__ == "__main__":
     suf_path_1024 = "2019/07/qmeans_analysis_blobs_log2_clusters_bis_higherdim_1024"
     input_dir_1024 = "/home/luc/PycharmProjects/qalm_qmeans/results/" + suf_path_1024
 
+    suf_path_1024_failed = "2019/07/qmeans_analysis_blobs_log2_clusters_bis_higherdim_1024_only_failed"
+    input_dir_1024_failed = "/home/luc/PycharmProjects/qalm_qmeans/results/" + suf_path_1024_failed
 
     df_results_no_1024 = get_df(input_dir)
-    # df_results_1024 = get_df(input_dir_1024)
-    # df_results = pd.concat([df_results_no_1024, df_results_1024])
-    df_results = df_results_no_1024
+    df_results_1024 = get_df(input_dir_1024)
+    df_results_1024_failed = get_df(input_dir_1024_failed)
+    df_results = pd.concat([df_results_no_1024, df_results_1024, df_results_1024_failed])
+    # df_results = df_results_no_1024
     df_results_kmeans = df_results[df_results["kmeans"]]
 
     df_results = pd.concat([df_results, df_results_kmeans])

@@ -28,9 +28,9 @@ def get_df(path):
 
 if __name__ == "__main__":
     # suf_path = "2019/07/qmeans_analysis_blobs_log2_clusters_bis"
-    suf_path = "2019/07/qmeans_analysis_blobs_log2_clusters_bis_higherdim"
+    suf_path = "2019/07/qmeans_analysis_nystrom_mnist_fmnist"
     input_dir = "/home/luc/PycharmProjects/qalm_qmeans/results/" + suf_path
-    output_dir = "/home/luc/PycharmProjects/qalm_qmeans/reports/figures/"+ "2019/07/tech_report" + "/histogrammes"
+    output_dir = "/home/luc/PycharmProjects/qalm_qmeans/reports/figures/" + "2019/07/tech_report" + "/histogrammes"
     output_dir = pathlib.Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
