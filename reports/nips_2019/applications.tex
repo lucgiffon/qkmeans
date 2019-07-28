@@ -29,7 +29,8 @@ as shown in Figure~\ref{fig:time_csr}, they are significantly faster than dense 
 
 
 \paragraph{Datasets.}
-We present results on real-world and toy datasets summarized in Table \ref{table:data}. On the one hand, the real world datasets \texttt{MNIST}~\cite{lecun-mnisthandwrittendigit-2010}, \texttt{Fashion-Mnist}~\cite{Pedregosa2011Scikit} and \texttt{Labeled Faces in the Wild}~\cite{Huang07e.:labeled} (\texttt{LFW}) are used to show --- quantitatively and qualitatively --- the good quality of the obtained centroids when using our method \qkmeans. On the other hand, we use the \texttt{blobs} synthetic dataset from \texttt{sklearn.dataset} to show the speed up offered by our method \qkmeans when the number of clusters and the dimensionality of the data are sufficiently large.
+We present results on real-world and toy datasets summarized in Table \ref{table:data}. On the one hand, the real world datasets \texttt{MNIST}~\cite{lecun-mnisthandwrittendigit-2010} and \texttt{Fashion-Mnist}~\cite{Pedregosa2011Scikit} %and \texttt{Labeled Faces in the Wild}~\cite{Huang07e.:labeled} (\texttt{LFW}) 
+are used to show --- quantitatively and qualitatively --- the good quality of the obtained centroids when using our method \qkmeans. On the other hand, we use the \texttt{blobs} synthetic dataset from \texttt{sklearn.dataset} to show the speed up offered by our method \qkmeans when the number of clusters and the dimensionality of the data are sufficiently large.
 %The code of our method \qkmeans is available on request and will be available online soon. \addLG{je serais d'avis de ne pas dire ça mais soit de dire qu'il est déjà disponible, soit de ne rien dire. Sachant qu'on ne peut pas dire qu'il est déjà disponible en ligne avant le processus de reviewing}
 
 
@@ -40,7 +41,7 @@ We present results on real-world and toy datasets summarized in Table \ref{table
 \textbf{Dataset} & \textbf{Data dim.} $\datadim$        & \textbf{\# classes} & \textbf{Training set size} $\nexamples$ & \textbf{Test set size} $\nexamples'$ \\ \hline
 MNIST                   & 784   & 10        & 60 000    & 10 000               \\ \hline
 Fashion-MNIST           & 784   & 10        & 60 000    & 10 000               \\ \hline
-LFW                     & 1850  & 2529      & 8866      & N/A               \\ \hline
+% LFW                     & 1850  & 2529      & 8866      & N/A               \\ \hline
 Blobs (clusters std: 12)   & 2000  & 1000      & 29000      & 1000               \\ \hline
 \end{tabular}
 \caption{Datasets statistics}
@@ -54,9 +55,9 @@ All factors $\rmS_q$ are with shape $A \times A$ except, depending on the shape 
 The sparsity constraint of each factor $\rmS_q$ is set in $\mathcal{E}_q$ and is governed by a global parameter denoted as \textit{sparsity level}, which indicates the desired number of non-zero coefficients in each row and in each column of $\rmS_q$. 
 Since the projection onto this set of structured-sparsity constraints may be computationally expensive, this projection is relaxed in the implementation of \palm and only guarantees that the number of non-zero coefficients in each row and each column is at least the sparsity level, as in~\cite{LeMagoarou2016Flexible}.
 The actual number of non-zero coefficients in the sparse factors is measured at the end of the optimization process and reported in the results.
-The sparse factors are updated using the \palm rather than its hierarchical version, since we observed that this was a better choice in terms of computational cost, with satisfying approximation results.
+The sparse factors are updated using the \palm rather than its hierarchical version, since we observed that this was a better choice in terms of computational cost, with satisfying approximation results (See Figure~\ref{fig:mnist:objfun}~and~\ref{fig:fmnist:objfun}).
 Additional details about \palm are given in Appendix~\ref{sec:app:palm4msa}.
-The stopping criterion of \kmeans and \qkmeans consists of a tolerance set to $10^{-6}$ on the relative variation of the objective function and a maximum number of iterations set to 10 for the \texttt{Blobs}dataset and to 20 for others. The same principle governs the stopping criterion of \palm with a tolerance set to $10^{-6}$ and a maximum number of iterations set to 300. Each experiment have been replicated using different seed value for random initialisation. Competing techniques share the same seed values, hence share the same initialisation of centroids.
+The stopping criterion of \kmeans and \qkmeans consists of a tolerance set to $10^{-6}$ on the relative variation of the objective function and a maximum number of iterations set to 10 for the \texttt{Blobs}dataset and to 20 for others. The same principle governs the stopping criterion of \palm with a tolerance set to $10^{-6}$ and a maximum number of iterations set to 300. Each experiment have been replicated using different seed values for random initialisation. Competing techniques share the same seed values, hence share the same initialisation of centroids.
 
 %\subsection{Sparse factors multiplication}
 %
@@ -114,19 +115,19 @@ The stopping criterion of \kmeans and \qkmeans consists of a tolerance set to $1
 
 \paragraph{Approximation quality.} One important question is the ability of the fast-structure model to fit arbitrary data.
 Indeed, no theoretical result about the expressivity of such models is currently available.
-In order to assess this approximation quality, the MNIST et Fashion MNIST data have been clustered into $\nclusters=30$ clusters by \kmeans, \qkmeans and a variant of \qkmeans using the hierarchical version of \palm, with several sparsity levels.
+In order to assess this approximation quality, the MNIST and Fashion-MNIST data have been clustered into $\nclusters=30$ clusters by \kmeans, \qkmeans and a variant of \qkmeans using the hierarchical version of \palm, with several sparsity levels.
 Results are reported in Figure~\ref{fig:clustering:realdata}.
 In Figures~\ref{fig:mnist:objfun} and~\ref{fig:fmnist:objfun}, one can observe that the objective function of \qkmeans is decreasing in a similar way as \kmeans over iterations.
-In particular, the use of the fast-structure model does not seem to slow the procedure down.
+In particular, the use of the fast-structure model does not seem \addLG{(to delay the plateau of the objective function)} to slow the procedure down.
 At the end of the iterations, the value of objective function for \qkmeans is slightly above that of \kmeans.
 As expected, the sparser the model, the more degradation in the objective function.
-However, even very sparse models do not degrade the results significantly.
+However, even very sparse models do not degrade the results significantly. These Figures also demonstrate the convergence property of the \qkmeans algorithm when using the standard, proved convergent, \textit{Palm4MSA} algorithm: in this case, the objective function is always non-increasing whereas the \qkmeans version with \textit{Hiearchical Palm4MSA}, not guaranteed to converge, suffers a small bump in its objective function (see Figure~\ref{fig:fmnist:objfun} iteration~6).
 The approximation quality can be assessed visually, in a more subjective and interpretable way, in Figures~\ref{fig:mnist:kmeans:centroids} to~\ref{fig:fmnist:hqkmeans:centroids} where the obtained centroids are displayed as images.
 Although some degradation may be observed in some images, one can note that each image obtained with \qkmeans clearly represents a single visual item without noticeable interference with other items.
 
 \paragraph{Clustering assignation times.}
 Higher dimensions are required to assess the computational benefits of the proposed approach, as shown here.
-The assignation times of the clustering procedure were measured on the Blobs dataset.
+The assignation times of the clustering procedure were measured on the \texttt{Blobs} dataset.
 The centroid matrices are with shape $\nclusters \times \datadim$ with $\datadim=2000$  and $\nclusters\in\left \lbrace 128, 256, 512\right \rbrace$.
 Results reported in Figure~\ref{fig:clustering:blobs:assignation_time} show that in this setting and with the current implementation, the computational advantage of \qkmeans is observed in high dimension, for $\nclusters=256$ and $\nclusters=512$ clusters. It is worth noticing that when $K$ increases, the running times are not affected that much for \qkmeans while it significantly grows for \kmeans. These trends are directly related to the number of model parameters that are reported in the figure.
 
@@ -191,7 +192,7 @@ Nyström QK-means + SVM 256 Clusters & 1.0      \\
 Nyström QK-means + SVM 512 Clusters & 1.0      \\ \bottomrule
 \end{tabular}
 
-\caption{Results on the classification task on \texttt{Blobs} dataset. Results are averaged over 5 runs. ``N/A'' denotes experiments that did not finish. Only results with sparsity value 5 are displayed for \qkmeans experiments.}
+\caption{Results on the classification task on \texttt{Blobs} dataset. Results are averaged over 5 runs. ``N/A'' denotes experiments that did not finish. Only results with sparsity value 5 are displayed for \qkmeans experiments. For the \qkmeans results, only those obtained with sparsity level = 5 are displayed.}
 \label{table:results_blobs}
 
 \end{table}
@@ -219,11 +220,10 @@ Nyström QK-means + SVM 16 Clusters &  0.74  & 0.82  \\
 Nyström QK-means + SVM 30 Clusters &  0.77  & 0.88  \\ \bottomrule
 \end{tabular}
 
-\caption{Results on the classification task on the \texttt{MNIST} and \texttt{Fashion-MNIST} datasets. Results are averaged over 5 runs. ``N/A'' denotes experiments that did not finish.}
+\caption{Results on the classification task on the \texttt{MNIST} and \texttt{Fashion-MNIST} datasets. Results are averaged over 5 runs. ``N/A'' denotes experiments that did not finish. For the \qkmeans results, only those obtained with sparsity level = 5 are displayed.}
 \label{table:results_mnist_fmnist}
 
 \end{table}
-
 
 \subsection{Nyström approximation}
 
@@ -251,7 +251,7 @@ A substantial amount of research has been conducted toward landmark point select
 Remarking that the main computation cost of the Nyström approximation comes from the computation of the kernel function between the train/test samples and the landmark points, \cite{si2016computationally} aim at accelerating this step. In particular, they focus on a family of kernel functions that has the following form:
 %
 \begin{equation}
- K(\rvx_i, \rvx_j) = f(\rvx_i) f(\rvx_j) g(\rvx_i^T\rvx_j),
+ k(\rvx_i, \rvx_j) = f(\rvx_i) f(\rvx_j) g(\rvx_i^T\rvx_j),
 \end{equation}
 %
 where $f: \R^d \rightarrow \R$ and $g: \R \rightarrow \R$. They show that this family of functions contains some widely used kernels such as the Gaussian and the polynomial kernel. Given a set of $K$ landmark points $\rmU \in \R^{K \times d}$ and a sample $\rvx$, the computational time for computing the kernel between $\rvx$ and each row of $\rmU$ (necessary for the Nyström approximation) is bottlenecked by the computation of the product $\rmU\rvx$. They hence propose to write the $\rmU$ matrix as the concatenation of structured $s = K / d$ product of matrices:
@@ -264,26 +264,62 @@ where the $\rmH$ is a $d \times d$ matrix associated with a fast transform such 
 
 Depending on the $\rmH$ matrix chosen, it is possible to improve the time complexity for the computation of $\rmU\rvx$ from $O(Kd)$ to $O(K \log{d})$ (\textit{Fast Hadamard transform}) or $O(K)$ (\textit{Fast Haar Transform}).
 
-\subsubsection{Q-means in Nyström}
+\subsubsection{\qkmeans in Nyström}
 
-We propose to use our Q-means algorithm in order to learn directly the $\rmU$ matrix in the Nyström approximation so that the matrix-vector multiplication $\rmU \rvx$ is cheap to compute, but the structure of $\rmU$ is not constrained by some pre-defined transform matrix. We propose to take the objective $\rmU$ matrix as the K-means matrix of $\rmX$ since it has been shown to achieve good reconstruction accuracy in the Nyström method.
+We propose to use our \qkmeans algorithm in order to learn directly the $\rmU$ matrix in the Nyström approximation so that the matrix-vector multiplication $\rmU \rvx$ is cheap to compute, but the structure of $\rmU$ is not constrained by some pre-defined transform matrix. We propose to take the objective $\rmU$ matrix as the \kmeans matrix of $\rmX$ since it has been shown to achieve good reconstruction accuracy in the Nyström method \cite{kumar2012sampling}.
 
-Our algorithm allow to obtain an efficient Nyström approximation, while not reducing too much the quality of the K-means landmark points which are expressed as a factorization of sparse matrix. 
+As shown in the next sub-section, our algorithm allow to obtain an efficient Nyström approximation, while not reducing too much the quality of the \kmeans landmark points which are encoded as a factorization of sparse matrix. 
 
 \subsubsection{Results}
 
-In Figure~\ref{fig:nystrom:blobs}, we clearly see the speed-up offered using the \qkmeans method on the \texttt{Blobs} dataset. We also note that the \qkmeans approach still gives better reconstruction error than the Nyström method based on uniform sampling although they are slightly worse than the one obtained with the \kmeans centroids. 
+The Figure~\ref{fig:nystrom} summarizes the results achieved in the Nyström approximation setting. 
+
+The Figures on the right display the average time for computing one line of the approximated matrix in Equation~\ref{eq:nystrom}. In Figure~\ref{fig:blobs:nystrom_time}, we clearly see the speed-up offered using the \qkmeans method on the \texttt{Blobs} dataset. On the \texttt{Mnist} and \texttt{Fashion-MNIST} dataset (Figure~\ref{fig:mnist:nystrom_time}~and~\ref{fig:fashmnist:nystrom_time}), this speed-up is sensible but not as clear because the standard deviation is much larger. 
+
+The Figures on the left show the approximation error of the Nyström approximation based on different sampling schemes w.r.t. the real kernel matrix. This error is computed by the Froebenius norm of the difference between the matrices and then normalized:
+
+\begin{equation}
+ error = \frac{||\rmK - \tilde\rmK||_F}{||\rmK||_F}
+\end{equation}
+
+. The \qkmeans approach gives better reconstruction error than the Nyström method based on uniform sampling although they are slightly worse than the one obtained with the \kmeans centroids. We see that that the difference in approximation error between \kmeans and \qkmeans is almost negligeable when compared to the approximation error obtained with the uniform sampling scheme.
 
 From a more practical point of view, we show in Table~\ref{table:results_blobs} and Table~\ref{table:results_mnist_fmnist} that the Nyström approximation based on \qkmeans can then be used in a linear SVM and achieve as good performance as the one based on the \kmeans approach.
 
-\todo[inline]{diviser cette figure des resultats de nystrom en deux sous figures et modifier la légende en fonction}
-\begin{figure}[tbh]
-\centering
-\includegraphics[width=.49\textwidth]{blobs_nystrom_error.png}
-\includegraphics[width=.49\textwidth]{blobs_nystrom_inference_time.png}
 
-\caption{N\"ystrom approximation on blobs data: accuracy (left) and running times (right) \addVE{to be completed}.}
-\label{fig:nystrom:blobs}
+\begin{figure}
+\begin{subfigure}[b]{.49\textwidth}
+\includegraphics[width=\textwidth]{blobs_nystrom_error.png}
+\caption{\texttt{Blobs}: Nyström reconstruction error.}
+\label{fig:blobs:nystrom_error}
+\end{subfigure}
+\begin{subfigure}[b]{.49\textwidth}
+\includegraphics[width=\textwidth]{blobs_nystrom_inference_time.png}
+\caption{\texttt{Blobs}: Nyström inference time.}
+\label{fig:blobs:nystrom_time}
+\end{subfigure}
+\begin{subfigure}[b]{.49\textwidth}
+\includegraphics[width=\textwidth]{mnist_nystrom_error.png}
+\caption{\texttt{MNIST}: Nyström reconstruction error.}
+\label{fig:mnist:nystrom_error}
+\end{subfigure}
+\begin{subfigure}[b]{.49\textwidth}
+\includegraphics[width=\textwidth]{mnist_nystrom_inference_time.png}
+\caption{\texttt{MNIST}: Nyström inference time.}
+\label{fig:mnist:nystrom_time}
+\end{subfigure}
+\begin{subfigure}[b]{.49\textwidth}
+\includegraphics[width=\textwidth]{fashmnist_nystrom_error.png}
+\caption{\texttt{Fashion-MNIST}: Nyström reconstruction error.}
+\label{fig:fashmnist:nystrom_error}
+\end{subfigure}
+\begin{subfigure}[b]{.49\textwidth}
+\includegraphics[width=\textwidth]{fashmnist_nystrom_inference_time.png}
+\caption{\texttt{Fashion-MNIST}: Nyström inference time.}
+\label{fig:fashmnist:nystrom_time}
+\end{subfigure}
+\caption{Nystr\"om approximation results: accuracy (left) and running times (right). The uniform sampling based Nyström approximation running times are not displayed because they are the same as for the Nyström approximation based on \kmeans centroids. Every experiment results are averaged over 5 runs. The vertical black lines are the standard deviation w.r.t. the runs.}
+\label{fig:nystrom}
 \end{figure}
 
 %{RBF networks}
