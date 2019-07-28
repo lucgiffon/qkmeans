@@ -10,10 +10,9 @@ This number of non-zero coefficients is called sparsity level in this paper.
 In practice, the projection function at Line~\ref{line:palm:update:S} keeps the largest non-zero coefficients in each row and in each column, which only guarantees
 the actual number of non-zero coefficients is at least equal to the sparsity level.
 
-The complexity analysis is proposed under the following assumptions, which are satisfied in the mentioned applications and experiments: the number of factors is $\nfactors=\mathcal{O}\left (\log A\right )$; all but one sparse factors are of shape $A \times A$ and have $\bigO{A}$ non-zero entries while one of them is of shape $A\times B$ or $B\times A$ with $\bigO{B}$ non-zero entries.
 
 
-\addVE{Pour que $S_0=\lambda \rmI$ soit à gauche, inverser l'ordre du produit ($S_1, S_2, \ldots, S_{Q-1}$ contre $S_{Q-1}...S_2 S_1$) précédemment: done. The current order is from left to right for indices ($S_1, S_2, \ldots, S_{Q-1}$) while the update is from right to left ($q = \nfactors$ down to $1$). Is it ok?}
+%\addVE{Pour que $S_0=\lambda \rmI$ soit à gauche, inverser l'ordre du produit ($S_1, S_2, \ldots, S_{Q-1}$ contre $S_{Q-1}...S_2 S_1$) précédemment: done. The current order is from left to right for indices ($S_1, S_2, \ldots, S_{Q-1}$) while the update is from right to left ($q = \nfactors$ down to $1$). Is it ok?}
 
 \begin{algorithm}
 	\caption{\palm algorithm}
@@ -23,14 +22,14 @@ The complexity analysis is proposed under the following assumptions, which are s
 		\REQUIRE The matrix to factorize $\rmU \in \R^{\nclusters \times \datadim}$, the desired number of factors $\nfactors$, the constraint sets $\mathcal{E}_q$ , $q\in \intint{\nfactors}$ and a stopping criterion (e.g., here, a number of iterations $I$ ).
 		
 %		\ENSURE $\{\rmS_1 \dots \rmS_{\nfactors}\}|\rmS_q \in \mathcal{E}_q$ such that $\prod_{q\in\intint{\nfactors}}\rmS_q \approx \rmU$
-		\STATE \addVE{$\lambda \leftarrow \norm{S_1}_F$} 
+		\STATE $\lambda \leftarrow \norm{S_1}_F$
 		\COMMENT{$\bigO{B}$}
 		\label{line:palm:init:lambda}
-		\STATE \addVE{$S_1 \leftarrow \frac{1}{\lambda} S_1$} 
+		\STATE $S_1 \leftarrow \frac{1}{\lambda} S_1$
 		\COMMENT{$\bigO{B}$}
 		\label{line:palm:normalize:S1}
-		\FOR {$i \in\intint{I}$}
-		\FOR {\addVE{$q = \nfactors$ down to $1$}}
+		\FOR {$i \in\intint{I}$ while the stopping criterion is not met}
+		\FOR {$q = \nfactors$ down to $1$}
 %		\FOR {$q = 2$ to $\nfactors$}
 %		\STATE  $\rmL_q \leftarrow \prod_{l=q+1}^{\nfactors} \rmS_{l}^{(i)}$
 		\STATE  $\rmL_q \leftarrow \prod_{l=1}^{q-1} \rmS_{l}^{(i)}$
@@ -41,11 +40,11 @@ The complexity analysis is proposed under the following assumptions, which are s
 %		\COMMENT{$\bigO{1}$}
 		\label{line:palm:R}
 %		\STATE Choose $c > (\lambda^{(i)})^2 ||\rmR_q||_2^2 ||\rmL_q||_2^2$
-		\STATE Choose $c > \addVE{\lambda^2} ||\rmR_q||_2^2 ||\rmL_q||_2^2$
+		\STATE Choose $c > \lambda^2 ||\rmR_q||_2^2 ||\rmL_q||_2^2$
 %		\COMMENT{in $\mathcal{O}\left (A\nfactors+B\right )$}
 		\COMMENT{$\bigO{A \log A+B}$}
 		\label{line:palm:c}
-		\STATE $\rmD \leftarrow \rmS_q^i - \frac{1}{c} \addVE{\lambda} \rmL_q^T\left (\addVE{\lambda}\rmL_q \rmS_q^i \rmR_q - \rmU\right )\rmR_q^T$
+		\STATE $\rmD \leftarrow \rmS_q^i - \frac{1}{c} \lambda \rmL_q^T\left (\lambda\rmL_q \rmS_q^i \rmR_q - \rmU\right )\rmR_q^T$
 %		\COMMENT{in $\mathcal{O}\left (\nclusters\datadim\nfactors\right )$}
 		\COMMENT{$\bigO{AB\log A}$}
 		\label{line:palm:D}
@@ -58,13 +57,13 @@ The complexity analysis is proposed under the following assumptions, which are s
 		\STATE $\hat \rmU \eqdef \prod_{j=1}^{\nfactors} \rmS_q^{(i+1)}$
 		\COMMENT{$\bigO{A^2\log A + AB}$}
 		\label{line:palm:U}
-		\STATE $\addVE{\lambda} \leftarrow \frac{Trace(\rmU^T\hat\rmU)}{Trace(\hat\rmU^T\hat\rmU)} \rmI$
+		\STATE $\lambda \leftarrow \frac{Trace(\rmU^T\hat\rmU)}{Trace(\hat\rmU^T\hat\rmU)}$% \rmI$
 %		\STATE $\rmS_1 \leftarrow \frac{Trace(\rmU^T\hat\rmU)}{Trace(\hat\rmU^T\hat\rmU)} \rmI$
 %		\COMMENT{in $\mathcal{O}\left (\nclusters\datadim\right )$}
 		\COMMENT{$\bigO{AB}$}
 		\label{line:palm:update:lambda}
 		\ENDFOR
-		\STATE \addVE{$S_1 \leftarrow \lambda S_1$}
+		\STATE $S_1 \leftarrow \lambda S_1$
 		\COMMENT{$\bigO{B}$}
 		\label{line:palm:postprocess:S1}
 		\ENSURE $\left \lbrace \rmS_q : \rmS_q \in \mathcal{E}_q\right \rbrace_{q\in\intint{\nfactors}}$ such that $\prod_{q\in\intint{\nfactors}}\rmS_q \approx \rmU$
@@ -72,6 +71,7 @@ The complexity analysis is proposed under the following assumptions, which are s
 	\end{algorithmic}
 \end{algorithm}
 
+The complexity analysis is proposed under the following assumptions, which are satisfied in the mentioned applications and experiments: the number of factors is $\nfactors=\mathcal{O}\left (\log A\right )$; all but one sparse factors are of shape $A \times A$ and have $\bigO{A}$ non-zero entries while one of them is of shape $A\times B$ or $B\times A$ with $\bigO{B}$ non-zero entries.
 In such conditions, the complexity of each line is:
 \begin{itemize}
  \item [Lines~\ref{line:palm:init:lambda}-\ref{line:palm:normalize:S1}] Computing these normalization steps is linear in the number of non-zeros coefficients in $\rmS_1$.
@@ -89,7 +89,7 @@ In such conditions, the complexity of each line is:
 
 Hence, the overal time complexity of \palm is in $\bigO{AB\left (\log^2 A+\log B\right )}$, due to Lines~\ref{line:palm:D} and~\ref{line:palm:update:S}.
 
-\todo[inline]{Valentin: I have reintroduced $\lambda$, but just as an internal variable. Is it ok? Check also the compliance of this formulation with the rest of the paper, e.g., with the definition of $\mathcal{E}_q$. Factors are updated from right to left, exact?}
+%\todo[inline]{Valentin: I have reintroduced $\lambda$, but just as an internal variable. Is it ok? Check also the compliance of this formulation with the rest of the paper, e.g., with the definition of $\mathcal{E}_q$. Factors are updated from right to left, exact?}
 %\todo[inline]{Define $\mathcal{E}_q$ with the sparsity constraint and the Frobenius-norm constraint.}
-\todo[inline]{add details about the hierarchical algorithm? \addVE{Non, pas besoin?}}
-\todo[inline]{The stopping criterion is the number of iterations $I$ here, which is incoherent with section~\ref{sec:uses:settings}.}
+%\todo[inline]{add details about the hierarchical algorithm? \addVE{Non, pas besoin?}}
+%\todo[inline]{The stopping criterion is the number of iterations $I$ here, which is incoherent with section~\ref{sec:uses:settings}.}
