@@ -118,7 +118,7 @@ Indeed, no theoretical result about the expressivity of such models is currently
 In order to assess this approximation quality, the MNIST and Fashion-MNIST data have been clustered into $\nclusters=30$ clusters by \kmeans, \qkmeans and a variant of \qkmeans using the hierarchical version of \palm, with several sparsity levels.
 Results are reported in Figure~\ref{fig:clustering:realdata}.
 In Figures~\ref{fig:mnist:objfun} and~\ref{fig:fmnist:objfun}, one can observe that the objective function of \qkmeans is decreasing in a similar way as \kmeans over iterations.
-In particular, the use of the fast-structure model does not seem \addLG{(to delay the plateau of the objective function)} to slow the procedure down.
+In particular, the use of the fast-structure model does not seem to increase the number of iteration necessary before convergence.
 At the end of the iterations, the value of objective function for \qkmeans is slightly above that of \kmeans.
 As expected, the sparser the model, the more degradation in the objective function.
 However, even very sparse models do not degrade the results significantly. These Figures also demonstrate the convergence property of the \qkmeans algorithm when using the standard, proved convergent, \textit{Palm4MSA} algorithm: in this case, the objective function is always non-increasing whereas the \qkmeans version with \textit{Hiearchical Palm4MSA}, not guaranteed to converge, suffers a small bump in its objective function (see Figure~\ref{fig:fmnist:objfun} iteration~6).
@@ -149,7 +149,9 @@ One may also use a clustering strategy to perform an approximate nearest-neighbo
 We compare this strategy using \kmeans and \qkmeans against the \texttt{scikit-learn} implementation~\cite{Pedregosa2011Scikit} of the nearest-neighbor search (brute force search, kd tree, ball tree).
 Inference time results on the \texttt{Blobs} dataset are reported in Figure~\ref{fig:nn:blobs} and accuracy results are displayed in Table~\ref{table:results_blobs}. 
 % As shown in Figure~\ref{fig:nn:blobs:accuracy}, the accuracy of the approximate nearest neighbor search is above $0.99$ \todo{Accuracy $>0.99$ to be checked} for all the tested variants of \qkmeans, which is an solid evidence about the reliability of the approach.
-The running times reported in Figure~\ref{fig:nn:blobs} show a dramatic advantage of using a clustering-based approximate search \todo{to be completed by reporting the actual acceleration ratio obtained by \qkmeans over the three sklearn options.} and this advantage is even stronger with the clustering obtained by our \qkmeans method. This speed-up comes at a cost though, we can see a drop in classification performance in Table~\ref{table:results_blobs}. 
+The running times reported in Figure~\ref{fig:nn:blobs} show a dramatic advantage of using a clustering-based approximate search 
+%\todo{to be completed by reporting the actual acceleration ratio obtained by \qkmeans over the three sklearn options.} 
+and this advantage is even stronger with the clustering obtained by our \qkmeans method. This speed-up comes at a cost though, we can see a drop in classification performance in Table~\ref{table:results_blobs}. 
 
 \begin{figure}[tbh]
 \centering

@@ -3,12 +3,12 @@
 \section{QuicK-means}
 \label{sec:contribution}
 
-We here introduce our main contribution, QuicK-means (abbreviated by \qkmeans), 
+We here introduce our main contribution, \texttt{QuicK-means} (abbreviated by \qkmeans), 
 show its convergence property and analyze its computational complexity.
 
 \subsection{\qkmeans: Encoding Centroids as Products of Sparse Matrices}
 
-QuicK-means is a variant of the K-means algorithm in which the matrix of centroids $\rmU$
+\texttt{QuicK-means} is a variant of the \kmeans algorithm in which the matrix of centroids $\rmU$
 is approximated as a product $\rmV=\prod_{\in\intint{\nfactors}}\rmS_q$ of sparse matrices $\rmS_q$.
 % $\rmS_j: j = 0 \ldots Q$. 
 Doing so will allow us to cope with the computational bulk imposed by the product $\rmU\rvx$
@@ -298,7 +298,7 @@ g\left (\rmS_1^{(0)}, \ldots,\rmS_\nfactors^{(0)}, \rvt^{(0)}\right )
 
 \subsection{Complexity analysis}
 
-Since the space complexity of the proposed \qkmeans algorithm is comparable to that of K-means, we only detail its time complexity. We set $A=\min\left (\nclusters, \datadim\right )$ and $B=\max\left (\nclusters, \datadim\right )$, and assume that the number of factors satisfies $\nfactors=\bigO{\log A}$.
+Since the space complexity of the proposed \qkmeans algorithm is comparable to that of \kmeans, we only detail its time complexity. We set $A=\min\left (\nclusters, \datadim\right )$ and $B=\max\left (\nclusters, \datadim\right )$, and assume that the number of factors satisfies $\nfactors=\bigO{\log A}$.
 
 The analysis is proposed under the following assumptions: the product between two dense matrices of shapes ${N_1\times N_2}$ and ${N_2\times N_3}$ can be done $\mathcal{O}\left (N_1 N_2 N_3 \right )$ operations; 
 the product between a sparse matrix with $\bigO{S}$ non-zero entries and a dense vector can be done in $\bigO{S}$ operations; 
