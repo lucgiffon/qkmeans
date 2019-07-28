@@ -24,8 +24,7 @@ writes:
 \end{align}
 %
 This is a regularized version of the \kmeans optimization problem~\eqref{eq:kmean_problem} in which centroids $\rvv_k$ are constrained to form a matrix $\rmV$ with a fast-operator structure, the indicator functions $\delta_{\mathcal{E}_q}$ imposing the sparsity of matrices $\rmS_q$.
-
-\todo[inline]{Talk about the sizes of the matrices in the optimization problem?}
+More details on the modeling choices are given in the experimental part in section~\ref{sec:uses:settings}.
 
 This problem can be solved using Algorithm~\ref{algo:qmeans},
 which proceeds in a similar way as Lloyd's algorithm by alternating an assignment step at line \ref{line:qmeans:assignment} and an update of the centroids at lines~\ref{line:qmeans:compute_means}--\ref{line:qmeans:U}. The assignment step can be computed efficiently thanks to the fast-structure in matrix $\rmV$. The update of the centroids relies on learning a fast-structure operator $\rmV$ that approximate of the true centroid matrix $\rmU$ weighted by the number of examples $n_k$ assigned to each cluster $k$.
@@ -81,7 +80,7 @@ with $n_k \eqdef |\{n: t_n^{(\tau)}=k\}|$
 	\STATE $\mathcal{E}_0 \eqdef \left \lbrace \rmD_{\sqrt{\rvn}} \right \rbrace$
 	\label{line:qmeans:E0}
 	\STATE $\left \lbrace \rmS_q^{(\tau)}\right \rbrace_{q=0}^\nfactors \eqdef \argmin_{\left \lbrace \rmS_q\right \rbrace_{q=0}^\nfactors} \left \|\rmA - \prod_{q=0}^\nfactors\rmS_q\right \|_F^2 + \sum_{q=0}^\nfactors \delta_{\mathcal{E}_q}(\rmS_q)$\\
-	\COMMENT{$\bigO{AB\log^2A}$ (or $\bigO{AB\log^3A}$)}
+	\COMMENT{$\bigO{AB\left (\log^2 A+\log B\right )}$ (or $\bigO{AB\left (\log^3A+\log A \log B\right )}$)}
 	\label{line:qmeans:S}
 %		\STATE $\rmS_1^{(\tau)} \leftarrow \rmD_{\sqrt{\rvn}}^{-1} \times \rmS_1^{(\tau)}$
 %		\COMMENT{$\bigO{AB}$}
@@ -104,8 +103,7 @@ with $n_k \eqdef |\{n: t_n^{(\tau)}=k\}|$
 
 %As we show just below, \qkmeans is guaranteed to converge.
 
-
-
+\iffalse
 \begin{remark}[Assignment/Re-estimation trade-off.]
 A strategy to tackle this problem would be to first run the vanilla K-means algorithm,
  obtain the matrix of centroids $U$ and then encode $U$ as a product of sparse matrices
@@ -116,9 +114,10 @@ A strategy to tackle this problem would be to first run the vanilla K-means algo
 
 \todo[inline]{At some point, talk about the trade-off that we are playing with
 regarding the cost of the assignment and the cost of the re-estimation procedure.}
+\fi
 
 \subsection{Convergence of \qkmeans}
-Similarly to \kmeans, \qkmeans converges locally as stated in the following proposition~\ref{thm:convergence}.
+Similarly to \kmeans, \qkmeans converges locally as stated in the following proposition.
 
 \begin{proposition}[Convergence of \qkmeans]
 \label{thm:convergence}
@@ -343,9 +342,9 @@ the product between two sparse matrices of shapes ${N_1\times N_2}$ and ${N_2\ti
 We recall here that the \kmeans algorithm complexity is dominated by its cluster assignation step which requires $\bigO{\nexamples\nclusters\datadim}=\bigO{\nexamples A B}$ operations (see Eq.~\eqref{eq:assignment_problem_kmeans}).
 
 \paragraph{Complexity of algorithm \palm.} The procedure consists in an alternate optimization of each sparse factor. 
-At each iteration, the whole set of $\nfactors$ factors is updated with at a cost in $\bigO{AB\log^2 A}$, as detailed in Appendix~\ref{sec:app:palm4msa}. 
+At each iteration, the whole set of $\nfactors$ factors is updated with at a cost in $\bigO{AB\left (\log^2 A+\log B\right )}$, as detailed in Appendix~\ref{sec:app:palm4msa}. 
 The bottleneck is the computation of the gradient, which benefits from fast computations with sparse matrices.
-The hierarchical version of \palm proposed in~\cite{LeMagoarou2016Flexible} consists in running $\palm$ $2Q$ times so that its time complexity is in $\bigO{AB\log^3 A}$.
+The hierarchical version of \palm proposed in~\cite{LeMagoarou2016Flexible} consists in running $\palm$ $2Q$ times so that its time complexity is in $\bigO{AB\left (\log^3 A + \log A \log B\right )}$.
 
 %Each iteration takes $\mathcal{O}(Q(Qpq + Kd + q^2\log q^2) + K^2d)$\addLG{$q^2 \log q^2$ peut être remplacé par $q^2 + p\log p$ grâce à l'algo quickselect}. In the following analysis, we refer to the lines in Algorithm 2 of \cite{magoarou2014learning}. This algorithm is repeated here for simplicity (Algorithm \ref{algo:palm4msa}). Note that the displayed complexities are for one full iteration of the algorithm.
 %
