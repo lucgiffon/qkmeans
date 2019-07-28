@@ -113,7 +113,7 @@ A recent contribution~\cite{LeMagoarou2016Flexible} has proposed algorithmic str
 \min_{\left \lbrace\rmS_q\right \rbrace_{q\in\intint{Q}}} \left \|\rmU -  \prod_{q\in\intint{\nfactors}}{\rmS_q}\right \|_F^2 + \sum_{q\in\intint{\nfactors}} \delta_{\mathcal{E}_q}(\rmS_q)
 \end{align}
 where, for each $q\in\intint{Q}$, $\delta_{\mathcal{E}_q}(\rmS_q)=0$ 
-if $\rmS_q \in \mathcal{E}_q$ and $\delta_{\mathcal{E}_q}(\rmS_q)=+\infty$ otherwise, $\mathcal{E}_q$ being a constraint set that typically impose a sparsity structure on its elements, as well as some other contraint such as unit Frobenius norm (see~\ref{}\todo{add some details about scaling and $\lambda$ somewhere, maybe in appendix with the palm algorithm}). \addLG{Oui, plutôt dans l'appendice. Ca ne me semble pas utile d'en parler ici car on peut considérer que $S_0 = \lambda$ et donc cette formulation est tout à fait correcte sans être alourdie}
+if $\rmS_q \in \mathcal{E}_q$ and $\delta_{\mathcal{E}_q}(\rmS_q)=+\infty$ otherwise, $\mathcal{E}_q$ being a constraint set that typically impose a sparsity structure on its elements, as well as a scaling constraint. The \palm algorithm and more related details are given in Appendix~\ref{sec:app:palm4msa}.
 
 \iffalse
 TO BE COMPLETED + algo~\ref{algo:palm4msa} in appendix~\ref{sec:app:palm4msa}.
