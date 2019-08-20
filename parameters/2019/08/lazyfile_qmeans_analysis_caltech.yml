@@ -14,7 +14,7 @@ base:
 base_big:
   base:
   nb_clusters: {"--nb-cluster": ["128", "256", "512", "1024"]}
-  dataset: {"--caltech": ["50"]}
+  dataset: {"--caltech": ["32"]}
 
 palm:
   sparsity_factor: {"--sparsity-factor": "[2, 3, 5]"}
