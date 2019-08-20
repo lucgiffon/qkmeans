@@ -260,6 +260,9 @@ class ParameterManager(dict):
             blob_features = self["blobs_dim"]
             blob_centers = self["blobs_clusters"]
             return blobs_dataset(blob_size, blob_features, blob_centers)
+        elif self["--caltech256"] is not None:
+            caltech_size = int(self["--caltech256"])
+            return caltech_dataset(caltech_size)
         elif self["--census"]:
             return census_dataset()
         elif self["--kddcup"]:
@@ -319,6 +322,16 @@ def compute_euristic_gamma(dataset_full, slice_size=1000):
         d_mat = r1 - 2 * d_mat + r2
         results.append(1/slice_size_tmp**2 * np.sum(d_mat))
     return 1. / np.mean(results)
+
+def caltech_dataset(caltech_size):
+    data_dir = project_dir / "data/external" / "caltech256_{}.npz".format(caltech_size)
+    loaded_npz = np.load(data_dir)
+    return {
+        "x_train": loaded_npz["x_train"],
+        "y_train": loaded_npz["y_train"],
+        "x_test": loaded_npz["x_test"],
+        "y_test": loaded_npz["y_test"],
+    }
 
 def blobs_dataset(blob_size, blob_features, blob_centers):
     X, y = datasets.make_blobs(n_samples=blob_size, n_features=blob_features, centers=blob_centers, cluster_std=12)

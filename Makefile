@@ -25,38 +25,24 @@ install:
 
 ## Make Dataset
 data:
-	$(PYTHON_INTERPRETER) src/data/make_dataset.py all data/external
+	$(PYTHON_INTERPRETER) code/data/make_dataset.py all data/external
 
 kddcup: data/external/kddcup.npz
 data/external/kddcup.npz:
-	$(PYTHON_INTERPRETER) src/data/make_dataset.py kddcup data/external
+	$(PYTHON_INTERPRETER) code/data/make_dataset.py kddcup data/external
 
 census: data/external/census.npz
 data/external/census.npz:
-	$(PYTHON_INTERPRETER) src/data/make_dataset.py census data/external
+	$(PYTHON_INTERPRETER) code/data/make_dataset.py census data/external
 
+caltech256_50: data/external/caltech256_50.npz
+data/external/caltech256_50.npz:
+	$(PYTHON_INTERPRETER) code/data/make_dataset.py caltech256_50 data/external
 
-## Make Transforms
-transforms: transform_vgg19 transform_lenet
+caltech256_32: data/external/caltech256_32.npz
+data/external/caltech256_32.npz:
+	$(PYTHON_INTERPRETER) code/data/make_dataset.py caltech256_32 data/external
 
-transform_vgg19: transform_vgg19_cifar10_block5_pool transform_vgg19_svhn_block5_pool
-
-transform_lenet: transform_lenet_mnist_conv_pool_2
-
-transform_lenet_mnist_conv_pool_2: data/processed/lenet/conv_pool_2/mnist.npz
-data/processed/lenet/conv_pool_2/mnist.npz: mnist lenet_mnist
-	$(PYTHON_INTERPRETER) src/features/build_features.py mnist lenet conv_pool_2 mnist data/processed
-
-## Download models
-
-models: vgg19 lenet
-
-vgg19:
-	$(PYTHON_INTERPRETER) src/models/download_model.py vgg19 all models/external
-
-vgg19_cifar10: models/external/vgg19/cifar10/1544802301.9379897_vgg19_Cifar10Dataset.h5
-models/external/vgg19/cifar10/1544802301.9379897_vgg19_Cifar10Dataset.h5:
-	$(PYTHON_INTERPRETER) src/models/download_model.py vgg19 cifar10 models/external
 
 
 ## Delete all compiled Python files
