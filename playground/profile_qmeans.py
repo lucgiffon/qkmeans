@@ -24,10 +24,10 @@ def main(small_dim):
         n_centers = 50
         nb_factors = 5
     else:
-        nb_clusters = 2048
+        nb_clusters = 256
         nb_iter_kmeans = 10
         n_samples = 10000
-        n_features = 256
+        n_features = 2048
         n_centers = 4096
         nb_factors = int(np.log2(min(nb_clusters, n_features)))
     X, _ = datasets.make_blobs(n_samples=n_samples,
@@ -92,6 +92,7 @@ if __name__ == '__main__':
     from pyqalm.data_structures import SparseFactors
     from pyqalm.palm.qalm_fast import palm4msa_fast4, hierarchical_palm4msa, \
         compute_objective_function
+    from pyqalm.palm.projection_operators import prox_splincol
 
     logger.setLevel(logging.ERROR)
 
@@ -110,6 +111,7 @@ if __name__ == '__main__':
     lp.add_function(SparseFactors.get_R)
     lp.add_function(qmeans)
     lp.add_function(get_distances)
+    lp.add_function(prox_splincol)
     # Set function to run
     lp_wrapper = lp(main)
 
