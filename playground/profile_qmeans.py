@@ -16,7 +16,7 @@ from pyqalm.qk_means.qmeans_fast import qmeans
 def main():
     # Main code
     np.random.seed(0)
-    small_dim = True
+    small_dim = False
     if small_dim:
         nb_clusters = 10
         nb_iter_kmeans = 10
@@ -103,7 +103,6 @@ if __name__ == '__main__':
     lp.add_function(palm4msa_fast4)
     lp.add_function(SparseFactors.compute_spectral_norm)
     lp.add_function(qmeans)
-    lp.add_function(main)
     # Set function to run
     lp_wrapper = lp(main)
 
@@ -114,3 +113,5 @@ if __name__ == '__main__':
 
     stats_file = 'profile_qmeans.lprof'
     lp.dump_stats(stats_file)
+    print('Run the following command to display the results:')
+    print('$ python -m line_profiler profile_qmeans.lprof')
