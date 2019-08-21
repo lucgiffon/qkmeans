@@ -20,8 +20,10 @@ from pyqalm import project_dir
 from sklearn.datasets import fetch_lfw_people
 from sklearn.model_selection import train_test_split
 
+
 daiquiri.setup(level=logging.DEBUG)
 logger = daiquiri.getLogger("pyqalm")
+
 
 def get_side_prod(lst_factors, id_shape=(0,0)):
     """

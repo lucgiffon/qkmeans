@@ -7,26 +7,64 @@
 \begin{table}[t]
 	\centering
 	\begin{footnotesize}
-	\begin{tabular}{cllcl}\\
-		\cline{1-2}\cline{4-5}\vspace*{1mm}
-		{\bf Symbol}  & {\bf Meaning}                      &  &    {\bf Symbol}          & {\bf Meaning}                    \\ 		\cline{1-2}\cline{4-5}
-		$N$           & number of data points              &  &    $\rvx_1,\ldots, \rvx_N $        &    data points            \\
-		$D$           & dimension of a data point          &  &    $\rmX \in\mathbb{R}^{N\times D}$&    data matrix            \\
-		$K$           & number of clusters                 &  &    $\rvu_1,\ldots, \rvu_K $        &    cluster centers        \\
-		$\rvt$        & cluster assignment vector          &  &    $\rmU\in\mathbb{R}^{K\times D}$ &    cluster center matrix  \\
-		$Q$           & number of sparse matrix factors    &  &    $\rmS_1, \ldots, \rmS_Q$        &    sparse matrices        \\
-		$\|\cdot\|$, $\|\cdot\|_0$ & $L_2$-norm, $L_0$-norm&  &    $\|\cdot\|_F$, $\|\cdot\|_2$    &    Frobenius norm, spectral norm  \\
-		$\mathcal{E}_1, \ldots, \mathcal{E}_Q$ & sparsity constraint sets           &  & $\delta_{\mathcal{E}_1},\ldots,\delta_{\mathcal{E}_Q}$ & 		sparsity enforcing functions   \\
-		$\intint{M}$  & the set of integers from $1$ to $M$ &  & $\tau$  &                       		current iteration  \\
-		\cline{1-2}\cline{4-5}        \\                                                                		
+	\begin{tabular}{cl}\\
+\hline
+		{\bf Symbol}  & {\bf Meaning}\\
+\hline
+$\intint{M}$  & set of integers from $1$ to $M$\\
+$\|\cdot\|$ & $L_2$-norm\\
+$\|\cdot\|_F$ &    Frobenius norm  \\
+$\|\cdot\|_0$ & $L_0$-norm\\
+$\|\cdot\|_2$    &    spectral norm  \\
+$\rmD_\rvv$ & diagonal matrix with vector $\rvv$ on the diagonal\\                                                          
+\hline
+$N$           & number of data points\\
+$D$           & data dimension\\
+$K$           & number of clusters\\
+$Q$           & number of sparse factors\\
+$\rvx_1,\ldots, \rvx_N $        &    data points\\
+$\rmX \in\mathbb{R}^{N\times D}$&    data matrix\\
+$\rvt$        &  cluster assignment vector\\
+$\rvu_1,\ldots, \rvu_K $        &    \kmeans centroids\\
+$\rmU\in\mathbb{R}^{K\times D}$ &    \kmeans centroid matrix\\
+$\rvv_1,\ldots, \rvv_K $        &    \qkmeans centroids\\
+$\rmV\in\mathbb{R}^{K\times D}$ &    \qkmeans centroid matrix\\
+$\rmS_1, \ldots, \rmS_Q$        &    sparse matrices\\
+$\mathcal{E}_1, \ldots, \mathcal{E}_Q$ & sparsity constraint sets\\
+$\delta_{\mathcal{E}}$ & 		indicator functions for set $\mathcal{E}$\\
+$\tau$  & current iteration \\
+\hline
 	\end{tabular}
 	\end{footnotesize}
-	
 	\caption{Notation used in this paper.}
 	\label{tab:notation}
 \end{table}
-\addtocounter{footnote}{0}
-\footnotetext{We also use the standard notations such as $\mathbb{R}^n$ and $\mathbb{M}_n$.}
+%\begin{table}[t]
+%	\centering
+%	\begin{footnotesize}
+%	\begin{tabular}{cllcl}\\
+%		\cline{1-2}\cline{4-5}\vspace*{1mm}
+%		{\bf Symbol}  & {\bf Meaning}                      &  &    {\bf Symbol}          & {\bf Meaning}                    \\ 		\cline{1-2}\cline{4-5}
+%		$N$           & number of data points              &  &    $\rvx_1,\ldots, \rvx_N $        &    data points            \\
+%		$D$           & data dimension &  &    $\rmX \in\mathbb{R}^{N\times D}$&    data matrix            \\
+%		$K$           & number of clusters                 &  &    $\rvu_1,\ldots, \rvu_K $        &    \kmeans centroids        \\
+%		$\rvt$        &  cluster assignment vector           &  &    $\rmU\in\mathbb{R}^{K\times D}$ &    \kmeans centroid matrix  \\
+%		&                 &  &    $\rvv_1,\ldots, \rvv_K $        &    \qkmeans centroids        \\
+%		&          &  &    $\rmV\in\mathbb{R}^{K\times D}$ &    \qkmeans centroid matrix  \\
+%		$Q$           & number of sparse factors    &  &    $\rmS_1, \ldots, \rmS_Q$        &    sparse matrices        \\
+%		$\|\cdot\|$, & $L_2$-norm&  &    $\|\cdot\|_F$, &    Frobenius norm  \\
+%		$\|\cdot\|_0$ & $L_0$-norm&  &    $\|\cdot\|_2$    &    spectral norm  \\
+%		$\mathcal{E}_1, \ldots, \mathcal{E}_Q$ & sparsity constraint sets           &  & $\delta_{\mathcal{E}}$ & 		indicator functions for set $\mathcal{E}$\\
+%		$\intint{M}$  & set of integers from $1$ to $M$ &  & $\tau$  &                       		current iteration  \\
+%		
+%		$\rmD_\rvv$ & diagonal matrix with vector $\rvv$ on the diagonal\\                                                          		\cline{1-2}\cline{4-5}        \\      
+%	\end{tabular}
+%	\end{footnotesize}
+%	\caption{Notation used in this paper.}
+%	\label{tab:notation}
+%\end{table}
+%\addtocounter{footnote}{0}
+%\footnotetext{We also use the standard notations such as $\mathbb{R}^n$ and $\mathbb{M}_n$.}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
