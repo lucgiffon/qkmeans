@@ -1,9 +1,9 @@
 import numpy as np
 from pyqalm.data_structures import SparseFactors
-from pyqalm.utils import constant_proj, get_lambda_proxsplincol
+from pyqalm.utils import constant_proj, get_lambda_proxsplincol, logger
 
 
-def get_squared_froebenius_norm(data_arr):
+def get_squared_froebenius_norm_line_wise(data_arr):
     if isinstance(data_arr, SparseFactors):
         mat_centroids = data_arr.compute_product(return_array=True)
         centroid_norms = np.linalg.norm(mat_centroids, axis=1) ** 2
@@ -14,7 +14,7 @@ def get_squared_froebenius_norm(data_arr):
     return centroid_norms
 
 
-def get_distances(X_data, centroids, precomputed_centroids_norm=None):
+def get_distances(X_data, centroids, precomputed_centroids_norm=None, precomputed_data_points_norm=None):
     """
     Return the matrix of distance between each data point and each centroid.
 
@@ -30,9 +30,14 @@ def get_distances(X_data, centroids, precomputed_centroids_norm=None):
     if precomputed_centroids_norm is not None:
         centroid_norms = precomputed_centroids_norm
     else:
-        centroid_norms = get_squared_froebenius_norm(centroids)
+        centroid_norms = get_squared_froebenius_norm_line_wise(centroids)
 
-    centroid_distances = centroid_norms[:, None] - 2 * centroids @ X_data.T
+    if precomputed_data_points_norm is not None:
+        data_point_norms = precomputed_data_points_norm
+    else:
+        data_point_norms = get_squared_froebenius_norm_line_wise(X_data)
+
+    centroid_distances = centroid_norms[:, None] - 2 * centroids @ X_data.T + data_point_norms[None, :]
 
     return centroid_distances.T
 
@@ -56,7 +61,7 @@ def compute_objective(X_data, centroids, indicator_vector):
     return np.linalg.norm(X_data - centroids[indicator_vector, :]) ** 2
 
 
-def assign_points_to_clusters(X, centroids):
+def assign_points_to_clusters(X, centroids, X_norms=None):
     """
 
     Parameters
@@ -69,11 +74,14 @@ def assign_points_to_clusters(X, centroids):
     np.ndarray [n]
         indicator_vector
     """
-    distances = get_distances(X, centroids)
+
+    # Assign all points to the nearest centroid
+    # first get distance from all points to all centroids
+    distances = get_distances(X, centroids, precomputed_data_points_norm=X_norms)
     # then, Determine class membership of each point
     # by picking the closest centroid
     indicator_vector = np.argmin(distances, axis=1)
-    return indicator_vector
+    return indicator_vector, distances
 
 
 def build_constraint_set_smart(left_dim, right_dim, nb_factors, sparsity_factor, residual_on_right):
@@ -223,3 +231,50 @@ def build_constraint_sets(left_dim, right_dim, nb_factors, sparsity_factor):
         lst_proj_op_desc_by_fac_step.append(dct_step_lst_nb_keep_values)
 
     return lst_proj_op_by_fac_step, lst_proj_op_desc_by_fac_step
+
+
+def assess_clusters_integrity(X_data, X_data_norms, X_centroids_hat, K_nb_cluster, counts, indicator_vector, distances, cluster_names, cluster_names_sorted):
+    """
+    Checki if no cluster has lost point and if yes, create a new cluster with the farthest point away in the cluster with the biggest population.
+
+    All changes are made in place but for counts and cluster_names_sorted which are returned.
+
+    :param X_data:
+    :param X_data_norms:
+    :param X_centroids_hat:
+    :param K_nb_cluster:
+    :param counts:
+    :param indicator_vector:
+    :param distances:
+    :param cluster_names:
+    :param cluster_names_sorted:
+    :return:
+    """
+
+    for c in range(K_nb_cluster):
+        biggest_cluster_index = np.argmax(counts)  # type: int
+        biggest_cluster = cluster_names[biggest_cluster_index]
+        biggest_cluster_data_indexes = indicator_vector == biggest_cluster
+        index_of_farthest_point_in_biggest_cluster = np.argmax(distances[:, c][biggest_cluster_data_indexes])
+        farthest_point_in_biggest_cluster = X_data[biggest_cluster_data_indexes][index_of_farthest_point_in_biggest_cluster]
+        absolute_index_of_farthest_point_in_biggest_cluster = np.where(biggest_cluster_data_indexes)[0][index_of_farthest_point_in_biggest_cluster]
+
+        cluster_data = X_data[indicator_vector == c]
+        if len(cluster_data) == 0:
+            logger.warning("cluster has lost data, add new cluster. cluster idx: {}".format(c))
+            X_centroids_hat[c] = farthest_point_in_biggest_cluster.reshape(1, -1)
+            counts = list(counts)
+            counts[biggest_cluster_index] -= 1
+            counts.append(1)
+            counts = np.array(counts)
+            cluster_names_sorted = list(cluster_names_sorted)
+            cluster_names_sorted.append(c)
+            cluster_names_sorted = np.array(cluster_names_sorted)
+
+            indicator_vector[absolute_index_of_farthest_point_in_biggest_cluster] = c
+            distances_to_new_cluster = get_distances(X_data, X_centroids_hat[c].reshape(1, -1), precomputed_data_points_norm=X_data_norms)
+            distances[:, c] = distances_to_new_cluster.flatten()
+        else:
+            X_centroids_hat[c] = np.mean(X_data[indicator_vector == c], 0)
+
+    return counts, cluster_names_sorted

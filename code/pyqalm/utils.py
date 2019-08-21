@@ -8,6 +8,7 @@ from copy import deepcopy
 
 from pathlib import Path
 
+import psutil
 from sklearn import datasets
 from keras.datasets import mnist, fashion_mnist
 
@@ -23,6 +24,29 @@ from sklearn.model_selection import train_test_split
 
 daiquiri.setup(level=logging.DEBUG)
 logger = daiquiri.getLogger("pyqalm")
+
+
+def log_memory_usage(context=None):
+    """Logs current memory usage stats.
+    See: https://stackoverflow.com/a/15495136
+
+    :return: None
+    """
+    if context is not None:
+        str_memory_usage = context + ":\t"
+    else:
+        str_memory_usage = ""
+
+    PROCESS = psutil.Process(os.getpid())
+    GIGA = 10 ** 9
+    UNIT = "Go"
+    # total, available, percent, used, free, _, _, _, _, _ = psutil.virtual_memory()
+    process_v_mem = psutil.virtual_memory()
+    total, available, used, free = process_v_mem.total / GIGA, process_v_mem.available / GIGA, process_v_mem.used / GIGA, process_v_mem.free / GIGA
+    percent = used / total * 100
+    proc = PROCESS.memory_info()[1] / GIGA
+    str_memory_usage += 'process = {} {unit}; total = {} {unit}; available = {} {unit}; used = {} {unit}; free = {} {unit}; percent = {:.2f} %'.format(proc, total, available, used, free, percent, unit=UNIT)
+    logger.debug(str_memory_usage)
 
 
 def get_side_prod(lst_factors, id_shape=(0,0)):
@@ -47,11 +71,14 @@ def get_side_prod(lst_factors, id_shape=(0,0)):
         side_prod = multi_dot(lst_factors)
     return side_prod
 
+
 def get_lambda_proxsplincol(nb_keep_values):
     return lambda mat: prox_splincol(mat, nb_keep_values)
 
+
 def constant_proj(mat):
     raise NotImplementedError("This function should not be called but used for its name")
+
 
 class ResultPrinter:
     """
@@ -101,8 +128,10 @@ class ResultPrinter:
                     out_f.write(s_headers + "\n")
                 out_f.write(s_values + "\n")
 
+
 def timeout_signal_handler(signum, frame):
     raise TimeoutError("More than 10 times slower than kmean")
+
 
 def random_combination(iterable, r):
     "Random selection from itertools.combinations(iterable, r)"
@@ -110,6 +139,7 @@ def random_combination(iterable, r):
     n = len(pool)
     indices = sorted(random.sample(range(n), r))
     return tuple(pool[i] for i in indices)
+
 
 class ObjectiveFunctionPrinter:
     def __init__(self, output_file:Path=None):
@@ -164,10 +194,12 @@ class ObjectiveFunctionPrinter:
                     with open(path_arr, "a") as out_f:
                         out_f.write(str_row + "\n")
 
+
 def get_random():
     val = str(random.randint(1, 10000000000))[1:8]
     # print(val)
     return val
+
 
 class ParameterManager(dict):
     def __init__(self, dct_params, **kwargs):
@@ -185,6 +217,21 @@ class ParameterManager(dict):
         self.__init_nb_factors()
         self.__init_output_file()
         self.__init_seed()
+        self.__init_dataset()
+
+    def __init_dataset(self):
+        if self["--blobs"] is not None:
+            size_dim_clust = self["--blobs"].split("-")
+            try:
+                size_dim_clust = [int(elm) for elm in size_dim_clust]
+                if len(size_dim_clust) != 3:
+                    raise ValueError
+            except ValueError:
+                raise ValueError("Blobs chain malformed: {}. should be like 'size-dim-clusters'".format(self["--blobs"]))
+
+            self["blobs_size"] = size_dim_clust[0]
+            self["blobs_dim"] = size_dim_clust[1]
+            self["blobs_clusters"] = size_dim_clust[2]
 
     def __init_nb_factors(self):
         if self["--nb-factors"] is not None:
@@ -217,10 +264,10 @@ class ParameterManager(dict):
         :return:
         """
         # todo normalize data before
-        if self["--blobs"]:
-            blob_size = 500000
-            blob_features = 2000
-            blob_centers = 5000
+        if self["--blobs"] is not None:
+            blob_size = self["blobs_size"]
+            blob_features = self["blobs_dim"]
+            blob_centers = self["blobs_clusters"]
             return blobs_dataset(blob_size, blob_features, blob_centers)
         elif self["--census"]:
             return census_dataset()
@@ -254,6 +301,7 @@ class ParameterManager(dict):
         else:
             raise NotImplementedError("Unknown initialization.")
 
+
 def compute_euristic_gamma(dataset_full, slice_size=1000):
     """
     Given a dataset, return the gamma that should be used (euristically) when using a rbf kernel on this dataset.
@@ -282,32 +330,37 @@ def compute_euristic_gamma(dataset_full, slice_size=1000):
         results.append(1/slice_size_tmp**2 * np.sum(d_mat))
     return 1. / np.mean(results)
 
+
 def blobs_dataset(blob_size, blob_features, blob_centers):
-    X, y = datasets.make_blobs(n_samples=blob_size, n_features=blob_features, centers=blob_centers)
+    X, y = datasets.make_blobs(n_samples=blob_size, n_features=blob_features, centers=blob_centers, cluster_std=12)
     test_size = 1000
     X_train, X_test = X[:-test_size], X[-test_size:]
     y_train, y_test = y[:-test_size], y[-test_size:]
     return {
         "x_train": X_train.reshape(X_train.shape[0], -1),
-        # "y_train": y_train,
-        # "x_test": X_test.reshape(X_test.shape[0], -1),
-        # "y_test": y_test
+        "y_train": y_train,
+        "x_test": X_test.reshape(X_test.shape[0], -1),
+        "y_test": y_test
     }
+
 
 def census_dataset():
     data_dir = project_dir / "data/external" / "census.npz"
     loaded_npz = np.load(data_dir)
     return {"x_train": loaded_npz["x_train"]}
 
+
 def kddcup_dataset():
     data_dir = project_dir / "data/external" / "kddcup.npz"
     loaded_npz = np.load(data_dir)
     return {"x_train": loaded_npz["x_train"]}
 
+
 def plants_dataset():
     data_dir = project_dir / "data/external" / "plants.npz"
     loaded_npz = np.load(data_dir)
     return {"x_train": loaded_npz["x_train"]}
+
 
 def mnist_dataset():
     (X_train, y_train), (X_test, y_test) = mnist.load_data()
@@ -318,6 +371,7 @@ def mnist_dataset():
         "y_test": y_test
     }
 
+
 def fashion_mnist_dataset():
     (X_train, y_train), (X_test, y_test) = fashion_mnist.load_data()
     return {
@@ -326,6 +380,7 @@ def fashion_mnist_dataset():
         "x_test": X_test.reshape(X_test.shape[0], -1),
         "y_test": y_test
     }
+
 
 def lfw_dataset(seed=None):
     lfw_data = fetch_lfw_people(min_faces_per_person=1, resize=0.4)
@@ -337,6 +392,7 @@ def lfw_dataset(seed=None):
         "x_test": X_test.reshape(X_test.shape[0], -1),
         "y_test": y_test
     }
+
 
 def create_directory(_dir, parents=True, exist_ok=True):
     """

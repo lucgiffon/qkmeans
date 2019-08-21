@@ -12,7 +12,7 @@ from collections import OrderedDict
 from pprint import pformat
 
 import numpy as np
-from pyqalm.qk_means.utils import compute_objective, assign_points_to_clusters, build_constraint_set_smart
+from pyqalm.qk_means.utils import compute_objective, assign_points_to_clusters, build_constraint_set_smart, get_squared_froebenius_norm_line_wise, assess_clusters_integrity
 from pyqalm.qk_means.kmeans import kmeans
 from scipy.sparse import csr_matrix
 from sklearn import datasets
@@ -22,10 +22,18 @@ from pyqalm.palm.qalm_fast import hierarchical_palm4msa, \
     palm4msa
 from pyqalm.test.test_qalm import visual_evaluation_palm4msa
 from pyqalm.data_structures import SparseFactors
-from pyqalm.utils import get_lambda_proxsplincol, \
-    constant_proj, logger
+from pyqalm.utils import logger
+
 
 def init_lst_factors(d_in, d_out, p_nb_factors):
+    """
+    Return a simple initialization of a list of sparse factors in which all the factors are identity but the last one is zeros.
+
+    :param d_in: left dimension
+    :param d_out: right dimension
+    :param p_nb_factors: number of factors
+    :return:
+    """
     min_K_d = min(d_in, d_out)
 
     lst_factors = [np.eye(min_K_d) for _ in range(p_nb_factors)]
@@ -51,6 +59,8 @@ def qmeans(X_data: np.ndarray,
 
     if graphical_display:
         raise NotImplementedError("Not implemented graphical display")
+
+    X_data_norms = get_squared_froebenius_norm_line_wise(X_data)
 
     nb_examples = X_data.shape[0]
 
@@ -136,7 +146,7 @@ def qmeans(X_data: np.ndarray,
         # # by picking the closest centroid
         # indicator_vector = np.argmin(distances, axis=1)
 
-        indicator_vector = assign_points_to_clusters(X_data, op_centroids)
+        indicator_vector, distances = assign_points_to_clusters(X_data, op_centroids, X_norms=X_data_norms)
 
         # TODO return distances to assigned cluster in
         #  assign_points_to_clusters and used them in compute_objective to
@@ -156,31 +166,18 @@ def qmeans(X_data: np.ndarray,
         cluster_names, counts = np.unique(indicator_vector, return_counts=True)
         cluster_names_sorted = np.argsort(cluster_names)
 
-        biggest_cluster_index = np.argmax(counts)  # type: int
-        biggest_cluster = cluster_names[biggest_cluster_index]
-        biggest_cluster_data = X_data[indicator_vector == biggest_cluster]
-
+        # todo make function and use it in kmeans algo
         # check if all clusters still have points
-        for c in range(K_nb_cluster):
-            cluster_data = X_data[indicator_vector == c]
-            if len(cluster_data) == 0:
-                logger.warning("cluster has lost data, add new cluster. cluster idx: {}".format(c))
-                X_centroids_hat[c] = biggest_cluster_data[np.random.randint(len(biggest_cluster_data))].reshape(1, -1)
-                counts = list(counts)
-                counts[biggest_cluster_index] -= 1
-                counts.append(1)
-                counts = np.array(counts)
-                cluster_names_sorted = list(cluster_names_sorted)
-                cluster_names_sorted.append(c)
-                cluster_names_sorted = np.array(cluster_names_sorted)
-            else:
-                X_centroids_hat[c] = np.mean(X_data[indicator_vector == c], 0)
 
-
-        # diag_counts_sqrt = np.diag(np.sqrt(counts[cluster_names_sorted]))  # todo use sparse matrix object
-        # diag_counts_sqrt_norm = np.linalg.norm(diag_counts_sqrt)  # todo analytic sqrt(n) instead of cumputing it with norm
-        # diag_counts_sqrt_normalized = diag_counts_sqrt / diag_counts_sqrt_norm
-        # analytic sqrt(n) instead of cumputing it with norm
+        counts, cluster_names_sorted = assess_clusters_integrity(X_data,
+                                                                 X_data_norms,
+                                                                 X_centroids_hat,
+                                                                 K_nb_cluster,
+                                                                 counts,
+                                                                 indicator_vector,
+                                                                 distances,
+                                                                 cluster_names,
+                                                                 cluster_names_sorted)
 
         diag_counts_sqrt_normalized = csr_matrix(
             (np.sqrt(counts[cluster_names_sorted] / nb_examples),

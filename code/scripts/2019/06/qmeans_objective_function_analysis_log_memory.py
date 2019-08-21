@@ -1,5 +1,6 @@
 """
-Analysis of objective function during qmeans execution
+Analysis of objective function during qmeans execution. This script is derived from `code/scripts/2019/06/qmeans_objective_function_analysis_fast_precompute_centroids_norm.py`
+and add some logging on memory utilization of the script.
 
 Usage:
   qmeans_objective_function_analysis kmeans [-h] [-v] [--seed=int] (--blobs|--light-blobs|--census|--kddcup|--plants|--mnist|--fashion-mnist|--lfw) --nb-cluster=int --initialization=str [--nb-iteration=int] [--assignation-time=int] [--1-nn] [--nystrom=int] [--batch-assignation-time=int]
@@ -50,8 +51,8 @@ import sys
 import time
 import numpy as np
 from pyqalm.data_structures import SparseFactors
-from pyqalm.palm.qalm_fast import hierarchical_palm4msa
-from pyqalm.utils import ResultPrinter, ParameterManager, ObjectiveFunctionPrinter, logger, timeout_signal_handler, compute_euristic_gamma
+from pyqalm.palm.qalm_fast import hierarchical_palm4msa, palm4msa
+from pyqalm.utils import ResultPrinter, ParameterManager, ObjectiveFunctionPrinter, logger, timeout_signal_handler, compute_euristic_gamma, log_memory_usage
 # todo graphical evaluation option
 from pyqalm.qk_means.qmeans_fast import qmeans, init_lst_factors
 from pyqalm.qk_means.utils import build_constraint_set_smart, get_distances, get_squared_froebenius_norm_line_wise
@@ -74,7 +75,8 @@ lst_results_header = [
     "nystrom_build_time",
     "nystrom_inference_time",
     "nystrom_sampled_error_reconstruction",
-    "batch_assignation_mean_time"
+    "batch_assignation_mean_time",
+    "nb_param_centroids"
 ]
 
 def main_kmeans(X, U_init):
@@ -147,11 +149,13 @@ def main_qmeans(X, U_init):
 
     return final_centroids, indicator_vector_final
 
-def make_assignation_evaluation(X, centroids, nb_eval):
+def make_assignation_evaluation(X, centroids):
+    nb_eval = paraman["--assignation-time"]
     if nb_eval > X.shape[0]:
         logger.warning("Batch size for assignation evaluation is bigger than data size. {} > {}. Using "
                        "data size instead.".format(nb_eval, X.shape[0]))
         nb_eval = X.shape[0]
+        paraman["--assignation-time"] = nb_eval
 
     times = []
     precomputed_centroid_norms = get_squared_froebenius_norm_line_wise(centroids)
@@ -170,7 +174,7 @@ def make_assignation_evaluation(X, centroids, nb_eval):
     })
 
 
-def make_batch_assignation_evaluation(X, centroids, size_batch):
+def make_batch_assignation_evaluation(X, centroids):
     """
     Assign `size_batch` random samples of `X` to some of the centroids.
     All the samples are assigned at the same time using a matrix-vector multiplication.
@@ -182,12 +186,15 @@ def make_batch_assignation_evaluation(X, centroids, size_batch):
 
     :return: None
     """
+    size_batch = paraman["--batch-assignation-time"]
     if size_batch > X.shape[0]:
         logger.warning("Batch size for batch assignation evaluation is bigger than data size. {} > {}. Using "
                        "data size instead.".format(size_batch, X.shape[0]))
         size_batch = X.shape[0]
+        paraman["--batch-assignation-time"] = size_batch
 
-    precomputed_centroid_norms = get_squared_froebenius_norm_line_wise(centroids)
+    # precomputed_centroid_norms = get_squared_froebenius_norm(centroids)
+    precomputed_centroid_norms = None
     indexes_batch = np.random.permutation(X.shape[0])[:size_batch]
     start_time = time.time()
     get_distances(X[indexes_batch], centroids, precomputed_centroids_norm=precomputed_centroid_norms)
@@ -227,12 +234,14 @@ def make_1nn_evaluation(x_train, y_train, x_test, y_test, U_centroids, indicator
         """
         clf = KNeighborsClassifier(n_neighbors=1, algorithm=str_type)
         clf.fit(x_train, y_train)
+        log_memory_usage("Memory after definition of neighbors classifiers in scikit_evaluation of make_1nn_evaluation")
 
         start_inference_time = time.time()
         predictions = np.empty_like(y_test)
         for obs_idx, obs_test in enumerate(x_test):
             predictions[obs_idx] = clf.predict(obs_test.reshape(1, -1))[0]
         stop_inference_time = time.time()
+        log_memory_usage("Memory after label assignation in scikit_evaluation of make_1nn_evaluation")
 
         inference_time = (stop_inference_time - start_inference_time)
 
@@ -253,9 +262,12 @@ def make_1nn_evaluation(x_train, y_train, x_test, y_test, U_centroids, indicator
         """
         # for each cluster, there is a sub nearest neighbor classifier for points in that cluster.
         lst_clf_by_cluster = [KNeighborsClassifier(n_neighbors=1, algorithm="brute").fit(x_train[indicator_vector == i], y_train[indicator_vector == i]) for i in range(U_centroids.shape[0])]
-
+        log_memory_usage("Memory after definition of neighbors classifiers in kmean_tree_evaluation of make_1nn_evaluation")
+        # precomputed_centroid_norms = get_squared_froebenius_norm(U_centroids)
+        precomputed_centroid_norms = None
         start_inference_time = time.time()
-        distances = get_distances(x_test, U_centroids)
+        distances = get_distances(x_test, U_centroids, precomputed_centroids_norm=precomputed_centroid_norms)
+        log_memory_usage("Memory after distances computation with clusters in kmean_tree_evaluation of make_1nn_evaluation")
         indicator_vector_test = np.argmin(distances, axis=1)
         predictions = np.empty_like(y_test)
         for obs_idx, obs_test in enumerate(x_test):
@@ -264,6 +276,7 @@ def make_1nn_evaluation(x_train, y_train, x_test, y_test, U_centroids, indicator
             clf_cluster = lst_clf_by_cluster[idx_cluster]
             predictions[obs_idx] = clf_cluster.predict(obs_test.reshape(1, -1))[0]
         stop_inference_time = time.time()
+        log_memory_usage("Memory after label assignation in kmean_tree_evaluation of make_1nn_evaluation")
         inference_time = (stop_inference_time - start_inference_time)
 
         accuracy = np.sum(predictions == y_test) / y_test.shape[0]
@@ -305,6 +318,11 @@ def special_rbf_kernel(X, Y, gamma, norm_X, norm_Y):
     """
     assert len(X.shape) == len(Y.shape) == 2
 
+    if norm_X is None:
+        norm_X = get_squared_froebenius_norm_line_wise(X)
+    if norm_Y is None:
+        norm_Y = get_squared_froebenius_norm_line_wise(Y)
+
     def f(norm_mat):
         return np.exp(-gamma * norm_mat)
 
@@ -312,13 +330,15 @@ def special_rbf_kernel(X, Y, gamma, norm_X, norm_Y):
         return np.exp(2 * gamma * scal)
 
     if isinstance(X, SparseFactors) and isinstance(Y, SparseFactors):
-        xyt = SparseFactors(X.get_list_of_factors() + Y.transpose().get_list_of_factors()).compute_product(return_array=True)
+        # xyt = SparseFactors(X.get_list_of_factors() + Y.transpose().get_list_of_factors()).compute_product(return_array=True)
+        S = SparseFactors(lst_factors=X.get_list_of_factors() + Y.get_list_of_factors_H(), lst_factors_H=X.get_list_of_factors_H() + Y.get_list_of_factors())
+        xyt = S.compute_product(return_array=True)
     else:
         xyt = X @ Y.transpose()
 
     return f(norm_X).reshape(-1, 1) * g(xyt) * f(norm_Y).reshape(1, -1)
 
-def make_nystrom_evaluation(x_train, U_centroids, n_sample):
+def make_nystrom_evaluation(x_train, U_centroids):
     """
     Evaluation Nystrom construction time and approximation precision.
 
@@ -330,23 +350,28 @@ def make_nystrom_evaluation(x_train, U_centroids, n_sample):
 
     :return:
     """
+    n_sample = paraman["--nystrom"]
     if n_sample > x_train.shape[0]:
         logger.warning("Batch size for nystrom evaluation is bigger than data size. {} > {}. Using "
                        "data size instead.".format(n_sample, x_train.shape[0]))
         n_sample = x_train.shape[0]
+        paraman["--nystrom"] = n_sample
 
     # Compute euristic gamma as the mean of euclidian distance between example
     gamma = compute_euristic_gamma(x_train)
-
+    log_memory_usage("Memory after euristic gamma computation in make_nystrom_evaluation")
     # precompute the centroids norm for later use (optimization)
-    centroids_norm = get_squared_froebenius_norm_line_wise(U_centroids)
+    # centroids_norm = get_squared_froebenius_norm(U_centroids)
+    centroids_norm = None
 
     ## TIME: nystrom build time
     # nystrom build time is Nystrom preparation time for later use.
     ## START
     nystrom_build_start_time = time.time()
     basis_kernel_W = special_rbf_kernel(U_centroids, U_centroids, gamma, centroids_norm, centroids_norm)
+    log_memory_usage("Memory after K_11 computation in make_nystrom_evaluation")
     U, S, V = np.linalg.svd(basis_kernel_W)
+    log_memory_usage("Memory after SVD computation in make_nystrom_evaluation")
     S = np.maximum(S, 1e-12)
     normalization_ = np.dot(U / np.sqrt(S), V)
     nystrom_build_stop_time = time.time()
@@ -356,17 +381,22 @@ def make_nystrom_evaluation(x_train, U_centroids, n_sample):
 
     indexes_samples = np.random.permutation(x_train.shape[0])[:n_sample]
     sample = x_train[indexes_samples]
+    log_memory_usage("Memory after sample selection in make_nystrom_evaluation")
 
-    samples_norm = np.linalg.norm(sample, axis=1) ** 2
+    # samples_norm = np.linalg.norm(sample, axis=1) ** 2
+    samples_norm = None
 
     real_kernel = special_rbf_kernel(sample, sample, gamma, samples_norm, samples_norm)
+    log_memory_usage("Memory after real kernel computation in make_nystrom_evaluation")
 
     ## TIME: nystrom inference time
     # Nystrom inference time is the time for Nystrom transformation for all the samples.
     ## START
     nystrom_inference_time_start = time.time()
     nystrom_embedding = special_rbf_kernel(U_centroids, sample, gamma, centroids_norm, samples_norm).T @ normalization_
+    log_memory_usage("Memory after embedding computation in make_nystrom_evaluation")
     nystrom_approx_kernel_value = nystrom_embedding @ nystrom_embedding.T
+    log_memory_usage("Memory after kernel matrix approximation in make_nystrom_evaluation")
     nystrom_inference_time_stop = time.time()
     ## STOP
 
@@ -394,16 +424,30 @@ def process_palm_on_top_of_kmeans(kmeans_centroids):
 
     eye_norm = np.sqrt(kmeans_centroids.shape[0])
 
-    _lambda_tmp, op_factors, U_centroids, nb_iter_by_factor, objective_palm = \
-        hierarchical_palm4msa(
-            arr_X_target=np.eye(kmeans_centroids.shape[0]) @ kmeans_centroids,
-            lst_S_init=lst_factors,
-            lst_dct_projection_function=lst_constraint_sets,
-            f_lambda_init=1. * eye_norm,
-            nb_iter=paraman["--nb-iteration-palm"],
-            update_right_to_left=True,
-            residual_on_right=paraman["--residual-on-right"],
-            graphical_display=False)
+    if paraman["--hierarchical"]:
+        _lambda_tmp, op_factors, U_centroids, nb_iter_by_factor, objective_palm = \
+            hierarchical_palm4msa(
+                arr_X_target=np.eye(kmeans_centroids.shape[0]) @ kmeans_centroids,
+                lst_S_init=lst_factors,
+                lst_dct_projection_function=lst_constraint_sets,
+                f_lambda_init=1. * eye_norm,
+                nb_iter=paraman["--nb-iteration-palm"],
+                update_right_to_left=True,
+                residual_on_right=paraman["--residual-on-right"],
+                graphical_display=False)
+    else:
+        _lambda_tmp, op_factors, _, objective_palm, nb_iter_palm = \
+            palm4msa(arr_X_target=np.eye(kmeans_centroids.shape[0]) @ kmeans_centroids,
+                     lst_S_init=lst_factors,
+                     nb_factors=len(lst_factors),
+                     lst_projection_functions=lst_constraint_sets[-1]["finetune"],
+                     f_lambda_init=1. * eye_norm,
+                     nb_iter=paraman["--nb-iteration-palm"],
+                     update_right_to_left=True,
+                     graphical_display=False,
+                     track_objective=False)
+
+    log_memory_usage("Memory after palm on top of kmeans in process_palm_on_top_of_kmeans")
 
     _lambda = _lambda_tmp / eye_norm
     lst_factors_ = op_factors.get_list_of_factors()
@@ -414,6 +458,7 @@ def process_palm_on_top_of_kmeans(kmeans_centroids):
 
 if __name__ == "__main__":
     logger.info("Command line: " + " ".join(sys.argv))
+    log_memory_usage("Memory at startup")
     arguments = docopt.docopt(__doc__)
     paraman = ParameterManager(arguments)
     initialized_results = dict((v, None) for v in lst_results_header)
@@ -438,8 +483,14 @@ if __name__ == "__main__":
 
         U_init = paraman.get_initialization_centroids(dataset["x_train"])
 
+        log_memory_usage("Memory after loading dataset and initialization of centroids")
+
         if paraman["kmeans"]:
             U_final, indicator_vector_final = main_kmeans(dataset["x_train"], U_init)
+
+            log_memory_usage("Memory after kmeans")
+
+            dct_nb_param = {"nb_param_centroids": U_final.size}
             if paraman["palm"]:
                 if paraman["--nb-factors"] is None:
                     paraman["--nb-factors"] = int(np.log2(min(U_init.shape)))
@@ -448,6 +499,7 @@ if __name__ == "__main__":
                 U_final = process_palm_on_top_of_kmeans(U_final)
                 distances = get_distances(dataset["x_train"], U_final)
                 indicator_vector_final = np.argmin(distances, axis=1)
+                dct_nb_param = {"nb_param_centroids": U_final.get_nb_param()}
 
         elif paraman["qmeans"]:
             # paraman_q = ParameterManagerQmeans(arguments)
@@ -456,18 +508,23 @@ if __name__ == "__main__":
                 paraman["--nb-factors"] = int(np.log2(min(U_init.shape)))
             paraman["--residual-on-right"] = True if U_init.shape[1] >= U_init.shape[0] else False
             U_final, indicator_vector_final = main_qmeans(dataset["x_train"], U_init)
+
+            log_memory_usage("Memory after qmeans")
+
+            dct_nb_param = {"nb_param_centroids": U_final.get_nb_param()}
         else:
             raise NotImplementedError("Unknown method.")
+        resprinter.add(dct_nb_param)
+
         np.save(paraman["--output-file_centroidprinter"], U_final, allow_pickle=True)
 
         if paraman["--assignation-time"] is not None:
             logger.info("Start assignation time evaluation with {} samples".format(paraman["--assignation-time"]))
-            make_assignation_evaluation(dataset["x_train"], U_final, paraman["--assignation-time"])
+            make_assignation_evaluation(dataset["x_train"], U_final)
 
         if paraman["--batch-assignation-time"] is not None:
             logger.info("Start batch assignation time evaluation with batch size {}".format(paraman["--batch-assignation-time"]))
-            make_batch_assignation_evaluation(dataset["x_train"], U_final, paraman["--batch-assignation-time"])
-
+            make_batch_assignation_evaluation(dataset["x_train"], U_final)
 
         if paraman["--1-nn"] and "x_test" in dataset.keys():
             logger.info("Start 1 nearest neighbor evaluation")
@@ -480,7 +537,7 @@ if __name__ == "__main__":
 
         if paraman["--nystrom"] is not None:
             logger.info("Start Nyström reconstruction evaluation with {} samples".format(paraman["--nystrom"]))
-            make_nystrom_evaluation(dataset["x_train"], U_final, paraman["--nystrom"])
+            make_nystrom_evaluation(dataset["x_train"], U_final)
     except Exception as e:
         has_failed = True
         failure_dict = {

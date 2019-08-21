@@ -48,7 +48,7 @@ from pyqalm.data_structures import SparseFactors
 from pyqalm.utils import ResultPrinter, ParameterManager, ObjectiveFunctionPrinter, logger, timeout_signal_handler, compute_euristic_gamma
 # todo graphical evaluation option
 from pyqalm.qk_means.qmeans_fast import qmeans
-from pyqalm.qk_means.utils import build_constraint_set_smart, get_distances, get_squared_froebenius_norm
+from pyqalm.qk_means.utils import build_constraint_set_smart, get_distances, get_squared_froebenius_norm_line_wise
 from pyqalm.qk_means.kmeans import kmeans
 from sklearn.neighbors import KNeighborsClassifier
 from scipy.sparse.linalg import LinearOperator
@@ -127,7 +127,7 @@ def main_qmeans(X, U_init):
 def make_assignation_evaluation(X, centroids):
     nb_eval = 100
     times = []
-    precomputed_centroid_norms = get_squared_froebenius_norm(centroids)
+    precomputed_centroid_norms = get_squared_froebenius_norm_line_wise(centroids)
     for i in np.random.permutation(X.shape[0])[:nb_eval]:
         start_time = time.time()
         get_distances(X[i].reshape(1, -1), centroids, precomputed_centroids_norm=precomputed_centroid_norms)
