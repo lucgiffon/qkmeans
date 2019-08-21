@@ -18,8 +18,10 @@ import daiquiri
 from pyqalm.palm.projection_operators import prox_splincol
 from pyqalm import project_dir
 
+
 daiquiri.setup(level=logging.DEBUG)
 logger = daiquiri.getLogger("pyqalm")
+
 
 def get_side_prod(lst_factors, id_shape=(0,0)):
     """
