@@ -65,10 +65,6 @@ def run_one_file_per_batch(filename, n_examples, batch_size, data_dim,
 
 
 def main(params):
-    try:
-        mkdir('data')
-    except FileExistsError:
-        pass
     print('run_data_in_ram')
     run_data_in_ram(**params)
     print('run_mmap')
@@ -90,6 +86,10 @@ if __name__ == '__main__':
         'data_dim': 2 ** 9,
         'n_projections': 2 ** 11,
     }
+    try:
+        mkdir('data')
+    except FileExistsError:
+        pass
     print('Create data')
     create_data(**params)
     lp = line_profiler.LineProfiler()
