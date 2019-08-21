@@ -73,6 +73,8 @@ def main(params):
     run_data_in_ram(**params)
     print('run_mmap')
     run_mmap(**params)
+    print('run_mmap_rand')
+    run_mmap_rand(**params)
     print('run_one_file_per_batch')
     run_one_file_per_batch(**params)
 
