@@ -13,10 +13,9 @@ from pyqalm.qk_means.kmeans import kmeans
 from pyqalm.qk_means.qmeans_fast import qmeans
 
 
-def main():
+def main(small_dim):
     # Main code
     np.random.seed(0)
-    small_dim = False
     if small_dim:
         nb_clusters = 10
         nb_iter_kmeans = 10
@@ -25,10 +24,10 @@ def main():
         n_centers = 50
         nb_factors = 5
     else:
-        nb_clusters = 1024
+        nb_clusters = 2048
         nb_iter_kmeans = 10
         n_samples = 10000
-        n_features = 64
+        n_features = 256
         n_centers = 4096
         nb_factors = int(np.log2(min(nb_clusters, n_features)))
     X, _ = datasets.make_blobs(n_samples=n_samples,
@@ -88,6 +87,8 @@ if __name__ == '__main__':
     import logging
     import line_profiler
     from pyqalm.utils import logger
+    from pyqalm.qk_means.utils import assess_clusters_integrity, \
+        assign_points_to_clusters, get_distances
     from pyqalm.data_structures import SparseFactors
     from pyqalm.palm.qalm_fast import palm4msa_fast4, hierarchical_palm4msa, \
         compute_objective_function
@@ -97,21 +98,28 @@ if __name__ == '__main__':
     lp = line_profiler.LineProfiler()
     # Add functions to be profiled
     lp.add_function(kmeans)
+    lp.add_function(assess_clusters_integrity)
+    lp.add_function(assign_points_to_clusters)
     lp.add_function(qmeans)
     lp.add_function(compute_objective_function)
     lp.add_function(hierarchical_palm4msa)
     lp.add_function(palm4msa_fast4)
     lp.add_function(SparseFactors.compute_spectral_norm)
+    lp.add_function(SparseFactors.compute_product)
+    lp.add_function(SparseFactors.get_L)
+    lp.add_function(SparseFactors.get_R)
     lp.add_function(qmeans)
+    lp.add_function(get_distances)
     # Set function to run
     lp_wrapper = lp(main)
 
     # Run
-    lp_wrapper()
+    small_dim = False
+    lp_wrapper(small_dim)
 
     lp.print_stats()
 
-    stats_file = 'profile_qmeans.lprof'
+    stats_file = 'profile_qmeans_{}.lprof'.format(small_dim)
     lp.dump_stats(stats_file)
     print('Run the following command to display the results:')
-    print('$ python -m line_profiler profile_qmeans.lprof')
+    print('$ python -m line_profiler {}'.format(stats_file))
