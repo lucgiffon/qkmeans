@@ -20,6 +20,7 @@ from pyqalm.palm.projection_operators import prox_splincol
 from pyqalm import project_dir
 from sklearn.datasets import fetch_lfw_people
 from sklearn.model_selection import train_test_split
+import keras
 
 daiquiri.setup(level=logging.DEBUG)
 logger = daiquiri.getLogger("pyqalm")
@@ -424,3 +425,71 @@ def download_data(url, directory, name=None):
         logger.debug("File {} already exists and doesn't need to be donwloaded".format(s_file_path))
 
     return s_file_path
+
+
+
+class DataGenerator(keras.utils.Sequence):
+    'Generates data for Keras'
+    def __init__(self, examples, labels=None, batch_size=32, shuffle=True, to_categorical=False, return_indexes=False):
+        'Initialization'
+        self.batch_size = batch_size
+        self.labels = labels
+        self.examples = examples
+        self.dim = examples.shape[1:]
+        if self.labels is not None:
+            self.n_classes = len(set(labels))
+        self.shuffle = shuffle
+        self.to_categorical = to_categorical
+        self.return_indexes = return_indexes
+        self.on_epoch_end()
+
+    def __len__(self):
+        'Denotes the number of batches per epoch'
+        return int(np.floor(len(self.examples) / self.batch_size))
+
+    def __getitem__(self, index):
+        'Generate one batch of data'
+        # Generate indexes of the batch
+        indexes = self.indexes[index*self.batch_size:(index+1)*self.batch_size]
+
+        if self.return_indexes:
+            return indexes
+        else:
+            # Generate data
+            return self.__data_generation(indexes)
+
+    def on_epoch_end(self):
+        'Updates indexes after each epoch'
+        self.indexes = np.arange(len(self.examples))
+        if self.shuffle == True:
+            np.random.shuffle(self.indexes)
+
+    def __data_generation(self, indexes):
+        'Generates data containing batch_size samples' # X : (n_samples, *dim, n_channels)
+        # Initialization
+        X = np.empty((self.batch_size, *self.dim)).squeeze()
+        y = np.empty((self.batch_size), dtype=int)
+
+
+        # Generate data
+        for i, idx in enumerate(indexes):
+            # Store sample
+            X[i,] = self.examples[idx]
+            if self.labels is not None:
+                # Store class
+                y[i] = self.labels[idx]
+
+
+        if self.to_categorical:
+            return X, keras.utils.to_categorical(y, num_classes=self.n_classes)
+        elif self.labels is not None:
+            return X, y
+        else:
+            return X
+
+if __name__ == "__main__":
+    iris = datasets.load_iris()
+    x, y = iris.data, iris.target
+    for d in DataGenerator(x):
+        print(d)
+    # for d in DataGenerator()
