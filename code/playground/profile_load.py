@@ -72,22 +72,23 @@ def run_one_file_per_batch(filename, n_examples, batch_size, data_dim,
     return s
 
 
-def main(params):
-    print('Run run_data_in_ram')
-    run_data_in_ram(**params)
-    print('Run run_mmap')
-    run_mmap(**params)
-    print('Run run_mmap_rand')
-    run_mmap_rand(**params)
-    print('Run run_one_file_per_batch')
-    run_one_file_per_batch(**params)
+def main(params, n_runs=5):
+    for i in range(n_runs):
+        print('Run run_data_in_ram')
+        run_data_in_ram(**params)
+        print('Run run_mmap')
+        run_mmap(**params)
+        print('Run run_mmap_rand')
+        run_mmap_rand(**params)
+        print('Run run_one_file_per_batch')
+        run_one_file_per_batch(**params)
 
 
 if __name__ == '__main__':
 
     import line_profiler
 
-    params = {
+    my_params = {
         'filename': 'data/tmp',
         'batch_size': 2 ** 11,
         'n_examples': 2 ** 18,
@@ -98,19 +99,19 @@ if __name__ == '__main__':
         mkdir('data')
     except FileExistsError:
         pass
-    rm_data(params['filename'])
-    create_data(**params)
+    rm_data(my_params['filename'])
+    create_data(**my_params)
     lp = line_profiler.LineProfiler()
     lp.add_function(run_data_in_ram)
     lp.add_function(run_mmap)
     lp.add_function(run_mmap_rand)
     lp.add_function(run_one_file_per_batch)
     lp_wrapper = lp(main)
-    lp_wrapper(params)
+    lp_wrapper(my_params)
     lp.print_stats(output_unit=1e-3)
 
     stats_file = 'profile_load.lprof'
     lp.dump_stats(stats_file)
     print('Run the following command to display the results:')
     print('$ python -m line_profiler {}'.format(stats_file))
-    rm_data(params['filename'])
+    rm_data(my_params['filename'])
