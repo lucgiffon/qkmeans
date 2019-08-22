@@ -4,15 +4,23 @@
 .. moduleauthor:: Valentin Emiya
 """
 import numpy as np
+from pathlib import Path
 from os import mkdir
 
 
 def create_data(filename, n_examples, batch_size, data_dim, n_projections):
+    print('Create data')
     x = np.random.randn(data_dim, n_examples)
     np.save(file=filename + '.npy', arr=x)
     for i in range(n_examples//batch_size):
         np.save(file=filename + '_' + str(i) + '.npy',
                 arr=x[:, i*batch_size:(i+1)*batch_size])
+
+
+def rm_data(filename):
+    print('Remove data')
+    for f in Path('.').glob(filename + '*.npy'):
+        f.unlink()
 
 
 def run_data_in_ram(filename, n_examples, batch_size, data_dim, n_projections):
@@ -57,7 +65,7 @@ def run_one_file_per_batch(filename, n_examples, batch_size, data_dim,
     u = np.random.randn(n_projections, data_dim)
     s = 0
     for i in range(n_examples // batch_size):
-        xi = np.load(filename + '_' + str(i) + '.npy', mmap_mode='r')
+        xi = np.load(filename + '_' + str(i) + '.npy')
         xi = np.copy(xi)
         y = u @ xi
         s += np.sum(y)
@@ -65,13 +73,13 @@ def run_one_file_per_batch(filename, n_examples, batch_size, data_dim,
 
 
 def main(params):
-    print('run_data_in_ram')
+    print('Run run_data_in_ram')
     run_data_in_ram(**params)
-    print('run_mmap')
+    print('Run run_mmap')
     run_mmap(**params)
-    print('run_mmap_rand')
+    print('Run run_mmap_rand')
     run_mmap_rand(**params)
-    print('run_one_file_per_batch')
+    print('Run run_one_file_per_batch')
     run_one_file_per_batch(**params)
 
 
@@ -90,7 +98,7 @@ if __name__ == '__main__':
         mkdir('data')
     except FileExistsError:
         pass
-    print('Create data')
+    rm_data(params['filename'])
     create_data(**params)
     lp = line_profiler.LineProfiler()
     lp.add_function(run_data_in_ram)
@@ -105,3 +113,4 @@ if __name__ == '__main__':
     lp.dump_stats(stats_file)
     print('Run the following command to display the results:')
     print('$ python -m line_profiler {}'.format(stats_file))
+    rm_data(params['filename'])
