@@ -1,3 +1,26 @@
+!.gitkeep
+
+reports/figures/*
+
+arrayparam*txt
+reports.bakdir/*
+data/*
+
+.kile/*
+*.kilepr*
+.bakdir
+results/*
+
+*.pdf
+*.synctex.gz
+*.aux
+*.log
+*.bbl
+*.blg
+*.dvi
+*.out
+*.ps
+
 *.py[co]
 
 # Packages

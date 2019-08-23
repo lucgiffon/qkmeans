@@ -1,0 +1,58 @@
+\documentclass[twocolumn]{article}
+\usepackage{natbib}
+
+\usepackage[width=17cm,height=22cm]{geometry}
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{fancyvrb}
+\usepackage{authblk}
+\usepackage{hyperref}
+
+\newtheorem{theorem}{Théorème}
+
+
+\title{Efficient K-means for efficient Nyström approximation}
+\author{Luc Giffon}
+\author{Valentin Emiya}
+\author{Liva Ralaivola}
+\author{Hachem Kadri}
+\author{Riikka Huusari}
+\affil[1]{Aix Marseille Université, Université de Toulon, CNRS, LIS, Marseille, France}
+%\affil[2]{Université Y, CNRS et INRIA}
+
+%\renewcommand\Authands{, and }
+%\renewcommand\Authand{ and }
+
+
+% OUR ADDITIONS IN PREAMBLE
+%====================================================================================
+\input{preamble.tex}
+%====================================================================================
+
+
+
+\begin{document}
+\maketitle
+
+% OUR ABSTRACT
+%====================================================================================
+\input{abstract.tex}
+%====================================================================================
+
+\medskip
+
+\noindent\textbf{Key-words}: K-means, Sparse Factorization, Nyström.
+
+% OUR PAPER
+%====================================================================================
+\input{introduction.tex}
+\input{notations.tex}
+\input{background.tex}
+\input{contributions.tex}
+\input{applications.tex}
+\input{conclusion.tex}
+%====================================================================================
+
+\bibliographystyle{alpha}
+\bibliography{biblio}
+\end{document}

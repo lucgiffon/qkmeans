@@ -1,0 +1,18 @@
+all:
+  kmeans_big:
+
+base:
+  seed: {"--seed": "range(3)"}
+  nystrom: ["--nystrom"]
+  assignation: ["--assignation-time"]
+  1nn: ["--1-nn"]
+  initialisation: {--initialization: ["uniform_sampling"]}
+
+base_big:
+  base:
+  nb_clusters: {"--nb-cluster": ["64", "512", "1024", "2048"]}
+  dataset: ["--census", "--kddcup", "--blobs"]
+
+kmeans_big:
+  kmeans: ["kmeans"]
+  base_big:
