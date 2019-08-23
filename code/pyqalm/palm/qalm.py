@@ -10,21 +10,14 @@ import numpy as np
 from numpy.linalg import norm
 from numpy.linalg import multi_dot
 import matplotlib.pyplot as plt
+from pyqalm.palm.utils import compute_objective_function
 
 from pyqalm.utils import get_side_prod, logger
-from pyqalm.data_structures import SparseFactors
 
 
 # TODO avoid conversions between dense ndarray and sparse matrices
 # TODO init palm with SparseFactors
 
-
-def compute_objective_function(arr_X_target, _f_lambda, _lst_S):
-    if isinstance(_lst_S, SparseFactors):
-        reconstruct = _f_lambda * _lst_S.compute_product()
-    else:
-        reconstruct = _f_lambda * multi_dot(_lst_S)
-    return np.linalg.norm(arr_X_target - reconstruct, ord='fro') ** 2
 
 
 def palm4msa(arr_X_target: np.array,

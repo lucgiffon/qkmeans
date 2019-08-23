@@ -90,8 +90,8 @@ if __name__ == '__main__':
     from pyqalm.qk_means.utils import assess_clusters_integrity, \
         assign_points_to_clusters, get_distances
     from pyqalm.data_structures import SparseFactors
-    from pyqalm.palm.qalm_fast import palm4msa_fast4, hierarchical_palm4msa, \
-        compute_objective_function
+    from pyqalm.palm.qalm_fast import palm4msa_fast4, hierarchical_palm4msa
+    from pyqalm.palm.utils import compute_objective_function
     from pyqalm.palm.projection_operators import prox_splincol
 
     logger.setLevel(logging.ERROR)
