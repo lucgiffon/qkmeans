@@ -1,7 +1,7 @@
 \section{\palm algorithm}
 \label{sec:app:palm4msa}
 
-The \palm algorithm~\citep{LeMagoarou2016Flexible} is given in Algorithm~\ref{algo:palm4msa} together with the time complexity of each line, using $A=\min(\nclusters, \datadim)$ and $B=\max(\nclusters, \datadim)$. 
+The \palm algorithm~\cite{LeMagoarou2016Flexible} is given in Algorithm~\ref{algo:palm4msa} together with the time complexity of each line, using $A=\min(\nclusters, \datadim)$ and $B=\max(\nclusters, \datadim)$. 
 Even more general constraints can be used, the constraint sets $\mathcal{E}_q$ are typically defined as the intersection of the set of unit Frobenius-norm matrices and of a set of sparse matrices.
 The unit Frobenius norm is used together with the $\lambda$ factor to avoid a scaling indeterminacy.
 Note that to simplify the model presentation, factor $\lambda$ is used internally in \palm and is integrated in factor $\rmS_1$ at the end of the algorithm (Line~\ref{line:palm:postprocess:S1}) so that $\rmS_1$ does not satisfy the unit Frobenius norm in $\mathcal{E}_1$ at the end of the algorithm.

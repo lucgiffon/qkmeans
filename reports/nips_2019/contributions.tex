@@ -167,7 +167,10 @@ To proove this convergence, we show that each of the assignment and centroid upd
  t^{(\tau)}_n = \argmin_{k \in \intint{\nclusters}} \norm{\rvx_n - \rvv_k^{(\tau-1)}}_2^2.
 \end{align}
 %
-This step minimizes the first term in~\eqref{eq:qmean_problem_2} w.r.t. $\rvt$ while the second term is constant so we have $g(\rmS_1^{(\tau-1)}, \ldots,\rmS_\nfactors^{(\tau-1)}, \rvt^{(\tau)}) \leq g(\rmS_1^{(\tau-1)}, \ldots,\rmS_\nfactors^{(\tau-1)}, \rvt^{(\tau-1)})$.
+This step minimizes the first term in~\eqref{eq:qmean_problem_2} w.r.t. $\rvt$ while the second term is constant so we have 
+\begin{align*}
+g(\rmS_1^{(\tau-1)}, \ldots,\rmS_\nfactors^{(\tau-1)}, \rvt^{(\tau)}) \leq g(\rmS_1^{(\tau-1)}, \ldots,\rmS_\nfactors^{(\tau-1)}, \rvt^{(\tau-1)}).
+\end{align*}
 
 \paragraph{Centroids update step (Lines \ref{line:qmeans:compute_means}--\ref{line:qmeans:U}).} We know consider a fixed assignment vector $\rvt$. We first note that for any cluster $k$ with true centroid $\rvu_k$ and approximated centroid $\rvv_k$, we have
 %\begin{proof}
