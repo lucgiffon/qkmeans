@@ -58,7 +58,7 @@ def display_cmd_lines_from_root_name_list(root_names_list, src_results_dir, find
                 for lin in lines:
                     match = regex_cmd_line.match(lin)
                     if match:
-                        cmd_lines.append(" ".join(match.group(1).split()[1:]))
+                        cmd_lines.append(" ".join(match.group(1).split()[1:]) + "\t" + root_name)
                         break
 
             # print("".join(lines))
@@ -149,3 +149,19 @@ def get_dct_result_files_by_root(src_results_dir):
 
     return dct_output_files_by_root
 
+def build_df(path_results_dir, dct_output_files_by_root, col_to_delete=[]):
+    lst_df_results = []
+    for root_name, dct_results in dct_output_files_by_root.items():
+        try:
+            result_file = path_results_dir / dct_results["results"]
+            df_expe = pd.read_csv(result_file)
+            df_expe["oar_id"] = root_name
+            lst_df_results.append(df_expe)
+        except KeyError:
+            logger.warning("No 'results' entry for root name {}".format(root_name))
+
+    df_results = pd.concat(lst_df_results)
+
+    for c in col_to_delete:
+        df_results = df_results.drop([c], axis=1)
+    return df_results

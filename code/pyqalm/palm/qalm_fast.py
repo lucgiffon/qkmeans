@@ -358,8 +358,10 @@ def palm4msa_fast1(arr_X_target: np.array,
                 lst_factors[index_value_for_right_factors_selection:])
 
             # compute minimum c value (according to paper)
-            L_norm = L.compute_spectral_norm() if L.n_factors > 0 else 1
-            R_norm = R.compute_spectral_norm() if R.n_factors > 0 else 1
+            L_norm, v0 = L.compute_spectral_norm() \
+                if L.n_factors > 0 else 1, None
+            R_norm, v0 = R.compute_spectral_norm() \
+                if R.n_factors > 0 else 1, None
             min_c_value = (f_lambda * L_norm * R_norm) ** 2
             # add epsilon because it is exclusive minimum
             c = min_c_value * 1.001
@@ -469,8 +471,10 @@ def palm4msa_fast2(arr_X_target: np.array,
                 lst_factors[index_value_for_right_factors_selection:])
 
             # compute minimum c value (according to paper)
-            L_norm = L.compute_spectral_norm() if L.n_factors > 0 else 1
-            R_norm = R.compute_spectral_norm() if R.n_factors > 0 else 1
+            L_norm, v0 = L.compute_spectral_norm() \
+                if L.n_factors > 0 else 1, None
+            R_norm, v0 = R.compute_spectral_norm() \
+                if R.n_factors > 0 else 1, None
             min_c_value = (f_lambda * L_norm * R_norm) ** 2
             # add epsilon because it is exclusive minimum
             c = min_c_value * 1.001
@@ -600,8 +604,10 @@ def palm4msa_fast3(arr_X_target: np.array,
             #       R.n_factors, j)
 
             # compute minimum c value (according to paper)
-            L_norm = L.compute_spectral_norm() if L.n_factors > 0 else 1
-            R_norm = R.compute_spectral_norm() if R.n_factors > 0 else 1
+            L_norm, v0 = L.compute_spectral_norm() \
+                if L.n_factors > 0 else 1, None
+            R_norm, v0 = R.compute_spectral_norm() \
+                if R.n_factors > 0 else 1, None
             min_c_value = (f_lambda * L_norm * R_norm) ** 2
             # add epsilon because it is exclusive minimum
             c = min_c_value * 1.001
@@ -723,6 +729,8 @@ def palm4msa_fast4(arr_X_target: np.array,
     delta_objective_error_threshold = 1e-6
     delta_objective_error = np.inf
     obj_fun_prev = None
+    v0l = [None] * nb_factors
+    v0r = [None] * nb_factors
     while i_iter == 0 or ((i_iter < nb_iter) and (
             delta_objective_error > delta_objective_error_threshold)):
 
@@ -737,8 +745,10 @@ def palm4msa_fast4(arr_X_target: np.array,
             #       R.n_factors, j, -j-1)
 
             # compute minimum c value (according to paper)
-            L_norm = L.compute_spectral_norm() if L.n_factors > 0 else 1
-            R_norm = R.compute_spectral_norm() if R.n_factors > 0 else 1
+            L_norm, v0l[j] = L.compute_spectral_norm(v0=v0l[j]) \
+                if L.n_factors > 0 else (1, v0l[j])
+            R_norm, v0r[j] = R.compute_spectral_norm(v0=v0r[j]) \
+                if R.n_factors > 0 else (1, v0r[j])
             min_c_value = (f_lambda * L_norm * R_norm) ** 2
             # add epsilon because it is exclusive minimum
             c = min_c_value * 1.001
@@ -756,7 +766,8 @@ def palm4msa_fast4(arr_X_target: np.array,
             Sj = S_factors_op.get_factor(j)
 
             # normalize because all factors must have norm 1
-            S_proj = coo_matrix(lst_projection_functions[j](Sj - grad_step))
+            S_proj = lst_projection_functions[j](Sj - grad_step)
+            S_proj = coo_matrix(S_proj)
             S_proj /= np.sqrt(S_proj.power(2).sum())
 
             S_factors_op.set_factor(j, S_proj)

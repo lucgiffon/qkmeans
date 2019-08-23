@@ -8,6 +8,7 @@ from copy import deepcopy
 
 from pathlib import Path
 
+import psutil
 from sklearn import datasets
 from keras.datasets import mnist, fashion_mnist
 
@@ -17,9 +18,37 @@ from numpy.linalg import multi_dot
 import daiquiri
 from pyqalm.palm.projection_operators import prox_splincol
 from pyqalm import project_dir
+from sklearn.datasets import fetch_lfw_people
+from sklearn.model_selection import train_test_split
+import keras
+
 
 daiquiri.setup(level=logging.DEBUG)
 logger = daiquiri.getLogger("pyqalm")
+
+
+def log_memory_usage(context=None):
+    """Logs current memory usage stats.
+    See: https://stackoverflow.com/a/15495136
+
+    :return: None
+    """
+    if context is not None:
+        str_memory_usage = context + ":\t"
+    else:
+        str_memory_usage = ""
+
+    PROCESS = psutil.Process(os.getpid())
+    GIGA = 10 ** 9
+    UNIT = "Go"
+    # total, available, percent, used, free, _, _, _, _, _ = psutil.virtual_memory()
+    process_v_mem = psutil.virtual_memory()
+    total, available, used, free = process_v_mem.total / GIGA, process_v_mem.available / GIGA, process_v_mem.used / GIGA, process_v_mem.free / GIGA
+    percent = used / total * 100
+    proc = PROCESS.memory_info()[1] / GIGA
+    str_memory_usage += 'process = {} {unit}; total = {} {unit}; available = {} {unit}; used = {} {unit}; free = {} {unit}; percent = {:.2f} %'.format(proc, total, available, used, free, percent, unit=UNIT)
+    logger.debug(str_memory_usage)
+
 
 def get_side_prod(lst_factors, id_shape=(0,0)):
     """
@@ -43,11 +72,14 @@ def get_side_prod(lst_factors, id_shape=(0,0)):
         side_prod = multi_dot(lst_factors)
     return side_prod
 
+
 def get_lambda_proxsplincol(nb_keep_values):
     return lambda mat: prox_splincol(mat, nb_keep_values)
 
+
 def constant_proj(mat):
     raise NotImplementedError("This function should not be called but used for its name")
+
 
 class ResultPrinter:
     """
@@ -97,8 +129,10 @@ class ResultPrinter:
                     out_f.write(s_headers + "\n")
                 out_f.write(s_values + "\n")
 
+
 def timeout_signal_handler(signum, frame):
     raise TimeoutError("More than 10 times slower than kmean")
+
 
 def random_combination(iterable, r):
     "Random selection from itertools.combinations(iterable, r)"
@@ -106,6 +140,7 @@ def random_combination(iterable, r):
     n = len(pool)
     indices = sorted(random.sample(range(n), r))
     return tuple(pool[i] for i in indices)
+
 
 class ObjectiveFunctionPrinter:
     def __init__(self, output_file:Path=None):
@@ -160,10 +195,12 @@ class ObjectiveFunctionPrinter:
                     with open(path_arr, "a") as out_f:
                         out_f.write(str_row + "\n")
 
+
 def get_random():
     val = str(random.randint(1, 10000000000))[1:8]
     # print(val)
     return val
+
 
 class ParameterManager(dict):
     def __init__(self, dct_params, **kwargs):
@@ -174,9 +211,28 @@ class ParameterManager(dict):
         self["--sparsity-factor"] = int(self["--sparsity-factor"]) if self["--sparsity-factor"] is not None else None
         self["--nb-iteration-palm"] = int(self["--nb-iteration-palm"]) if self["--nb-iteration-palm"] is not None else None
 
+        self["--batch-assignation-time"] = int(self["--batch-assignation-time"]) if self["--batch-assignation-time"] is not None else None
+        self["--assignation-time"] = int(self["--assignation-time"]) if self["--assignation-time"] is not None else None
+        self["--nystrom"] = int(self["--nystrom"]) if self["--nystrom"] is not None else None
+
         self.__init_nb_factors()
         self.__init_output_file()
         self.__init_seed()
+        self.__init_dataset()
+
+    def __init_dataset(self):
+        if self["--blobs"] is not None:
+            size_dim_clust = self["--blobs"].split("-")
+            try:
+                size_dim_clust = [int(elm) for elm in size_dim_clust]
+                if len(size_dim_clust) != 3:
+                    raise ValueError
+            except ValueError:
+                raise ValueError("Blobs chain malformed: {}. should be like 'size-dim-clusters'".format(self["--blobs"]))
+
+            self["blobs_size"] = size_dim_clust[0]
+            self["blobs_dim"] = size_dim_clust[1]
+            self["blobs_clusters"] = size_dim_clust[2]
 
     def __init_nb_factors(self):
         if self["--nb-factors"] is not None:
@@ -193,8 +249,11 @@ class ParameterManager(dict):
             self["--output-file_centroidprinter"] = Path(out_file + "_centroids.npy")
 
     def __init_seed(self):
+        self["--seed"] = int(self["--seed"])
         if self["--seed"] is not None:
-            np.random.seed(int(self["--seed"]))
+            np.random.seed(self["--seed"])
+        else:
+            self["--seed"] = int(self["--seed"])
 
     def get_dataset(self):
         """
@@ -206,8 +265,14 @@ class ParameterManager(dict):
         :return:
         """
         # todo normalize data before
-        if self["--blobs"]:
-            return blobs_dataset()
+        if self["--blobs"] is not None:
+            blob_size = self["blobs_size"]
+            blob_features = self["blobs_dim"]
+            blob_centers = self["blobs_clusters"]
+            return blobs_dataset(blob_size, blob_features, blob_centers)
+        elif self["--caltech256"] is not None:
+            caltech_size = int(self["--caltech256"])
+            return caltech_dataset(caltech_size)
         elif self["--census"]:
             return census_dataset()
         elif self["--kddcup"]:
@@ -218,6 +283,13 @@ class ParameterManager(dict):
             return mnist_dataset()
         elif self["--fashion-mnist"]:
             return fashion_mnist_dataset()
+        elif self["--light-blobs"]:
+            blob_size = 5000
+            blob_features = 784
+            blob_centers = 50
+            return blobs_dataset(blob_size, blob_features, blob_centers)
+        elif self["--lfw"]:
+            return lfw_dataset(self["--seed"])
         else:
             raise NotImplementedError("Unknown dataset.")
 
@@ -232,6 +304,7 @@ class ParameterManager(dict):
             return input_data[np.random.permutation(input_data.shape[0])[:self["--nb-cluster"]]]
         else:
             raise NotImplementedError("Unknown initialization.")
+
 
 def compute_euristic_gamma(dataset_full, slice_size=1000):
     """
@@ -261,35 +334,46 @@ def compute_euristic_gamma(dataset_full, slice_size=1000):
         results.append(1/slice_size_tmp**2 * np.sum(d_mat))
     return 1. / np.mean(results)
 
-def blobs_dataset():
-    blob_size = 500000
-    blob_features = 2000
-    blob_centers = 5000
-    X, y = datasets.make_blobs(n_samples=blob_size, n_features=blob_features, centers=blob_centers)
+def caltech_dataset(caltech_size):
+    data_dir = project_dir / "data/external" / "caltech256_{}.npz".format(caltech_size)
+    loaded_npz = np.load(data_dir)
+    return {
+        "x_train": loaded_npz["x_train"],
+        "y_train": loaded_npz["y_train"],
+        "x_test": loaded_npz["x_test"],
+        "y_test": loaded_npz["y_test"],
+    }
+
+def blobs_dataset(blob_size, blob_features, blob_centers):
+    X, y = datasets.make_blobs(n_samples=blob_size, n_features=blob_features, centers=blob_centers, cluster_std=12)
     test_size = 1000
     X_train, X_test = X[:-test_size], X[-test_size:]
     y_train, y_test = y[:-test_size], y[-test_size:]
     return {
         "x_train": X_train.reshape(X_train.shape[0], -1),
-        # "y_train": y_train,
-        # "x_test": X_test.reshape(X_test.shape[0], -1),
-        # "y_test": y_test
+        "y_train": y_train,
+        "x_test": X_test.reshape(X_test.shape[0], -1),
+        "y_test": y_test
     }
+
 
 def census_dataset():
     data_dir = project_dir / "data/external" / "census.npz"
     loaded_npz = np.load(data_dir)
     return {"x_train": loaded_npz["x_train"]}
 
+
 def kddcup_dataset():
     data_dir = project_dir / "data/external" / "kddcup.npz"
     loaded_npz = np.load(data_dir)
     return {"x_train": loaded_npz["x_train"]}
 
+
 def plants_dataset():
     data_dir = project_dir / "data/external" / "plants.npz"
     loaded_npz = np.load(data_dir)
     return {"x_train": loaded_npz["x_train"]}
+
 
 def mnist_dataset():
     (X_train, y_train), (X_test, y_test) = mnist.load_data()
@@ -300,6 +384,7 @@ def mnist_dataset():
         "y_test": y_test
     }
 
+
 def fashion_mnist_dataset():
     (X_train, y_train), (X_test, y_test) = fashion_mnist.load_data()
     return {
@@ -308,6 +393,19 @@ def fashion_mnist_dataset():
         "x_test": X_test.reshape(X_test.shape[0], -1),
         "y_test": y_test
     }
+
+
+def lfw_dataset(seed=None):
+    lfw_data = fetch_lfw_people(min_faces_per_person=1, resize=0.4)
+    X_train, X_test, y_train, y_test = train_test_split(lfw_data.data, lfw_data.target, test_size=0.33, random_state=seed)
+
+    return {
+        "x_train": X_train.reshape(X_train.shape[0], -1),
+        "y_train": y_train,
+        "x_test": X_test.reshape(X_test.shape[0], -1),
+        "y_test": y_test
+    }
+
 
 def create_directory(_dir, parents=True, exist_ok=True):
     """
@@ -344,3 +442,70 @@ def download_data(url, directory, name=None):
         logger.debug("File {} already exists and doesn't need to be donwloaded".format(s_file_path))
 
     return s_file_path
+
+
+class DataGenerator(keras.utils.Sequence):
+    'Generates data for Keras'
+    def __init__(self, examples, labels=None, batch_size=32, shuffle=True, to_categorical=False, return_indexes=False):
+        'Initialization'
+        self.batch_size = batch_size
+        self.labels = labels
+        self.examples = examples
+        self.dim = examples.shape[1:]
+        if self.labels is not None:
+            self.n_classes = len(set(labels))
+        self.shuffle = shuffle
+        self.to_categorical = to_categorical
+        self.return_indexes = return_indexes
+        self.on_epoch_end()
+
+    def __len__(self):
+        'Denotes the number of batches per epoch'
+        return int(np.floor(len(self.examples) / self.batch_size))
+
+    def __getitem__(self, index):
+        'Generate one batch of data'
+        # Generate indexes of the batch
+        indexes = self.indexes[index*self.batch_size:(index+1)*self.batch_size]
+
+        if self.return_indexes:
+            return indexes
+        else:
+            # Generate data
+            return self.__data_generation(indexes)
+
+    def on_epoch_end(self):
+        'Updates indexes after each epoch'
+        self.indexes = np.arange(len(self.examples))
+        if self.shuffle == True:
+            np.random.shuffle(self.indexes)
+
+    def __data_generation(self, indexes):
+        'Generates data containing batch_size samples' # X : (n_samples, *dim, n_channels)
+        # Initialization
+        X = np.empty((self.batch_size, *self.dim)).squeeze()
+        y = np.empty((self.batch_size), dtype=int)
+
+
+        # Generate data
+        for i, idx in enumerate(indexes):
+            # Store sample
+            X[i,] = self.examples[idx]
+            if self.labels is not None:
+                # Store class
+                y[i] = self.labels[idx]
+
+
+        if self.to_categorical:
+            return X, keras.utils.to_categorical(y, num_classes=self.n_classes)
+        elif self.labels is not None:
+            return X, y
+        else:
+            return X
+
+if __name__ == "__main__":
+    iris = datasets.load_iris()
+    x, y = iris.data, iris.target
+    for d in DataGenerator(x):
+        print(d)
+    # for d in DataGenerator()

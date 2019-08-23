@@ -12,7 +12,7 @@ from collections import OrderedDict
 from pprint import pformat
 
 import numpy as np
-from pyqalm.qk_means.utils import compute_objective, assign_points_to_clusters, build_constraint_set_smart
+from pyqalm.qk_means.utils import compute_objective, assign_points_to_clusters, build_constraint_set_smart, get_squared_froebenius_norm_line_wise, assess_clusters_integrity
 from pyqalm.qk_means.kmeans import kmeans
 from scipy.sparse import csr_matrix
 from sklearn import datasets
@@ -22,9 +22,28 @@ from pyqalm.palm.qalm_fast import hierarchical_palm4msa, \
     palm4msa
 from pyqalm.test.test_qalm import visual_evaluation_palm4msa
 from pyqalm.data_structures import SparseFactors
-from pyqalm.utils import get_lambda_proxsplincol, \
-    constant_proj, logger
+from pyqalm.utils import logger
 
+
+def init_lst_factors(d_in, d_out, p_nb_factors):
+    """
+    Return a simple initialization of a list of sparse factors in which all the factors are identity but the last one is zeros.
+
+    :param d_in: left dimension
+    :param d_out: right dimension
+    :param p_nb_factors: number of factors
+    :return:
+    """
+    min_K_d = min(d_in, d_out)
+
+    lst_factors = [np.eye(min_K_d) for _ in range(p_nb_factors)]
+
+    eye_norm = np.sqrt(d_in)
+    lst_factors[0] = np.eye(d_in) / eye_norm
+    lst_factors[1] = np.eye(d_in, min_K_d)
+    lst_factors[-1] = np.zeros((min_K_d, d_out))
+
+    return lst_factors
 
 def qmeans(X_data: np.ndarray,
            K_nb_cluster: int,
@@ -41,6 +60,8 @@ def qmeans(X_data: np.ndarray,
     if graphical_display:
         raise NotImplementedError("Not implemented graphical display")
 
+    X_data_norms = get_squared_froebenius_norm_line_wise(X_data)
+
     nb_examples = X_data.shape[0]
 
     logger.info("Initializing Qmeans")
@@ -51,29 +72,40 @@ def qmeans(X_data: np.ndarray,
     residual_on_right = params_palm4msa["residual_on_right"]
 
     X_centroids_hat = copy.deepcopy(initialization)
-    min_K_d = min(X_centroids_hat.shape)
 
-    lst_factors = [np.eye(min_K_d) for _ in range(nb_factors)]
-
-    eye_norm = np.sqrt(K_nb_cluster)
-    lst_factors[0] = np.eye(K_nb_cluster) / eye_norm
-    lst_factors[1] = np.eye(K_nb_cluster, min_K_d)
-    lst_factors[-1] = np.zeros((min_K_d, X_centroids_hat.shape[1]))
+    lst_factors = init_lst_factors(K_nb_cluster, X_centroids_hat.shape[1], nb_factors)
 
     if graphical_display:
         lst_factors_init = copy.deepcopy(lst_factors)
 
-    _lambda_tmp, op_factors, U_centroids, nb_iter_by_factor, objective_palm = \
-        hierarchical_palm4msa(
-            arr_X_target=np.eye(K_nb_cluster) @ X_centroids_hat,
-            lst_S_init=lst_factors,
-            lst_dct_projection_function=lst_proj_op_by_fac_step,
-            f_lambda_init=init_lambda * eye_norm,
-            nb_iter=nb_iter_palm,
-            update_right_to_left=True,
-            residual_on_right=residual_on_right,
-            graphical_display=False)
-            # return_objective_function=False)
+    eye_norm = np.sqrt(K_nb_cluster)
+
+    if hierarchical_inside:
+        _lambda_tmp, op_factors, U_centroids, nb_iter_by_factor, objective_palm = \
+            hierarchical_palm4msa(
+                arr_X_target=np.eye(K_nb_cluster) @ X_centroids_hat,
+                lst_S_init=lst_factors,
+                lst_dct_projection_function=lst_proj_op_by_fac_step,
+                f_lambda_init=init_lambda * eye_norm,
+                nb_iter=nb_iter_palm,
+                update_right_to_left=True,
+                residual_on_right=residual_on_right,
+                graphical_display=False)
+                # return_objective_function=False)
+    else:
+        _lambda_tmp, op_factors, U_centroids, objective_palm, nb_iter_palm = \
+            palm4msa(
+                arr_X_target=np.eye(K_nb_cluster) @ X_centroids_hat,
+                lst_S_init=lst_factors,
+                nb_factors=len(lst_factors),
+                lst_projection_functions=lst_proj_op_by_fac_step[-1][
+                    "finetune"],
+                f_lambda_init=init_lambda * eye_norm,
+                nb_iter=nb_iter_palm,
+                update_right_to_left=True,
+                graphical_display=False,
+                track_objective=False)
+
     lst_factors = None  # safe assignment for debug
 
     _lambda = _lambda_tmp / eye_norm
@@ -116,8 +148,7 @@ def qmeans(X_data: np.ndarray,
 
         # U_centroids = _lambda * multi_dot(lst_factors[1:])
         lst_factors_ = op_factors.get_list_of_factors()
-        op_centroids = SparseFactors([lst_factors_[1] * _lambda]
-                                     + lst_factors_[2:])
+        op_centroids = SparseFactors([lst_factors_[1] * _lambda] + lst_factors_[2:])
 
         # if i_iter > 0 and return_objective_function:
         #     objective_function[i_iter, 0] = \
@@ -129,7 +160,8 @@ def qmeans(X_data: np.ndarray,
         # # then, Determine class membership of each point
         # # by picking the closest centroid
         # indicator_vector = np.argmin(distances, axis=1)
-        indicator_vector = assign_points_to_clusters(X_data, op_centroids)
+
+        indicator_vector, distances = assign_points_to_clusters(X_data, op_centroids, X_norms=X_data_norms)
 
         # TODO return distances to assigned cluster in
         #  assign_points_to_clusters and used them in compute_objective to
@@ -145,42 +177,31 @@ def qmeans(X_data: np.ndarray,
         # assigned data point classes
 
         # get the number of observation in each cluster
+
         cluster_names, counts = np.unique(indicator_vector, return_counts=True)
         cluster_names_sorted = np.argsort(cluster_names)
 
-        # if len(counts) < K_nb_cluster:
-            # raise ValueError(
-            #     "Some clusters have no point. Aborting iteration {}"
-            #     .format(i_iter))
+        # todo make function and use it in kmeans algo
+        # check if all clusters still have points
 
-        biggest_cluster = cluster_names[np.argmax(counts)]
-        biggest_cluster_data = X_data[indicator_vector == biggest_cluster]
+        counts, cluster_names_sorted = assess_clusters_integrity(X_data,
+                                                                 X_data_norms,
+                                                                 X_centroids_hat,
+                                                                 K_nb_cluster,
+                                                                 counts,
+                                                                 indicator_vector,
+                                                                 distances,
+                                                                 cluster_names,
+                                                                 cluster_names_sorted)
 
-        for c in range(K_nb_cluster):
-            cluster_data = X_data[indicator_vector == c]
-            if len(cluster_data) == 0:
-                logger.warning("cluster has lost data, add new cluster")
-                X_centroids_hat[c] = biggest_cluster_data[np.random.randint(len(biggest_cluster_data))].reshape(1, -1)
-                counts = list(counts)
-                counts.append(1)
-                counts = np.array(counts)
-                cluster_names_sorted = list(cluster_names_sorted)
-                cluster_names_sorted.append(c)
-                cluster_names_sorted = np.array(cluster_names_sorted)
-            else:
-                X_centroids_hat[c] = np.mean(X_data[indicator_vector == c], 0)
-
-
-        # diag_counts_sqrt = np.diag(np.sqrt(counts[cluster_names_sorted]))  # todo use sparse matrix object
-        # diag_counts_sqrt_norm = np.linalg.norm(diag_counts_sqrt)  # todo analytic sqrt(n) instead of cumputing it with norm
-        # diag_counts_sqrt_normalized = diag_counts_sqrt / diag_counts_sqrt_norm
-        # analytic sqrt(n) instead of cumputing it with norm
         diag_counts_sqrt_normalized = csr_matrix(
             (np.sqrt(counts[cluster_names_sorted] / nb_examples),
              (np.arange(K_nb_cluster), np.arange(K_nb_cluster))))
         diag_counts_sqrt = np.sqrt(counts[cluster_names_sorted])
+
         # set it as first factor
         # lst_factors[0] = diag_counts_sqrt_normalized
+
         op_factors.set_factor(0, diag_counts_sqrt_normalized)
 
         if graphical_display:
@@ -205,7 +226,7 @@ def qmeans(X_data: np.ndarray,
                     f_lambda_init=_lambda * np.sqrt(nb_examples),
                     nb_iter=nb_iter_palm,
                     update_right_to_left=True,
-                    residual_on_right=True,
+                    residual_on_right=residual_on_right,
                     graphical_display=False,
                     return_objective_function=False)
 
@@ -256,6 +277,7 @@ def qmeans(X_data: np.ndarray,
             #                            _lambda_tmp * multi_dot(lst_factors))
 
         _lambda = _lambda_tmp / np.sqrt(nb_examples)
+
         # _lambda = _lambda_tmp
 
         # if return_objective_function:
@@ -265,6 +287,7 @@ def qmeans(X_data: np.ndarray,
 
         if i_iter >= 2:
             delta_objective_error = np.abs(objective_function[i_iter] - objective_function[i_iter-1]) / objective_function[i_iter-1] # todo vérifier que l'erreur absolue est plus petite que le threshold plusieurs fois d'affilée
+
         # if i_iter >= 1:
         #     if obj_fun_prev == 0:
         #         delta_objective_error = 0
@@ -279,6 +302,8 @@ def qmeans(X_data: np.ndarray,
 
         i_iter += 1
 
+    op_centroids = SparseFactors([lst_factors_[1] * _lambda] + lst_factors_[2:])
+
     # if return_objective_function:
     return objective_function[:i_iter], op_centroids, indicator_vector
     # else:
@@ -288,7 +313,7 @@ def qmeans(X_data: np.ndarray,
 if __name__ == '__main__':
     np.random.seed(0)
     daiquiri.setup(level=logging.INFO)
-    small_dim = False
+    small_dim = True
     if small_dim:
         nb_clusters = 10
         nb_iter_kmeans = 10
@@ -331,8 +356,11 @@ if __name__ == '__main__':
     graphical_display = False
     logger.info('Running QuicK-means with H-Palm')
     objective_function_hier, op_centroids_hier, indicator_hier = \
-        qmeans(X, nb_clusters, nb_iter_kmeans,
-               nb_factors, hierarchical_palm_init,
+        qmeans(X,
+               nb_clusters,
+               nb_iter_kmeans,
+               nb_factors,
+               hierarchical_palm_init,
                initialization=U_centroids_hat,
                graphical_display=graphical_display,
                hierarchical_inside=True)
