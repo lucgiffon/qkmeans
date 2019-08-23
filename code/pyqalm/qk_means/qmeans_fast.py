@@ -80,17 +80,32 @@ def qmeans(X_data: np.ndarray,
 
     eye_norm = np.sqrt(K_nb_cluster)
 
-    _lambda_tmp, op_factors, U_centroids, nb_iter_by_factor, objective_palm = \
-        hierarchical_palm4msa(
-            arr_X_target=np.eye(K_nb_cluster) @ X_centroids_hat,
-            lst_S_init=lst_factors,
-            lst_dct_projection_function=lst_proj_op_by_fac_step,
-            f_lambda_init=init_lambda * eye_norm,
-            nb_iter=nb_iter_palm,
-            update_right_to_left=True,
-            residual_on_right=residual_on_right,
-            graphical_display=False)
-            # return_objective_function=False)
+    if hierarchical_inside:
+        _lambda_tmp, op_factors, U_centroids, nb_iter_by_factor, objective_palm = \
+            hierarchical_palm4msa(
+                arr_X_target=np.eye(K_nb_cluster) @ X_centroids_hat,
+                lst_S_init=lst_factors,
+                lst_dct_projection_function=lst_proj_op_by_fac_step,
+                f_lambda_init=init_lambda * eye_norm,
+                nb_iter=nb_iter_palm,
+                update_right_to_left=True,
+                residual_on_right=residual_on_right,
+                graphical_display=False)
+                # return_objective_function=False)
+    else:
+        _lambda_tmp, op_factors, U_centroids, objective_palm, nb_iter_palm = \
+            palm4msa(
+                arr_X_target=np.eye(K_nb_cluster) @ X_centroids_hat,
+                lst_S_init=lst_factors,
+                nb_factors=len(lst_factors),
+                lst_projection_functions=lst_proj_op_by_fac_step[-1][
+                    "finetune"],
+                f_lambda_init=init_lambda * eye_norm,
+                nb_iter=nb_iter_palm,
+                update_right_to_left=True,
+                graphical_display=False,
+                track_objective=False)
+
     lst_factors = None  # safe assignment for debug
 
     _lambda = _lambda_tmp / eye_norm
@@ -298,7 +313,7 @@ def qmeans(X_data: np.ndarray,
 if __name__ == '__main__':
     np.random.seed(0)
     daiquiri.setup(level=logging.INFO)
-    small_dim = False
+    small_dim = True
     if small_dim:
         nb_clusters = 10
         nb_iter_kmeans = 10
@@ -341,8 +356,11 @@ if __name__ == '__main__':
     graphical_display = False
     logger.info('Running QuicK-means with H-Palm')
     objective_function_hier, op_centroids_hier, indicator_hier = \
-        qmeans(X, nb_clusters, nb_iter_kmeans,
-               nb_factors, hierarchical_palm_init,
+        qmeans(X,
+               nb_clusters,
+               nb_iter_kmeans,
+               nb_factors,
+               hierarchical_palm_init,
                initialization=U_centroids_hat,
                graphical_display=graphical_display,
                hierarchical_inside=True)
