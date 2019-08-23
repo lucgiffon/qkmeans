@@ -2,237 +2,303 @@
 
 \section{QuicK-means}
 \label{sec:contribution}
-\todo[inline]{Unify the notation and give it some aesthetics: $X_i$ for a vector is
-ugly and inconsistent with the table of notation, $\rvx_i$ should be preferred.}
 
-We here introduce our main contribution, QuicK-means (abbreviated by QK-means), 
+We here introduce our main contribution, \texttt{QuicK-means} (abbreviated by \qkmeans), 
 show its convergence property and analyze its computational complexity.
 
-\subsection{QK-means: Encoding Centroids as Products of Sparse Matrices}
+\subsection{\qkmeans: Encoding Centroids as Products of Sparse Matrices}
 
-QuicK-means is an extension of the K-means algorithm in which the matrix of centroids $\rmU$
-is sought for as a product $\prod_{j=0}^Q\rmS_j$ of sparse matrices $\rmS_j$.
-% $\mathcal{S}_j: j = 0 \ldots Q$. 
+\texttt{QuicK-means} is a variant of the \kmeans algorithm in which the matrix of centroids $\rmU$
+is approximated as a product $\rmV=\prod_{\in\intint{\nfactors}}\rmS_q$ of sparse matrices $\rmS_q$.
+% $\rmS_j: j = 0 \ldots Q$. 
 Doing so will allow us to cope with the computational bulk imposed by the product $\rmU\rvx$
-(cf.~\eqref{eq:assignment_problem_kmeans}) at the core of the cluster assignement process.
+(cf.~\eqref{eq:assignment_problem_kmeans}) at the core of the cluster assignment process.
 
-Building upon~\eqref{eq:kmean_problem} and~\eqref{eq:problem_gribon} the optimisation problem 
-of QK-means may be written as follows:
+Building upon the \kmeans optimization problem~\eqref{eq:kmean_problem} and fast-operator approximation problem~\eqref{eq:palm4msa} the \qkmeans optimization problem 
+writes:
 %
 \begin{align}
 \label{eq:qmean_problem}
- \min_{\rmU\in\{\prod_{q=1}^Q\rmS_j\}, \rvt} & g\left(\rmU, \rvt\right)
-    \doteq \sum_{k=1}^{K}\sum_{j: t_j = k} \left\|\rvx_j -\rvu_k\right\|^2 + \sum_{q=0}^{Q} \delta_{\mathcal{E}_q}(\rmS_q)
+ \argmin_{\rmS_1, \ldots, \rmS_{\nfactors}, \rvt} g\left(\rmS_1, \ldots, \rmS_{\nfactors}, \rvt\right)
+    \eqdef \sum_{k\in\intint{\nclusters}}\sum_{n: t_n = k} \left\|\rvx_n -\rvv_k\right\|^2 + \sum_{q\in\intint{\nfactors}} \delta_{\mathcal{E}_q}(\rmS_q) \text{ s. t. } \rmV = \prod_{q\in\intint{\nfactors}}\rmS_q
 \end{align}
 %
-Here, 
-as before, the $\delta_{\mathcal{E}_q}$'s enforce the sparsity of the $\rmS_q$'s: $\delta_{\mathcal{E}_q}(\emS_q)=0$ if $\rmS_q$ fulfills the sparsity constraints
-and $+\infty$ otherwise.
+This is a regularized version of the \kmeans optimization problem~\eqref{eq:kmean_problem} in which centroids $\rvv_k$ are constrained to form a matrix $\rmV$ with a fast-operator structure, the indicator functions $\delta_{\mathcal{E}_q}$ imposing the sparsity of matrices $\rmS_q$.
+More details on the modeling choices are given in the experimental part in section~\ref{sec:uses:settings}.
 
-\todo[inline]{Talk about the sizes of the matrices in the optimization problem?}
+This problem can be solved using Algorithm~\ref{algo:qmeans},
+which proceeds in a similar way as Lloyd's algorithm by alternating an assignment step at line \ref{line:qmeans:assignment} and an update of the centroids at lines~\ref{line:qmeans:compute_means}--\ref{line:qmeans:U}. The assignment step can be computed efficiently thanks to the fast-structure in matrix $\rmV$. The update of the centroids relies on learning a fast-structure operator $\rmV$ that approximate of the true centroid matrix $\rmU$ weighted by the number of examples $n_k$ assigned to each cluster $k$.
 
-This problem can be solved using the QKmeans algorithm, given in Algorithm~\ref{algo:qmeans},
-which proceeds in a similar way as Lloyd's algorithm with the difference being the 
-recourse to a sparse factor decomposition of the matrix of centroids at
-each re-estimation step. More precisely, at each iteration $\tau$, 
-QKmeans alternates between two 
-optimization procedures i) one which computes the assignement vector $\rvt^{(\tau)}$ 
-of each training point to a cluster $k$, the matrix of centroids $\rmU^{(\tau-1)}$ being
-fixed (and coming from the previous iteration) and ii) the reestimation of the centroids
- $\rmU^{(\tau)}$ given the new assignment $\rvt^{(\tau)}$. A synthetic view of the algorithm
- is:
-\begin{subequations}
-\label{eq:qmeans}
-\begin{align}
-\rvt^{(\tau)} &= \argmin_{\rvt\in\llbracket K\rrbracket^n}\sum_{j=1}^n\|\rvx_j-\rvu_{t_j}^{(\tau-1)}\|^2\label{eq:assignment}\\
-\rmU^{(\tau)} &= \argmin_{\rmU\in\{\prod_{j=0}^Q\rmS_j\}}\|\rmD^{(\tau)}\hat{\rmX}^{(\tau)}-\rmU\|_F^2+\sum_{q=0}^{Q} \delta_{\mathcal{E}_q}(\rmS_q)\label{eq:reestimation}
-\end{align}
-\end{subequations}
-where $\rmD^{(\tau)}=\diag\left({n_1^{(\tau)}},\ldots,{n_K^{(\tau)}}\right)^{1/2}$ is the square
-root of the diagonal matrix made of the sizes of each cluster, and $\hat{\rmX}^{(\tau)}\doteq \left[\hat{\rvx}^{(\tau)}_1\cdots\hat{\rvx}^{(\tau)}_K\right]$
-is the $D\times K$ matrix that has the barycenter $\hat{\rvx}^{(\tau)}_k$ of cluster $k$ as
-its $k$th column, i.e.
-\begin{align}
-	\hat{\rvx}^{(\tau)}_k \doteq \frac{1}{n_k^{(\tau)}}\sum_{j:t_j^{(\tau)}=k}\rvx_j,
-\end{align}
+%with the difference being the 
+%recourse to a sparse factor decomposition of the matrix of centroids at
+%each re-estimation step. More precisely, at each iteration~$\tau$, 
+%\qkmeans alternates between two 
+%optimization procedures i) one which computes the assignement vector $\rvt^{(\tau)}$ 
+%of each training point to a cluster $k$, the matrix of centroids $\rmV^{(\tau-1)}$ being
+%fixed (and coming from the previous iteration) and ii) the reestimation of the centroids
+% $\rmV^{(\tau)}$ given the new assignment $\rvt^{(\tau)}$. A synthetic view of the algorithm
+% is:
+%\begin{subequations}
+%\label{eq:qmeans}
+%\begin{align}
+%\rvt^{(\tau)} &\leftarrow \argmin_{\rvt\in\llbracket K\rrbracket^n}\sum_{n\in\intint{\nexamples}}\|\rvx_n-\rvv_{t_n}^{(\tau-1)}\|^2\label{eq:assignment}\\
+%\rmV^{(\tau)} &\leftarrow \argmin_{\rmS_1, \ldots, \rmS_{\nfactors}}\|\rmD^{(\tau)}\hat{\rmX}^{(\tau)}-\rmV\|_F^2+\sum_{q\in\intint{\nfactors}} \delta_{\mathcal{E}_q}(\rmS_q) \text{ s. t. } \rmV = \prod_{\in\intint{\nfactors}}\rmS_q \label{eq:reestimation}
+%\end{align}
+%\todo{Normalization problem!}
+%\end{subequations}
+%where $\rmD^{(\tau)}=\diag\left({n_1^{(\tau)}},\ldots,{n_K^{(\tau)}}\right)^{1/2}$ is the square
+%root of the diagonal matrix made of the sizes of each cluster, and $\hat{\rmX}^{(\tau)}\eqdef \left[\hat{\rvx}^{(\tau)}_1\cdots\hat{\rvx}^{(\tau)}_K\right]$
+%is the $D\times K$ matrix that has the barycenter $\hat{\rvx}^{(\tau)}_k$ of cluster $k$ as
+%its $k$th column, i.e.
+%\begin{align}
+%	\hat{\rvx}^{(\tau)}_k \eqdef \frac{1}{n_k^{(\tau)}}\sum_{j:t_j^{(\tau)}=k}\rvx_j,
+%\end{align}
 
-\todo[inline]{Find a compact way/notation to i) denote the set of products
-of sparse factors  and ii) the result of Palm4MSA. And then, unify the notation.}
+%\todo[inline]{Find a compact way/notation to i) denote the set of products
+%of sparse factors  and ii) the result of Palm4MSA. And then, unify the notation.}
 
-%As we show just below, QKmeans is guaranteed to converge.
+\begin{algorithm}[t]
+	\caption{\qkmeans algorithm and its time complexity.}
+	\label{algo:qmeans}
+	\begin{algorithmic}[1]
+\REQUIRE $\rmX \in \R^{\nexamples \times \datadim}$, $\nclusters$, initialization $\left \lbrace \rmS_q^{(0)} : \rmS_q^{(0)} \in \mathcal{E}_q\right \rbrace_{q\in\intint{\nfactors}}$
+\COMMENT{$A \eqdef \min\left (\nclusters, \datadim\right )$}
+%\STATE $\rmV^{(0)} \eqdef \prod_{q\in\intint{\nfactors}}{\rmS_q^{(0)}}$
+\STATE Set $\rmV^{(0)} : \rvx \mapsto \prod_{q\in\intint{\nfactors}}{\rmS_q^{(0)}} \rvx$
+\COMMENT{$B \eqdef \max\left (\nclusters, \datadim\right )$}
+\FOR{$\tau=1, 2, \ldots$ until convergence}
+	\STATE $\rvt^{(\tau)} \eqdef \argmin_{\rvt \in \intint{\nclusters}^\nexamples} \sum_{n\in\intint{\nexamples}} {\left \|\rvx_n - \rvv^{(\tau -1)}_{t_n}\right \|^2}$
+	\COMMENT{$\mathcal{O}\left (\nexamples\left(A\log A+B\right ) + AB\right )$}
+	\label{line:qmeans:assignment}
+	\STATE $\forall k\in\intint{\nclusters}, \rvu_k \eqdef \frac{1}{n_k} \sum_{n: t_n^{(\tau)}= k} {\rvx_n}$
+with $n_k \eqdef |\{n: t_n^{(\tau)}=k\}|$
+	\COMMENT{$\bigO{\nexamples\datadim}$}
+	\label{line:qmeans:compute_means}
+	\STATE $\rmA \eqdef \rmD_{\sqrt{\rvn}} \times \rmU $
+	\COMMENT{$\bigO{\nclusters\datadim}$}
+	\label{line:qmeans:A}
+	\STATE $\mathcal{E}_0 \eqdef \left \lbrace \rmD_{\sqrt{\rvn}} \right \rbrace$
+	\label{line:qmeans:E0}
+	\STATE $\left \lbrace \rmS_q^{(\tau)}\right \rbrace_{q=0}^\nfactors \eqdef \argmin_{\left \lbrace \rmS_q\right \rbrace_{q=0}^\nfactors} \left \|\rmA - \prod_{q=0}^\nfactors\rmS_q\right \|_F^2 + \sum_{q=0}^\nfactors \delta_{\mathcal{E}_q}(\rmS_q)$\\
+	\COMMENT{$\bigO{AB\left (\log^2 A+\log B\right )}$ (or $\bigO{AB\left (\log^3A+\log A \log B\right )}$)}
+	\label{line:qmeans:S}
+%		\STATE $\rmS_1^{(\tau)} \leftarrow \rmD_{\sqrt{\rvn}}^{-1} \times \rmS_1^{(\tau)}$
+%		\COMMENT{$\bigO{AB}$}
+%		\label{line:qmeans:normalizeS}
+	\STATE Set $\rmV^{(\tau)} : \rvx \mapsto \prod_{q\in\intint{\nfactors}}{\rmS_q^{(\tau)}} \rvx$
+	\COMMENT{$\bigO{1}$}
+%	\COMMENT{$\bigO{A^2\log A+AB}$}
+%	\todo[inline]{Operator construction in $\bigO{1}?$}
+	\label{line:qmeans:U}
+	\ENDFOR
+	\ENSURE assignement vector $\rvt$ and sparse matrices $\left \lbrace \rmS_q : \rmS_q \in \mathcal{E}_q\right \rbrace_{q\in\intint{\nfactors}}$ such that $\prod_{q\in\intint{\nfactors}}\rmS_q \approx \rmU$ the $\nclusters$ means of the $\nexamples$ data points
+\end{algorithmic}
+\end{algorithm}
 
+%\addVE{TODO: fix how to write indicator function instead of $\mathbf{1}_{\mathcal{E}_q}(\rmS_q)$ in algo \qkmeans.}
+%
+%\addVE{TODO: $\hat{\rmX}$ is renamed $\hat{\rmU}$ in algorithm \qkmeans, check consistency in the rest of the paper.}
+%
+%\addVE{TODO: adapt \qkmeans to deal with the fixed factor $\rmD_{\sqrt{\rvn^{(\tau)}}}$}
 
+%As we show just below, \qkmeans is guaranteed to converge.
 
+\iffalse
 \begin{remark}[Assignment/Re-estimation trade-off.]
 A strategy to tackle this problem would be to first run the vanilla K-means algorithm,
  obtain the matrix of centroids $U$ and then encode $U$ as a product of sparse matrices
- using HierarchicalPalm4LED. This would however prevent us from taking advantage of 
+ using Hierarchical Palm4MSA. This would however prevent us from taking advantage of 
  the expected low complexity product that plays a role in the assignement step of 
  the procedure.
 \end{remark}
 
 \todo[inline]{At some point, talk about the trade-off that we are playing with
 regarding the cost of the assignment and the cost of the re-estimation procedure.}
-
-
-As we will prove, the following result stands:
-\begin{proposition}
-Iterations over~\eqref{eq:assignment} and~\eqref{eq:reestimation} (and thus, QKmeans, Algorithm~\ref{algo:qmeans}) converge. 
-\end{proposition}
-\begin{proof}
-	The proof rests upon a rewriting of the objective function $g$ of~\eqref{eq:qmean_problem}. Given $\rmU$ and $\rvt$, using $\hat{\rvx}_k$ to denote
-	the mean of cluster $k$ as determined by $\rvt$, we have, for any $k$
-\begin{align*}
-	\sum_{j: t_j = k} &\left\|\rvx_j -\rvu_k\right\|^2
-	=\sum_{j: t_j = k} \left\|\rvx_j -\hat{\rvx}_k+\hat{\rvx}_k-\rvu_k\right\|^2\\
-	& = \sum_{j: t_j = k}\left(\|\rvx_j-\hat{\rvx}_k\|^2+\|\hat{\rvx}_k-\rvu_k\|^2-2\langle\rvx_j-\hat{\rvx}_k,\hat{\rvx}_k-\rvu_k\rangle\right)\notag\\
-	& = \sum_{j: t_j = k}\|\rvx_j-\hat{\rvx}_k\|^2+n_k\|\hat{\rvx}_k-\rvu_k\|^2- 2\sum_{k=1}^{K}\left\langle\underbrace{\sum_{j: t_j = k}(\rvx_j-\hat{\rvx}_k)}_{=0},\hat{\rvx}_k-\rvu_k\right\rangle\notag\\
-%	&= \sum_{k=1}^{K}\left[\sum_{j: \rvt_j = k}\|\rvx_j-\hat{\rvx}_k\|^2+n_k\|\hat{\rvx}_k-\rvu_k\|^2-\langle n_k\hat{\rvx}_k-n_k\hat{\rvx}_k,\hat{\rvx}_k-\rvu_k\rangle\right]\\
-	&= \sum_{j: t_j = k}\|\rvx_j-\hat{\rvx}_k\|^2 + n_k\|\hat{\rvx}_k-\rvu_k\|^2
-\end{align*}
-whence, with a slight abuse of notation that discards
-sparsity enforcing term, $g$ might be rewritten as:
-\begin{align}
-	g(\rmU,\rvt)&=\sum_{k=1}^K\sum_{j: t_j = k}\left\|\rvx_j -\rvu_k\right\|^2=\sum_{k=1}^K\sum_{j: t_j = k}\|\rvx_j-\hat{\rvx}_k\|^2 + \sum_{k=1}^Kn_k\|\hat{\rvx}_k-\rvu_k\|^2
-\end{align}
-
-Therefore, QKmeans iterates over the two steps, starting from some $\rmU^{(0)}$:
-\begin{itemize}
-	\item $\rvt^{(\tau)} = \argmin_\rvt g(\rmU^{(\tau-1)},\rvt)$
-	\item $\rmU^{(\tau)}=\argmin_{\rmU\in\{\prod_j\rmS_j\}}g(\rmU,\rvt^{(\tau)})$
-\end{itemize}
-and $g(\rmU^{(\tau)},\rvt^{(\tau)})\leq g(\rmU^{(\tau-1)},\rvt^{(\tau)})\leq g(\rmU^{(\tau-1)},\rvt^{(\tau-1)})$
-\todo[inline]{Rather say in the proposition that $g(U^{(\tau)},\rvt^{(\tau)})$ is nonincreasing?}
-\end{proof}
+\fi
 
 \subsection{Convergence of \qkmeans}
+Similarly to \kmeans, \qkmeans converges locally as stated in the following proposition.
 
-\todo[inline]{The convergence proof is straightforward, and I suggest 
-to put in (as done here) in the previous subsection. And I would skip the rest
-of this section.}
-
-\begin{algorithm}[t]
-	\caption{\qkmeans algorithm and its time complexity.}
-	\label{algo:qmeans}
-	\begin{algorithmic}[1]
-		
-		
-		\REQUIRE $\rmX \in \R^{\nexamples \times \datadim}$, $\nclusters$, initialization $\left \lbrace \rmS_q^{(0)} : \rmS_q^{(0)} \in \mathcal{E}_q\right \rbrace_{q\in\intint{\nfactors}}$
-		\FOR{$\tau=1, 2, \ldots$ until convergence}
-		\STATE $\rvt^{(\tau)} \leftarrow \argmin_{\rvt \in \intint{\nclusters}^\nexamples} \sum_{n\in\intint{\nexamples}} {\left \|\rvx_n - \rvu^{(\tau -1)}_{t_i}\right \|^2}$
-		\COMMENT{$\mathcal{O}\left (\nexamples\left(A\log A+B\right ) + AB\right )$}
-		\label{line:qmeans:assignment}
-		\STATE $\forall k\in\intint{\nclusters}, \hat{\rvu}_k \leftarrow \frac{1}{n_k^{(\tau)}} \sum_{n: t_n^{(\tau)}= k} {\rvx_n}$
-with $n_k \leftarrow |\{n: t_n^{(\tau)}=k\}|$
-		\COMMENT{$\bigO{\nexamples\datadim}$}
-		\label{line:qmeans:compute_means}
-%		\FORALL {$k \in [\![K]\!]$}
-%		\label{line:qmeans:startkmeans}
-%		\STATE $n_k^{(\tau)} \leftarrow |\{i: \rvt^{(\tau)}_i=k\}|$
-%		\hfill \COMMENT{$\mathcal{O}\left (1\right )$}
-%		\STATE $\hat{\rmX}^{(\tau)}_k \leftarrow \frac{1}{n^\tau_k} \sum_{i: \rvt^\tau_i = k} {\rvx_i}$
-%		\hfill \COMMENT{$\mathcal{O}\left (1\right )$}
-%		\ENDFOR
-%		\label{line:qmeans:endkmeans}
-		\STATE $\rmA \leftarrow \mathcal{D}_{\sqrt{\rvn^{(\tau)}}} \times \hat{\rmU}^{(\tau)} $
-		\COMMENT{$\bigO{\nclusters\datadim}$}
-		\label{line:qmeans:A}
-		\STATE $\left \lbrace \rmS_q^{(\tau)}\right \rbrace_{q\in\intint{\nfactors}} \leftarrow \argmin_{\left \lbrace \rmS_q\right \rbrace_{q\in\intint{\nfactors}}} \left \|\rmA - \prod_{q\in\intint{\nfactors}}^{Q}{\rmS_q}\right \|_F^2 + \sum_{q\in\intint{\nfactors}} \mathbf{1}_{\mathcal{E}_q}(\rmS_q)$\\
-		\COMMENT{$\bigO{AB\log^2A}$ (or $\bigO{AB\log^3A}$)}
-		\label{line:qmeans:S}
-		\STATE $\rmU^{(\tau)} \leftarrow \mathcal{D}_{\sqrt{\rvn^{(\tau)}}}^{-1} \times \prod_{q\in\intint{\nfactors}}{\rmS_q^{(\tau)}}$
-		\COMMENT{$\bigO{A^2\log A+AB}$}
-		\label{line:qmeans:U}
-		\ENDFOR
-		\ENSURE assignement vector $\rvt$ and sparse matrices $\left \lbrace \rmS_q : \rmS_q \in \mathcal{E}_q\right \rbrace_{q\in\intint{\nfactors}}$ such that $\prod_{q\in\intint{\nfactors}}\rmS_q \approx \rmU$ the $\nclusters$ means of the $\nexamples$ data points
-	\end{algorithmic}
-\end{algorithm}
-
-\addVE{TODO: fix how to write indicator function instead of $\mathbf{1}_{\mathcal{E}_q}(\rmS_q)$ in algo \qkmeans.}
-
-\addVE{TODO: $\hat{\rmX}$ is renamed $\hat{\rmU}$ in algorithm \qkmeans, check consistency in the rest of the paper.}
-
-\addVE{TODO: adapt \qkmeans to deal with the fixed factor $\mathcal{D}_{\sqrt{\rvn^{(\tau)}}}$}
-
-To show this convergence, we need to show that each update step in one iteration $\tau$ of the algorithm actually reduces the overall objective. To this end, we start by re-writing the objective at a given time-step $\tau$:
-%
-\begin{equation}
-\begin{split}
+\begin{proposition}[Convergence of \qkmeans]
+\label{thm:convergence}
+The iterates $\left \lbrace\rmS^{(\tau)} \right \rbrace_{q\in\intint{\nfactors}}$ and $\rvt^{(\tau)}$ in Algorithm~\ref{algo:qmeans} are such that the values
+% $g\left(\rmS_1^{(\tau)}, \ldots, \rmS_{\nfactors}^{(\tau)}, \rvt^{(\tau)}\right)$ 
+\begin{align}
 \label{eq:qmean_problem_2}
-    g(&\{ \mathcal{S}_1^{(\tau)}, \ldots,\mathcal{S}_Q^{(\tau)} \}, \lambda^{(\tau)}, \rvt^{(\tau)})\\
-    = & \sum_{k=1}^{K} \left( \sum_{j: \rvt^{(\tau)}_j = k} ||\rmX_j - \rmU^{(\tau)}_k||^2 \right) + \sum_{j=1}^{Q} \delta_j(\mathcal{S}_j^{(\tau)})\\
-    & s.t. ~ \rmU = \lambda^{(\tau)} \prod_{j=1}^{Q}{\mathcal{S}_j^{(\tau)}}
-\end{split}
-\end{equation}.
+    g(\rmS_1^{(\tau)}, \ldots,\rmS_\nfactors^{(\tau)}, \rvt^{(\tau)})
+    = \sum_{k\in\intint{\nclusters}} \sum_{n: \rvt^{(\tau)}_n = k} \norm{\rvx_n - \rvv^{(\tau)}_k}^2 + \sum_{q\in\intint{\nfactors}} \delta_{\mathcal{E}_q}\left (\rmS_q^{(\tau)}\right )
+    \text{ s.t. } \rmV = \prod_{q\in\intint{\nfactors}}{\rmS_q^{(\tau)}}
+\end{align}
+of the objective function are non-increasing.
+\end{proposition}
+
+%As we will prove, the following result stands:
+%\begin{proposition}
+%Iterations over~\eqref{eq:assignment} and~\eqref{eq:reestimation} (and thus, \qkmeans, Algorithm~\ref{algo:qmeans}) converge. 
+%\end{proposition}
+
+
+
+%\todo[inline]{The convergence proof is straightforward, and I suggest 
+%to put in (as done here) in the previous subsection. And I would skip the rest
+%of this section.}
+
+\begin{proof}
+To proove this convergence, we show that each of the assignment and centroid update steps in one iteration $\tau$ of the algorithm actually reduces the overall objective. 
+
+%To this end, we start by re-writing the objective at a given time-step $\tau$:
+%%
+%\begin{align}
+%\label{eq:qmean_problem_2}
+%    g(\rmS_1^{(\tau)}, \ldots,\rmS_\nfactors^{(\tau)}, \rvt^{(\tau)})
+%    = \sum_{k\in\intint{\nclusters}} \sum_{n: \rvt^{(\tau)}_n = k} \norm{\rvx_n - \rvv^{(\tau)}_k}^2 + \sum_{q\in\intint{\nfactors}} \delta_{\mathcal{E}_q}\left (\rmS_q^{(\tau)}\right )
+%    \text{ s.t. } \rmV = \prod_{q\in\intint{\nfactors}}{\rmS_q^{(\tau)}}
+%\end{align}
+%%
+%We then assess whether or not this objective diminishes at each time-step in Algorithm \ref{algo:qmeans}.
+
+
+
+
+\paragraph{Assignment step (Line \ref{line:qmeans:assignment})} For a fixed $\rmV^{(\tau-1)}$, the optimization problem at Line \ref{line:qmeans:assignment} is separable for each example indexed by $n \in \intint{\nexamples}$ and the new indicator vector $\rvt^{(\tau)}$ is thus defined as:
 %
-We then assess whether or not this objective diminishes at each time-step in Algorithm \ref{algo:qmeans}.
-
-
-
-
-\paragraph{Assignment step (Line \ref{line:qmeans:assignment})} For a fixed $\rmU^{(\tau-1)}$ the new indicator vector $\rvt^{(\tau)}$ is defined as:
-%
-\begin{equation}
+\begin{align}
 \label{eq:qmean_problem_U_fixed}
- \rvt^{(\tau)}_i = \argmin_{k \in [\![K]\!]} ||\rmX_i - \rmU^{(\tau-1)}||_2^2
-\end{equation}
+ t^{(\tau)}_n = \argmin_{k \in \intint{\nclusters}} \norm{\rvx_n - \rvv_k^{(\tau-1)}}_2^2.
+\end{align}
 %
-for any $i \in [\![n]\!]$. This step is exactly identical in the K-means algorithm (Algorithm \ref{algo:kmeans}) and is clearly minimizing the objective function \textit{w.r.t.} to vector $\rvt$.
+This step minimizes the first term in~\eqref{eq:qmean_problem_2} w.r.t. $\rvt$ while the second term is constant so we have $g(\rmS_1^{(\tau-1)}, \ldots,\rmS_\nfactors^{(\tau-1)}, \rvt^{(\tau)}) \leq g(\rmS_1^{(\tau-1)}, \ldots,\rmS_\nfactors^{(\tau-1)}, \rvt^{(\tau-1)})$.
 
-\paragraph{Centroids computation step (Line \ref{line:qmeans:startkmeans} to \ref{line:qmeans:endkmeans})} For a fixed $\rvt^{(\tau)}$, the new sparsely-factorized centroids are solutions of the following subproblem:
+\paragraph{Centroids update step (Lines \ref{line:qmeans:compute_means}--\ref{line:qmeans:U}).} We know consider a fixed assignment vector $\rvt$. We first note that for any cluster $k$ with true centroid $\rvu_k$ and approximated centroid $\rvv_k$, we have
+%\begin{proof}
+%	The proof rests upon a rewriting of the objective function $g$ of~\eqref{eq:qmean_problem}. Given $\rmV$ and $\rvt$, using $\rvu_k$ to denote
+%	the centroid of cluster $k$ as determined by $\rvt$, we have, for any $k$
+\begin{align*}
+	\sum_{n: t_n = k} \norm{\rvx_n -\rvv_k}^2
+	 & =\sum_{n: t_n = k} \norm{\rvx_n -\rvu_k+\rvu_k-\rvv_k}^2\\
+	& = \sum_{n: t_n = k}\left(\norm{\rvx_n-\rvu_k}^2+\norm{\rvu_k-\rvv_k}^2-2\langle\rvx_n-\rvu_k,\rvu_k-\rvv_k\rangle\right)\notag\\
+	& = \sum_{n: t_n= k} \norm{\rvx_n-\rvu_k}^2+n_k\norm{\rvu_k-\rvv_k}^2 - 2 \left\langle\underbrace{\sum_{n: t_n = k}\left (\rvx_n-\rvu_k\right )}_{=0},\rvu_k-\rvv_k\right\rangle\notag\\
+	&= \sum_{n: t_n = k} \norm{\rvx_n-\rvu_k}^2 + \norm{\sqrt{n_k}\left (\rvu_k-\rvv_k\right )}^2
+\end{align*}
+
+For a fixed $\rvt$, the new sparsely-factorized centroids are solutions of the following subproblem:
 %
-\begin{equation}
-\label{eq:qmeans_problem_t_fixed}
-\begin{split}
- \argmin_{\{ \mathcal{S}_1, \ldots,\mathcal{S}_Q\}, \lambda} & g(\{ \mathcal{S}_1, \ldots,\mathcal{S}_Q\}, \lambda, \rvt^{(\tau)}) \\
- = \argmin_{\{ \mathcal{S}_1, \ldots,\mathcal{S}_Q\}, \lambda} &\sum_{k=1}^{K} \left( \sum_{j: \rvt^{(\tau)}_j = k} ||\rmX_j - \rmU_k||^2_2 \right) + \sum_{j=1}^{Q} \delta_j(\mathcal{S}_j)  \\
- = \argmin_{\{ \mathcal{S}_1, \ldots,\mathcal{S}_Q\}, \lambda} & ||\mathcal{D}_{\sqrt{\rvn^{(\tau)}}}~(\hat{\rmX}^{(\tau)} - \rmU)||_{\mathcal{F}} ^ 2  \\
- &+ \sum_{k=1}^{K} c_k^{(\tau)} + \sum_{j=1}^{Q} \delta_j(\mathcal{S}_j)\\
- & s.t. ~ \rmU = \lambda \prod_{j=1}^{Q}{\mathcal{S}_j}
-\end{split} 
-\end{equation}
+\begin{align}
+ \argmin_{\rmS_1, \ldots,\rmS_Q} g(\rmS_1, \ldots,\rmS_Q, \rvt) 
+ & = \argmin_{\rmS_1, \ldots,\rmS_Q} \sum_{k\in\intint{\nclusters}}  \sum_{n: t_n = k} \norm{\rvx_n - \rvv_k}^2_2 + \sum_{q\in\intint{\nfactors}} \delta_q(\rmS_q) 
+ \text{ s. t. } \rmV = \prod_{q\in\intint{\nfactors}}{\rmS_q} \nonumber \\
+ & = \argmin_{\rmS_1, \ldots,\rmS_Q} \norm{\rmD_{\sqrt{\rvn}} (\rmU - \rmV)}_F^2
+ + \sum_{k\in\intint{\nclusters}} c_k + \sum_{q\in\intint{\nfactors}} \delta_q(\rmS_q)
+ \text{ s. t. } \rmV = \prod_{q\in\intint{\nfactors}}{\rmS_q} \nonumber\\
+  & = \argmin_{\rmS_1, \ldots,\rmS_Q} \norm{\rmA - \rmD_{\sqrt{\rvn}} \prod_{q\in\intint{\nfactors}}{\rmS_q}}_F^2
+ + \sum_{q\in\intint{\nfactors}} \delta_q(\rmS_q)
+ \label{eq:qmeans_problem_t_fixed}
+\end{align}
 %
 where :
 %
 \begin{itemize}
- \item $\sqrt{\rvn^{(\tau)}} \in {\R^{K}}$ is the pair-wise square root of the vector indicating the number of observations in each cluster at step $\tau$: $\rvn_k^{(\tau)} = |\{i: \rvt^\tau_i = k\}|$;
- \item $\mathcal{D}_\rvv \in \R^{K \times K}$ refers to a diagonal matrix with entries in the diagonal from a vector $\rvv$;
- \item $\hat{\rmX}^{(\tau)} \in \R^{K \times d}$ refers to the real centroid matrix obtained at step $\tau$ \textit{w.r.t} the indicator vector at this step $\rvt^{(\tau)}$: $\hat{\rmX}^{(\tau)}_k = \frac{1}{\rvn_k}\sum_{j:\rvt^{(\tau)}_j = k} {\rmX_j}$. When $\rvt^{(\tau)}$ is fixed, this is constant.
- \item $c_k^{(\tau)} = \sum_{j: \rvt^{(\tau)}_j = k}^{}||\rmX_j - \hat{\rmX}_k^{(\tau)}||$ is constant \textit{w.r.t} $\{ \mathcal{S}_1, \ldots,\mathcal{S}_Q\}$ and $\lambda$.
+ \item $\sqrt{\rvn} \in \R^{\nclusters}$ is the pair-wise square root of the vector indicating the number of observations $n_k \eqdef \left | \left \lbrace n: t_n = k\right \rbrace \right |$  in each cluster $k$;
+ \item $\rmD_{\sqrt{\rvn}} \in \R^{K \times K}$ refers to a diagonal matrix with vector $\sqrt{\rvn}$ on the diagonal;
+ \item $\rmU\in \R^{K \times d}$ refers to the unconstrained centroid matrix obtained from the data matrix $\rmX$ and the indicator vector $\rvt$: $\rvu_k \eqdef \frac{1}{n_k}\sum_{n:t_n = k} {\rvx_n}$ (see Line~\ref{line:qmeans:compute_means});
+ \item $\rmD_{\sqrt{\rvn}} (\rmU - \rmV)$ is the matrix with $\sqrt{n_k}\left (\rvu_k-\rvv_k\right )$ as $k$-th row;
+ \item $c_k \eqdef \sum_{n: t_n = k}\norm{\rvx_n - \rvu_k}$ is constant w.r.t. $ \rmS_1, \ldots,\rmS_Q$;
+ \item $\rmA \eqdef \rmD_{\sqrt{\rvn}} \rmU$ is the unconstrained centroid matrix reweighted by the size of each cluster (see Line~\ref{line:qmeans:A}).
 \end{itemize}
 
-Again,  the minimization of the overall objective $g$ from Equation \ref{eq:qmean_problem_2} is clear since the $\{ \mathcal{S}_1, \ldots,\mathcal{S}_Q\}$ and $\lambda$ are precisely chosen to minimize $g$.
+A local minimum of~\eqref{eq:qmeans_problem_t_fixed} is obtained by applying the \palm algorithm or its hierarchical variant to approximate $\rmA$, as in Line~\ref{line:qmeans:S}. The first factor is forced to equal $\rmD_{\sqrt{\rvn}}$ by setting $\mathcal{E}_0$ to a singleton at Line~\ref{line:qmeans:E0}. Using the previous estimate $\left \lbrace \rmS_q^{(\tau-1)}\right \rbrace_{q\in\intint{\nfactors}}$ to initialize this local minimization, we thus obtain that $g(\rmS_1^{(\tau)}, \ldots,\rmS_\nfactors^{(\tau)}, \rvt^{(\tau)}) \leq g(\rmS_1^{(\tau-1)}, \ldots,\rmS_\nfactors^{(\tau-1)}, \rvt^{(\tau)})$.
 
-Note that the formulation of the problem in Equation \ref{eq:qmeans_problem_t_fixed} shows the connection between the K-means and \textit{Hierarchical PALM4LED} objectives, which allows us to combine them without trouble. Indeed, we can set
+We finally have, for any $\tau$,
+\begin{align*}
+%g\left (\left \lbrace \rmS_q^{(\tau)}\right \rbrace_{q\in\intint{\nfactors}}, \rvt^{(\tau)}\right ) & \leq
+%g\left (\left \lbrace \rmS_q^{(\tau-1)}\right \rbrace_{q\in\intint{\nfactors}}, \rvt^{(\tau)}\right ) \leq
+%g\left (\left \lbrace \rmS_q^{(\tau-1)}\right \rbrace_{q\in\intint{\nfactors}}, \rvt^{(\tau-1)}\right ) \\
+%& \leq
+%\ldots \leq
+%g\left (\left \lbrace \rmS_q^{(0)}\right \rbrace_{q\in\intint{\nfactors}}, \rvt^{(0)}\right )
+%\\
+g\left (\rmS_1^{(\tau)}, \ldots,\rmS_\nfactors^{(\tau)}, \rvt^{(\tau)}\right ) 
+& \leq
+g\left (\rmS_1^{(\tau-1)}, \ldots,\rmS_\nfactors^{(\tau-1)}, \rvt^{(\tau)}\right )
+\leq 
+g\left (\rmS_1^{(\tau-1)}, \ldots,\rmS_\nfactors^{(\tau-1)}, \rvt^{(\tau-1)}\right ) \\
+& \leq \ldots \leq
+g\left (\rmS_1^{(0)}, \ldots,\rmS_\nfactors^{(0)}, \rvt^{(0)}\right )
+\end{align*}
+\end{proof}
+
+%%%%
 %
-\begin{equation*}
-\rmA^{(\tau)} = \mathcal{D}_{\sqrt{\rvn^{(\tau)}}}~\hat{\rmX}^{(\tau)}
-\end{equation*}
-and
-\begin{equation*}
-\rmB^{(\tau)} = \mathcal{D}_{\sqrt{\rvn^{(\tau)}}}~\rmU = \mathcal{D}_{\sqrt{\rvn^{(\tau)}}}~\lambda \prod_{j=1}^{Q}{\mathcal{S}_j} = \lambda \prod_{j=0}^{Q}{\mathcal{S}_j}
-\end{equation*}
+%whence, with a slight abuse of notation that discards
+%sparsity enforcing term, $g$ might be rewritten as:
+%\begin{align}
+%	g(\rmV,\rvt)&=\sum_{k=1}^K\sum_{j: t_j = k}\left\|\rvx_j -\rvv_k\right\|^2=\sum_{k=1}^K\sum_{j: t_j = k}\|\rvx_j-\rvu_k\|^2 + \sum_{k=1}^Kn_k\|\rvu_k-\rvv_k\|^2
+%\end{align}
 %
-with $\mathcal{S}_0$ fixed and equal to $\mathcal{D}_{\sqrt{\rvn^{(\tau)}}}$. The Equation \ref{eq:qmeans_problem_t_fixed} can then be rewritten as
+%Therefore, \qkmeans iterates over the two steps, starting from some $\rmU^{(0)}$:
+%\begin{itemize}
+%	\item $\rvt^{(\tau)} = \argmin_\rvt g(\rmU^{(\tau-1)},\rvt)$
+%	\item $\rmU^{(\tau)}=\argmin_{\rmU\in\{\prod_j\rmS_j\}}g(\rmU,\rvt^{(\tau)})$
+%\end{itemize}
+%and $g(\rmU^{(\tau)},\rvt^{(\tau)})\leq g(\rmU^{(\tau-1)},\rvt^{(\tau)})\leq g(\rmU^{(\tau-1)},\rvt^{(\tau-1)})$
+%\todo[inline]{Rather say in the proposition that $g(U^{(\tau)},\rvt^{(\tau)})$ is nonincreasing?}
+%%\end{proof}
 %
-\begin{equation}
-\begin{split}
- \argmin_{\{ \mathcal{S}_1, \ldots,\mathcal{S}_Q\}, \lambda} & ||\rmA^{(\tau)} - \rmB^{(\tau)}||_{\mathcal{F}} ^ 2  +  \sum_{j=0}^{Q} \delta_j(\mathcal{S}_j)\\
- s.t. &~ \rmB^{(\tau)} = \lambda \prod_{j=0}^{Q}{\mathcal{S}_j}
-\end{split}
-\end{equation}
+%
+%For a fixed $\rvt^{(\tau)}$, the new sparsely-factorized centroids are solutions of the following subproblem:
+%%
+%\begin{equation}
+%\label{eq:qmeans_problem_t_fixed_old}
+%\begin{split}
+% \argmin_{\{ \rmS_1, \ldots,\rmS_Q\}, \lambda} & g(\{ \rmS_1, \ldots,\rmS_Q\}, \lambda, \rvt^{(\tau)}) \\
+% = \argmin_{\{ \rmS_1, \ldots,\rmS_Q\}, \lambda} &\sum_{k=1}^{K} \left( \sum_{j: \rvt^{(\tau)}_j = k} ||\rmX_j - \rmU_k||^2_2 \right) + \sum_{j=1}^{Q} \delta_j(\rmS_j)  \\
+% = \argmin_{\{ \rmS_1, \ldots,\rmS_Q\}, \lambda} & ||\rmD_{\sqrt{\rvn^{(\tau)}}}~(\hat{\rmX}^{(\tau)} - \rmU)||_{\mathcal{F}} ^ 2  \\
+% &+ \sum_{k=1}^{K} c_k^{(\tau)} + \sum_{j=1}^{Q} \delta_j(\rmS_j)\\
+% & s.t. ~ \rmU = \lambda \prod_{j=1}^{Q}{\rmS_j}
+%\end{split} 
+%\end{equation}
+%%
+%where :
+%%
+%\begin{itemize}
+% \item $\sqrt{\rvn^{(\tau)}} \in {\R^{K}}$ is the pair-wise square root of the vector indicating the number of observations in each cluster at step $\tau$: $\rvn_k^{(\tau)} = |\{i: \rvt^\tau_i = k\}|$;
+% \item $\rmD_\rvv \in \R^{K \times K}$ refers to a diagonal matrix with entries in the diagonal from a vector $\rvv$;
+% \item $\hat{\rmX}^{(\tau)} \in \R^{K \times d}$ refers to the real centroid matrix obtained at step $\tau$ \textit{w.r.t} the indicator vector at this step $\rvt^{(\tau)}$: $\hat{\rmX}^{(\tau)}_k = \frac{1}{\rvn_k}\sum_{j:\rvt^{(\tau)}_j = k} {\rmX_j}$. When $\rvt^{(\tau)}$ is fixed, this is constant.
+% \item $c_k^{(\tau)} = \sum_{j: \rvt^{(\tau)}_j = k}^{}||\rmX_j - \hat{\rmX}_k^{(\tau)}||$ is constant \textit{w.r.t} $\{ \rmS_1, \ldots,\rmS_Q\}$ and $\lambda$.
+%\end{itemize}
+%
+%Again,  the minimization of the overall objective $g$ from Equation \ref{eq:qmean_problem_2} is clear since the $\{ \rmS_1, \ldots,\rmS_Q\}$ and $\lambda$ are precisely chosen to minimize $g$.
 
-Since \textit{Hierarchical PALM4LED} successivly updates the $\mathcal{S}_j$s independently and in an alternating fashion, we can still use \textit{PALM4LED} in to solve this problem with the $\mathcal{S}_0$ fixed.
-
-
-
-
-
-The factorization of $\rmU$ could then be used in an ulterior algorithm that involves a matrix-vector multiplication with $\rmU$: typically any algorithm involving the assignment of some data points to one of the clusters (Equation \ref{eq:assignment_problem_kmeans}). Such applications of our proposed algorithm are discussed in Section \ref{sec:uses}.
+%Note that the formulation of the problem in Equation \ref{eq:qmeans_problem_t_fixed} shows the connection between the K-means and \textit{Hierarchical PALM4LED} objectives, which allows us to combine them without trouble. Indeed, we can set
+%%
+%\begin{equation*}
+%\rmA^{(\tau)} = \rmD_{\sqrt{\rvn^{(\tau)}}}~\hat{\rmX}^{(\tau)}
+%\end{equation*}
+%and
+%\begin{equation*}
+%\rmB^{(\tau)} = \rmD_{\sqrt{\rvn^{(\tau)}}}~\rmU = \rmD_{\sqrt{\rvn^{(\tau)}}}~\lambda \prod_{j=1}^{Q}{\rmS_j} = \lambda \prod_{j=0}^{Q}{\rmS_j}
+%\end{equation*}
+%%
+%with $\rmS_0$ fixed and equal to $\rmD_{\sqrt{\rvn^{(\tau)}}}$. The Equation \ref{eq:qmeans_problem_t_fixed} can then be rewritten as
+%%
+%\begin{equation}
+%\begin{split}
+% \argmin_{\{ \rmS_1, \ldots,\rmS_Q\}, \lambda} & ||\rmA^{(\tau)} - \rmB^{(\tau)}||_{\mathcal{F}} ^ 2  +  \sum_{j=0}^{Q} \delta_j(\rmS_j)\\
+% s.t. &~ \rmB^{(\tau)} = \lambda \prod_{j=0}^{Q}{\rmS_j}
+%\end{split}
+%\end{equation}
+%
+%Since \textit{Hierarchical PALM4LED} successivly updates the $\rmS_j$s independently and in an alternating fashion, we can still use \textit{PALM4LED} in to solve this problem with the $\rmS_0$ fixed.
+%
+%
+%
+%
+%
+%The factorization of $\rmU$ could then be used in an ulterior algorithm that involves a matrix-vector multiplication with $\rmU$: typically any algorithm involving the assignment of some data points to one of the clusters (Equation \ref{eq:assignment_problem_kmeans}). Such applications of our proposed algorithm are discussed in Section \ref{sec:uses}.
 
 \subsection{Complexity analysis}
 
-Since the space complexity of the proposed \qkmeans algorithm is comparable to that of K-means, we only detail its time complexity. We set $A=\min\left (\nclusters, \datadim\right )$ and $B=\max\left (\nclusters, \datadim\right )$, and assume that the number of factors satisfies $\nfactors=\bigO{\log A}$.
+Since the space complexity of the proposed \qkmeans algorithm is comparable to that of \kmeans, we only detail its time complexity. We set $A=\min\left (\nclusters, \datadim\right )$ and $B=\max\left (\nclusters, \datadim\right )$, and assume that the number of factors satisfies $\nfactors=\bigO{\log A}$.
 
 The analysis is proposed under the following assumptions: the product between two dense matrices of shapes ${N_1\times N_2}$ and ${N_2\times N_3}$ can be done $\mathcal{O}\left (N_1 N_2 N_3 \right )$ operations; 
 the product between a sparse matrix with $\bigO{S}$ non-zero entries and a dense vector can be done in $\bigO{S}$ operations; 
@@ -264,11 +330,11 @@ the product between two sparse matrices of shapes ${N_1\times N_2}$ and ${N_2\ti
 %To the best of our knowledge, the best achievable complexity for the matrix-matrix product in this general scenario is $\mathcal{O}(p~\min{\{K, N\}})$. We remark here that the number of values in such resulting matrix is $\mathcal{O}(p^2)$.
 %The $\min$ term appears because we can either compute $\rmA\rmB$ or $(\rmB^T\rmA^T)^T$ for the same result.
 
-%\paragraph{Complexity of the evaluation of Q sparse factors: $\prod_{j=1}^{Q}\mathcal{S}_j$}
-%Let $\mathcal{S}_j$ be a sparse matrice of $p$ non-zero values for any $j \in [\![Q]\!]$. Let also the resulting matrix be of size $K \times d$.  Finally, let $\mathcal{S}_1$ be a $K \times q$ matrix, $\mathcal{S}_Q$ be a $q \times d$. and all the other $\mathcal{S}_j$ be $q \times q$ matrices; $q$ is set to be the minimum of $\{K, d\}$. We consider, for the sake of simplicity, that $p$ is $\mathcal{O}(q)$: e.g. there is one value by row or column in the $\mathcal{S}_j$s. In this case (which is considered to be our case), the product $\prod_{j=1}^{Q}\mathcal{S}_j$ can be done in time $\mathcal{O}(Qpq)$: once a sparse-sparse matrix multiplication then $Q-2$ times the sparse-dense matrix multiplication.
+%\paragraph{Complexity of the evaluation of Q sparse factors: $\prod_{j=1}^{Q}\rmS_j$}
+%Let $\rmS_j$ be a sparse matrice of $p$ non-zero values for any $j \in [\![Q]\!]$. Let also the resulting matrix be of size $K \times d$.  Finally, let $\rmS_1$ be a $K \times q$ matrix, $\rmS_Q$ be a $q \times d$. and all the other $\rmS_j$ be $q \times q$ matrices; $q$ is set to be the minimum of $\{K, d\}$. We consider, for the sake of simplicity, that $p$ is $\mathcal{O}(q)$: e.g. there is one value by row or column in the $\rmS_j$s. In this case (which is considered to be our case), the product $\prod_{j=1}^{Q}\rmS_j$ can be done in time $\mathcal{O}(Qpq)$: once a sparse-sparse matrix multiplication then $Q-2$ times the sparse-dense matrix multiplication.
 
 %\paragraph{Complexity of the multiplication between Q sparse factors and a dense vector}
-%Let $\rmS$ be a short-hand for $\prod_{j=1}^{Q}\mathcal{S}_j$ that has been detailed above. $\rmS$ is kept as a factorization. Let also $\rvv$ be a $d$ dimensional dense vector. Then the product $\rmS \rvv$ can be computed right to left in time $\mathcal{O}(Qp)$ operations.
+%Let $\rmS$ be a short-hand for $\prod_{j=1}^{Q}\rmS_j$ that has been detailed above. $\rmS$ is kept as a factorization. Let also $\rvv$ be a $d$ dimensional dense vector. Then the product $\rmS \rvv$ can be computed right to left in time $\mathcal{O}(Qp)$ operations.
 %If $\rmB$ is also sparse, with $b$ non-zero entries, then the bound is $\mathcal{O}\left ( \min\left ( a \min\left (b, N \right ), b \min\left (a, M\right ) \right ) \right )$ where $M$ is the number of rows in $\rmA$.
 %This is a naive upper bound for sparse matrices, some tighter bound may be found.
 
@@ -276,19 +342,19 @@ the product between two sparse matrices of shapes ${N_1\times N_2}$ and ${N_2\ti
 We recall here that the \kmeans algorithm complexity is dominated by its cluster assignation step which requires $\bigO{\nexamples\nclusters\datadim}=\bigO{\nexamples A B}$ operations (see Eq.~\eqref{eq:assignment_problem_kmeans}).
 
 \paragraph{Complexity of algorithm \palm.} The procedure consists in an alternate optimization of each sparse factor. 
-At each iteration, the whole set of $\nfactors$ factors is updated with at a cost in $\bigO{AB\log^2 A}$, as detailed in Appendix~\ref{sec:app:palm4msa}. 
+At each iteration, the whole set of $\nfactors$ factors is updated with at a cost in $\bigO{AB\left (\log^2 A+\log B\right )}$, as detailed in Appendix~\ref{sec:app:palm4msa}. 
 The bottleneck is the computation of the gradient, which benefits from fast computations with sparse matrices.
-The hierarchical version of \palm proposed in~\cite{LeMagoarou2016Flexible} consists in running $\palm$ $2Q$ times so that its time complexity is in $\bigO{AB\log^3 A}$.
+The hierarchical version of \palm proposed in~\cite{LeMagoarou2016Flexible} consists in running $\palm$ $2Q$ times so that its time complexity is in $\bigO{AB\left (\log^3 A + \log A \log B\right )}$.
 
 %Each iteration takes $\mathcal{O}(Q(Qpq + Kd + q^2\log q^2) + K^2d)$\addLG{$q^2 \log q^2$ peut être remplacé par $q^2 + p\log p$ grâce à l'algo quickselect}. In the following analysis, we refer to the lines in Algorithm 2 of \cite{magoarou2014learning}. This algorithm is repeated here for simplicity (Algorithm \ref{algo:palm4msa}). Note that the displayed complexities are for one full iteration of the algorithm.
 %
 %\begin{description}[leftmargin=\parindent,labelindent=\parindent]
 % 
-% \item [Line 3] The $\rmL$s can be \textit{precomputed} incrementaly for each iteration $i$, involving a total cost of $\mathcal{O}(Qpq)$ operations: for all $j < Q$, $\rmL_j = \rmL_{j+1} \mathcal{S}^i_{j+1}$; for $j = Q$, $\rmL_j = \textbf{Id}$;
-% \item [Line 4] The $\rmR$s is computed incrementaly for each iteration $j$: $\rmR_j = \mathcal{S}^{i+1}_{j-1} \rmR_{j-1}$ if $j > 1$; $\rmR_j = \textbf{Id}$ otherwise. This costs an overall $\mathcal{O}(Qpq)$ operations;
+% \item [Line 3] The $\rmL$s can be \textit{precomputed} incrementaly for each iteration $i$, involving a total cost of $\mathcal{O}(Qpq)$ operations: for all $j < Q$, $\rmL_j = \rmL_{j+1} \rmS^i_{j+1}$; for $j = Q$, $\rmL_j = \textbf{Id}$;
+% \item [Line 4] The $\rmR$s is computed incrementaly for each iteration $j$: $\rmR_j = \rmS^{i+1}_{j-1} \rmR_{j-1}$ if $j > 1$; $\rmR_j = \textbf{Id}$ otherwise. This costs an overall $\mathcal{O}(Qpq)$ operations;
 % \item [Line 5] The time complexity for computing the operator norm of a matrix of dimension $K \times q$ is $\mathcal{O}(Kq)$, which leads a $\mathcal{O}(QKq)$ number of operations for this line \addLG{à éclaircir...};
 % \item [Line 6] \addLG{avec Valentin on avait trouvé O(Kd min \{K, d\}) mais je ne suis plus d'accord} Taking advantage of the decompositions of $\rmL$ and $\rmR$ as products of sparse factors, the time complexity of this line ends up being $\mathcal{O}(Q(Qpq + Kd + q^2\log q^2))$ for a complete iteration: the $\mathcal{O}(Qpq)$ part comes from the various sparse-dense matrix multiplications with $\rmR$ and $\rmL$; the $\mathcal{O}(Kd)$ part comes from the pairwise substraction inside the parentheses and the $\mathcal{O}(q^2 \log q^2)$ part from the projection operator that involves sorting of the inner matrix.\addLG{$q^2 \log q^2$ peut être remplacé par $q^2 + p\log p$ grâce à l'algo quickselect}
-% \item [Line 8] The reconstructed $\hat \rmU$ can be computed from the $\rmR_{Q-1}$ and $\mathcal{S}_Q^{i+1}$ obtained just before: $\hat \rmU = \mathcal{S}_Q^{i+1} \rmR_{Q-1}$. This sparse-dense matrix multiplication cost a time $\mathcal{O}(pq)$.
+% \item [Line 8] The reconstructed $\hat \rmU$ can be computed from the $\rmR_{Q-1}$ and $\rmS_Q^{i+1}$ obtained just before: $\hat \rmU = \rmS_Q^{i+1} \rmR_{Q-1}$. This sparse-dense matrix multiplication cost a time $\mathcal{O}(pq)$.
 % \item [Line 9] \addLG{Avec valentin, on avait écrit $O(min\{K, d\} ^ 3)$ mais je ne suis plus d'accord}The computational complexity of this line is majored by the matrix multiplications that cost $\mathcal{O}(K^2d)$ operations.
 %\end{description}
 %
@@ -302,20 +368,20 @@ The hierarchical version of \palm proposed in~\cite{LeMagoarou2016Flexible} cons
 %
 %\REQUIRE The matrix to factorize $\rmU \in \R^{K \times d}$, the desired number of factors $Q$, the constraint sets $\mathcal{E}_j$ , $j \in [\![Q]\!]$ and a stopping criterion (e.g., here, a number of iterations $N_{iter}$ ).
 %
-%\ENSURE $\{\mathcal{S}_1 \dots \mathcal{S}_{Q}\}|\mathcal{S}_j \in \mathcal{E}_j$ such that $\prod_{j=1}^{Q}\mathcal{S}_j \approx \rmU$
+%\ENSURE $\{\rmS_1 \dots \rmS_{Q}\}|\rmS_j \in \mathcal{E}_j$ such that $\prod_{j=1}^{Q}\rmS_j \approx \rmU$
 %
 %\FOR {$i = 0$ to $N_{iter}$}
 %\FOR {$j = 1$ to $Q$}
-%\STATE  $\rmL_j \leftarrow \prod_{l=j+1}^{Q} \mathcal{S}_{l}^{i}$
-%\STATE  $\rmR_j \leftarrow \prod_{l=1}^{j-1} \mathcal{S}_{l}^{i+1}$
+%\STATE  $\rmL_j \leftarrow \prod_{l=j+1}^{Q} \rmS_{l}^{i}$
+%\STATE  $\rmR_j \leftarrow \prod_{l=1}^{j-1} \rmS_{l}^{i+1}$
 %\STATE $c_j^i :> (\lambda^i)^2 ||\rmR_j||_2^2 ||\rmL_j||_2^2$
-%\STATE $\mathcal{S}^{i+1}_j \leftarrow P_{\mathcal{E}_j}(\mathcal{S}_j^i - \frac{1}{c_j^i} \lambda^i \rmL_j^T(\lambda \rmL_j \mathcal{S}_j^i \rmR_j - \rmU)\rmR_j^T)$
+%\STATE $\rmS^{i+1}_j \leftarrow P_{\mathcal{E}_j}(\rmS_j^i - \frac{1}{c_j^i} \lambda^i \rmL_j^T(\lambda \rmL_j \rmS_j^i \rmR_j - \rmU)\rmR_j^T)$
 %\ENDFOR
-%\STATE $\hat \rmU := \prod_{j=1}^{Q} \mathcal{S}_j^{i+1}$
+%\STATE $\hat \rmU \eqdef \prod_{j=1}^{Q} \rmS_j^{i+1}$
 %\STATE $\lambda^{i+1} \leftarrow \frac{Trace(\rmU^T\hat\rmU)}{Trace(\hat\rmU^T\hat\rmU)}$
 %\ENDFOR
 %
-%\ENSURE $\lambda, \{\mathcal{S}_1 \dots \mathcal{S}_{Q}\}|\mathcal{S}_j \in \mathcal{E}_j$ such that $\lambda \prod_{j=1}^{Q}\mathcal{S}_j \approx \rmU$
+%\ENSURE $\lambda, \{\rmS_1 \dots \rmS_{Q}\}|\rmS_j \in \mathcal{E}_j$ such that $\lambda \prod_{j=1}^{Q}\rmS_j \approx \rmU$
 %
 %\end{algorithmic}
 %\end{algorithm}
@@ -344,10 +410,10 @@ The hierarchical version of \palm proposed in~\cite{LeMagoarou2016Flexible} cons
 
 \paragraph{Complexity of the \qkmeans algorithm.} The overall complexity of \qkmeans is in $\bigO{\nexamples\left(A\log A+B\right ) + AB \log^2 A}$ when used with \palm and in $\bigO{\nexamples\left(A\log A+B\right ) + AB \log^3 A}$ when used with the hierarchical version of \palm. The time complexities of the main steps are given in Algorithm~\ref{algo:qmeans}. 
 
-The assignation step (line~\ref{line:qmeans:assignment} and Eq.~\eqref{eq:assignment_problem_kmeans}) benefits from the fast computation of $\rmU \rmX$ in~$\bigO{\nexamples\left(A\log A+B\right )}$ while the computation of the norms of the cluster centers is in $\bigO{AB}$.
+The assignation step (line~\ref{line:qmeans:assignment} and Eq.~\eqref{eq:assignment_problem_kmeans}) benefits from the fast computation of $\rmV \rmX$ in~$\bigO{\nexamples\left(A\log A+B\right )}$ while the computation of the norms of the cluster centers is in $\bigO{AB}$.
 One can see that the computational bottleneck of \kmeans is here reduced, which shows the advantage of using \qkmeans when $\nexamples$, $\nclusters$ and $\datadim$ are large.
 
-The computation of the centers of each cluster, given in line~\ref{line:kmeans:compute_means}, is the same as in \kmeans and takes $\bigO{\nexamples\datadim}$ operations.
+The computation of the centers of each cluster, given in line~\ref{line:qmeans:compute_means}, is the same as in \kmeans and takes $\bigO{\nexamples\datadim}$ operations.
 
 The update of the fast transform, in lines~\ref{line:qmeans:A} to~\ref{line:qmeans:U} is a computational overload compared to \kmeans. 
 Its time complexity is dominated by the update of the sparse factors at line~\ref{line:qmeans:S}, in $\bigO{AB \log^2 A}$ if \palm is called and in $\bigO{AB \log^3 A}$ if its hierarchical version is called. 

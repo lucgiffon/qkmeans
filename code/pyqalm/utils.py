@@ -22,6 +22,7 @@ from sklearn.datasets import fetch_lfw_people
 from sklearn.model_selection import train_test_split
 import keras
 
+
 daiquiri.setup(level=logging.DEBUG)
 logger = daiquiri.getLogger("pyqalm")
 
@@ -71,11 +72,14 @@ def get_side_prod(lst_factors, id_shape=(0,0)):
         side_prod = multi_dot(lst_factors)
     return side_prod
 
+
 def get_lambda_proxsplincol(nb_keep_values):
     return lambda mat: prox_splincol(mat, nb_keep_values)
 
+
 def constant_proj(mat):
     raise NotImplementedError("This function should not be called but used for its name")
+
 
 class ResultPrinter:
     """
@@ -125,8 +129,10 @@ class ResultPrinter:
                     out_f.write(s_headers + "\n")
                 out_f.write(s_values + "\n")
 
+
 def timeout_signal_handler(signum, frame):
     raise TimeoutError("More than 10 times slower than kmean")
+
 
 def random_combination(iterable, r):
     "Random selection from itertools.combinations(iterable, r)"
@@ -134,6 +140,7 @@ def random_combination(iterable, r):
     n = len(pool)
     indices = sorted(random.sample(range(n), r))
     return tuple(pool[i] for i in indices)
+
 
 class ObjectiveFunctionPrinter:
     def __init__(self, output_file:Path=None):
@@ -188,10 +195,12 @@ class ObjectiveFunctionPrinter:
                     with open(path_arr, "a") as out_f:
                         out_f.write(str_row + "\n")
 
+
 def get_random():
     val = str(random.randint(1, 10000000000))[1:8]
     # print(val)
     return val
+
 
 class ParameterManager(dict):
     def __init__(self, dct_params, **kwargs):
@@ -296,6 +305,7 @@ class ParameterManager(dict):
         else:
             raise NotImplementedError("Unknown initialization.")
 
+
 def compute_euristic_gamma(dataset_full, slice_size=1000):
     """
     Given a dataset, return the gamma that should be used (euristically) when using a rbf kernel on this dataset.
@@ -346,20 +356,24 @@ def blobs_dataset(blob_size, blob_features, blob_centers):
         "y_test": y_test
     }
 
+
 def census_dataset():
     data_dir = project_dir / "data/external" / "census.npz"
     loaded_npz = np.load(data_dir)
     return {"x_train": loaded_npz["x_train"]}
+
 
 def kddcup_dataset():
     data_dir = project_dir / "data/external" / "kddcup.npz"
     loaded_npz = np.load(data_dir)
     return {"x_train": loaded_npz["x_train"]}
 
+
 def plants_dataset():
     data_dir = project_dir / "data/external" / "plants.npz"
     loaded_npz = np.load(data_dir)
     return {"x_train": loaded_npz["x_train"]}
+
 
 def mnist_dataset():
     (X_train, y_train), (X_test, y_test) = mnist.load_data()
@@ -370,6 +384,7 @@ def mnist_dataset():
         "y_test": y_test
     }
 
+
 def fashion_mnist_dataset():
     (X_train, y_train), (X_test, y_test) = fashion_mnist.load_data()
     return {
@@ -378,6 +393,7 @@ def fashion_mnist_dataset():
         "x_test": X_test.reshape(X_test.shape[0], -1),
         "y_test": y_test
     }
+
 
 def lfw_dataset(seed=None):
     lfw_data = fetch_lfw_people(min_faces_per_person=1, resize=0.4)
@@ -389,6 +405,7 @@ def lfw_dataset(seed=None):
         "x_test": X_test.reshape(X_test.shape[0], -1),
         "y_test": y_test
     }
+
 
 def create_directory(_dir, parents=True, exist_ok=True):
     """
@@ -425,7 +442,6 @@ def download_data(url, directory, name=None):
         logger.debug("File {} already exists and doesn't need to be donwloaded".format(s_file_path))
 
     return s_file_path
-
 
 
 class DataGenerator(keras.utils.Sequence):

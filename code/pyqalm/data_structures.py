@@ -9,6 +9,7 @@ import numpy as np
 from scipy.sparse.linalg import LinearOperator
 from scipy.sparse import csr_matrix
 from scipy.sparse.linalg import eigs, svds
+from scipy.linalg import toeplitz
 
 
 class SparseFactors(LinearOperator):
@@ -156,10 +157,10 @@ class SparseFactors(LinearOperator):
         else:
             return self._lst_factors_H
 
-    def compute_spectral_norm(self, method='eigs'):
+    def compute_spectral_norm(self, method='eigs', v0=None):
         if method == 'svds':
             a = svds(A=self, k=1, return_singular_vectors=False)
-            return a[0]
+            return a[0], v0  # TODO return singular vectors
         elif method == 'eigs':
             if self.shape[0] > self.shape[1]:
                 SS = SparseFactors(self.adjoint().get_list_of_factors()
@@ -168,13 +169,16 @@ class SparseFactors(LinearOperator):
                 SS = SparseFactors(self.get_list_of_factors()
                                    + self.adjoint().get_list_of_factors())
             try:
-                a = eigs(A=SS, k=1, return_eigenvectors=False)
+                if v0 is None:
+                    a, v0 = eigs(A=SS, k=1, return_eigenvectors=True)
+                else:
+                    a, v0 = eigs(A=SS, k=1, return_eigenvectors=True, v0=v0)
             except Exception as e:
                 warnings.warn(str(e))
                 # FIXME if ARGPACK fails, compute norm with regular function
-                return np.linalg.norm(self.compute_product(), ord=2)
+                return np.linalg.norm(self.compute_product(), ord=2), v0
                 # return self.compute_spectral_norm(method='svds')
-            return np.sqrt(np.real(a[0]))
+            return np.sqrt(np.real(a[0])), v0[:, 0]
 
     def get_nb_param(self):
         return sum(csrm.nnz for csrm in self._lst_factors)
@@ -302,3 +306,122 @@ class SparseFactors(LinearOperator):
             return X.reshape(-1)
         else:
             return X.T
+
+
+def permute_rows_cols_randomly(a):
+    """
+    Randomly permute the rows and columns of a matrix
+
+    Parameters
+    ----------
+    a : np.ndarray [n, m]
+        Matrix to be shuffled
+
+    Returns
+    -------
+    np.ndarray [n, m]
+        Shuffled matrix
+    """
+    # TODO testme
+    assert a.ndim == 2
+    return np.random.permutation(np.random.permutation(a).T).T
+
+
+def create_factor_from_mask(mask):
+    """
+    Create sparse factors with random non-zero entries from a mask
+
+    Parameters
+    ----------
+    mask : np.ndarray [n, m]
+        Boolean mask where True values indicate the position of non-zero
+        entries.
+
+    Returns
+    -------
+    np.ndarray [n, m]
+        Sparse matrix with non-zero entries drawn from a Gaussian distribution
+    """
+    # TODO testme
+    A = np.zeros(mask.shape)
+    A[mask] = np.random.randn(np.count_nonzero(mask))
+    return A
+
+
+def create_sparse_factors(shape, n_factors=None, sparsity_level=2):
+    """
+    Create sparse factors with a given sparsity level, created at random.
+
+    Parameters
+    ----------
+    shape : tuple of int
+        2D shape of the reconstructed matrix
+    n_factors : int
+        Number of factors. If None, set as the log2 of axis_size (rounded to
+        the nearest upper integer).
+    sparsity_level : int
+        Number of non-zero values per row and column.
+
+    Returns
+    -------
+    SparseFactors
+        Sparse factors created at random.
+    """
+    # TODO testme
+    min_col_lin = min(shape)
+
+    # get info on wether it is the leftmost factor or rightmost factor that is bigger than other
+    # (because of difference between dimension and all inner factors are square)
+    if shape[0] == min_col_lin:
+        min_left = True
+    else:
+        min_left = False
+
+    if n_factors is None:
+        n_factors = int(np.ceil(np.log2(min_col_lin)))
+
+    # little factors mask definition
+    # ------------------------------
+    first_col_of_tpltz = np.array(
+        [1] * sparsity_level + [0] * (min_col_lin - sparsity_level),
+        dtype=bool)
+    first_row_of_tpltz = np.array(
+        [1] + [0] * (min_col_lin - sparsity_level) + [1] * (sparsity_level - 1),
+        dtype=bool)
+
+    input_toeplitz = (first_col_of_tpltz, first_row_of_tpltz)
+    little_tpltz_mask = toeplitz(*input_toeplitz)
+
+    # look like this:
+    # 1 0 0 1
+    # 1 1 0 0
+    # 0 1 1 0
+    # 0 0 1 1
+
+    # big factor mask definition: based on concatenating sub masks
+    # ------------------------------------------------------------
+    if min_left:
+        nb_submasks = shape[1] // shape[0]
+        residual_size = shape[1] % shape[0]
+        lst_submasks = [toeplitz(*input_toeplitz) for _ in range(nb_submasks)]
+        lst_submasks += [toeplitz(*input_toeplitz)[:, :residual_size]]
+
+        big_tpltz_mask = np.hstack(lst_submasks)
+
+        tpltz_masks = [little_tpltz_mask for _ in range(n_factors-1)] + [big_tpltz_mask]
+
+    else:
+        nb_submasks = shape[0] // shape[1]
+        residual_size = shape[0] % shape[1]
+        lst_submasks = [toeplitz(*input_toeplitz) for _ in range(nb_submasks)]
+        lst_submasks += [toeplitz(*input_toeplitz)[:residual_size]]
+
+        big_tpltz_mask = np.vstack(lst_submasks)
+
+        tpltz_masks = [big_tpltz_mask] + [little_tpltz_mask for _ in range(n_factors - 1)]
+
+    factors = [create_factor_from_mask(permute_rows_cols_randomly(tpltz_mask))
+                      for tpltz_mask in tpltz_masks]
+
+    S = SparseFactors(factors)
+    return S

@@ -1,28 +1,29 @@
 \section{Introduction}
 
-K-means is one of the most popular clustering algorithms~\cite{hartigan1979algorithm,jain2010data}. It can be used beyond clustering, for other tasks such as indexing, data compression,  nearest-neighbor search and prediction, and local network community detection~\cite{muja2014scalable,van2016local}. K-means is also a pivotal process to help increase the speed and the accuracy of many machine learning techniques such as RBF networks~\cite{que2016back} and the Nyström approximation of kernel machines~\cite{si2016computationally}.
+\kmeans is one of the most popular clustering algorithms~\cite{hartigan1979algorithm,jain2010data}. It can be used beyond clustering, for other tasks such as indexing, data compression,  nearest-neighbor search and prediction, and local network community detection~\cite{muja2014scalable,van2016local}. \kmeans is also a pivotal process to help increase the speed and the accuracy of many machine learning techniques such as the Nyström approximation of kernel machines~\cite{si2016computationally} and RBF networks~\cite{que2016back}.
 %
-The  conventional  k-means  algorithm  has  a  complexity  of~$O(NK)$ per iteration, where $N$ is the number of data points and $K$ the number of clusters [32]. However, the larger the number of clusters, the more iterations are needed to converge~\cite{arthur2006slow}.
+The  conventional  \kmeans  algorithm  has  a  complexity  of~$\bigO{\nexamples \nclusters \datadim}$ per iteration, where $\nexamples$ is the number of data points, $\nclusters$ the number of clusters and $\datadim$ is the dimension of the data points.
+However, the larger the number of clusters, the more iterations are needed to converge~\cite{arthur2006slow}.
 %
-As data dimensionality and data sample size continue to grow, it is critical to produce viable and cost-effective alternatives to the computationally expensive conventional K-means. Previous attempts to alleviate the computational issues in K-means often relied on sparsity- and randomization-based methods~\cite{boutsidis2014randomized,shen2017compressed,liu2017sparse}.
+As data dimensionality and data sample size continue to grow, it is critical to produce viable and cost-effective alternatives to the computationally expensive conventional \kmeans. 
+Previous attempts to alleviate the computational issues in \kmeans often relied on batch-, sparsity- and randomization-based methods~\cite{Sculley2010Web, boutsidis2014randomized,shen2017compressed,liu2017sparse}.
 
 Fast transforms have recently received increased attention in machine learning community as they can be used  to speed up random projections~\cite{le2013fastfood,gittens2016revisiting} and to improve landmark-based approximations~\cite{si2016computationally}.
 %
 These works primarily focused on fast transforms such as Fourier and Hadamard transforms, which are fixed before the learning begins. An interesting question is whether one can go beyond that and learn the fast transform from data. 
 %
-In a recent paper~\cite{LeMagoarou2016Flexible}, the authors introduced a sparse matrix approximation scheme aimed  at  reducing the  complexity  of  applying  linear  operators  in  high  dimension by   approximately   factorizing   the   corresponding   matrix   into few   sparse   factors. One interesting observation is that fast transforms, such as the  Hadamard  transform  and  the  Discrete  Cosine  transform, can be approximated as a product of sparse matrices.
+In a recent paper~\cite{LeMagoarou2016Flexible}, the authors introduced a sparse matrix approximation scheme aimed  at  reducing the  complexity  of  applying  linear  operators  in  high  dimension by   approximately   factorizing   the   corresponding   matrix   into few   sparse   factors. One interesting observation is that fast transforms, such as the  Hadamard  transform  and  the  Discrete  Cosine  transform, can be exactly or approximately decomposed as a product of sparse matrices.
 %
-In this paper, we take this idea further and investigate attractive and computationally less costly implementations of the K-means algorithm by learning a fast transform from data.
+In this paper, we take this idea further and investigate attractive and computationally less costly implementations of the \kmeans algorithm by learning a fast transform from data.
 %
 Specifically, we make the following contributions:
 \begin{itemize}
-	\item we introduce QuicK-means, a fast extension of K-means that rests on the idea of expressing the matrix of the $K$ centroids as a product of sparse matrices, a feat made possible by recent results devoted to find approximations of matrices as a product of sparse factors,
-	\item we show that each update step in one iteration of our algorithm  reduces the overall objective, which is enough to guarantee the convergence of QuicK-means,
-	\item we perform a complexity analysis of our algorithm, showing that the computational gain in QuicK-means  has a direct impact in the assignment process of a point to a cluster, meaning that it is not only tangible at prediction time, but also at training time,
-	\item we provide an empirical evaluation of QuicK-means  performance which demonstrates its effectiveness on different datasets in the contexts of clustering and kernel nystr\"om approximation.
+	\item we introduce \texttt{QuicK-means}, a fast extension of \kmeans that rests on the idea of expressing the matrix of the $K$ centroids as a product of sparse matrices, a feat made possible by recent results devoted to find approximations of matrices as a product of sparse factors,
+	\item we show that each update step in one iteration of our algorithm  reduces the overall objective, which is enough to guarantee the convergence of \texttt{QuicK-means},
+	\item we perform a complexity analysis of our algorithm, showing that the computational gain in \texttt{QuicK-means}  has a direct impact in the assignment process of a point to a cluster, meaning that it is not only tangible at prediction time, but also at training time,
+	\item we provide an empirical evaluation of \texttt{QuicK-means}  performance which demonstrates its effectiveness on different datasets in the contexts of clustering and kernel Nystr\"om approximation.
 \end{itemize}
 
-The code of our method QK-means is available on-line\footnote{Anonymous URL.}.
 
 
 
