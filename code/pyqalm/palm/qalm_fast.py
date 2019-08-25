@@ -9,7 +9,7 @@ from copy import deepcopy
 import numpy as np
 from numpy.linalg import norm
 import matplotlib.pyplot as plt
-from pyqalm.palm.utils import compute_objective_function
+from pyqalm.palm.utils import compute_objective_function, update_scaling_factor
 from scipy.sparse import coo_matrix
 
 from pyqalm.utils import get_side_prod, logger
@@ -75,9 +75,7 @@ def hierarchical_palm4msa(arr_X_target: np.array,
         logger.info("Step split")
 
         if return_objective_function:
-            objective_function[k, 0] = compute_objective_function(arr_X_target,
-                                                                  f_lambda,
-                                                                  op_S_factors)
+            objective_function[k, 0] = compute_objective_function(arr_X_target, f_lambda, op_S_factors)
 
         # calcule decomposition en 2 du résidu précédent
         if k == 0:
@@ -94,8 +92,7 @@ def hierarchical_palm4msa(arr_X_target: np.array,
             f_lambda_init=f_lambda_init_split,
             nb_iter=nb_iter,
             update_right_to_left=update_right_to_left,
-            graphical_display=graphical_display,
-            debug=return_objective_function)
+            graphical_display=graphical_display)
 
         if residual_on_right:
             # residual_init = get_side_prod(lst_S_init[nb_factors_so_far:])
@@ -185,8 +182,7 @@ def hierarchical_palm4msa(arr_X_target: np.array,
             f_lambda_init=f_lambda,
             nb_iter=nb_iter,
             update_right_to_left=update_right_to_left,
-            graphical_display=graphical_display,
-            debug=return_objective_function)
+            graphical_display=graphical_display)
 
         if residual_on_right:
             # f_lambda, (*lst_S[:nb_factors_so_far], arr_residual), _, _, \
@@ -631,7 +627,7 @@ def palm4msa_fast3(arr_X_target: np.array,
         # re-compute the full factorisation
         arr_X_curr = S_factors_op.compute_product()
         # update lambda
-        f_lambda = np.sum(arr_X_target * arr_X_curr) / np.sum(arr_X_curr ** 2)
+        f_lambda = update_scaling_factor(X=arr_X_target, X_est=arr_X_curr)
         # print(f_lambda)
 
         if debug:
@@ -685,7 +681,6 @@ def palm4msa_fast4(arr_X_target: np.array,
                    nb_iter: int,
                    update_right_to_left=True,
                    graphical_display=False,
-                   debug=False,
                    track_objective=False):
     """
     lst S init contains factors in decreasing indexes (e.g: the order along which they are multiplied in the product).
@@ -695,9 +690,7 @@ def palm4msa_fast4(arr_X_target: np.array,
 
     """
 
-    if debug:
-        logger.debug('Norme de arr_X_target: {}'.format(
-            np.linalg.norm(arr_X_target, ord='fro')))
+    logger.debug('Norme de arr_X_target: {}'.format(np.linalg.norm(arr_X_target, ord='fro')))
     # initialization
     f_lambda = f_lambda_init
     S_factors_op = SparseFactors(lst_S_init)
@@ -707,26 +700,27 @@ def palm4msa_fast4(arr_X_target: np.array,
     assert S_factors_op.n_factors == nb_factors
 
     if track_objective:
-        objective_function = np.zeros((nb_iter, nb_factors + 1))
+        objective_function = np.ones((nb_iter, nb_factors + 1)) * -1  # (nb_factors + 1) because of the lambda
+    else:
+        objective_function =  np.ones((nb_iter, 1)) * -1
 
     if update_right_to_left:
         # range arguments: start, stop, step
         factor_number_generator = range(-1, -(nb_factors + 1), -1)
-        # TODO replace previous line by next line
-        # factor_number_generator = reversed(range(nb_factors))
     else:
         factor_number_generator = range(0, nb_factors, 1)
     # main loop
     i_iter = 0
+    # todo make the delta objective a parameter
     delta_objective_error_threshold = 1e-6
     delta_objective_error = np.inf
-    obj_fun_prev = None
-    v0l = [None] * nb_factors
-    v0r = [None] * nb_factors
-    while i_iter == 0 or ((i_iter < nb_iter) and (
-            delta_objective_error > delta_objective_error_threshold)):
 
-        for j in factor_number_generator:
+    init_vectors_norm_comp_L = [None] * nb_factors
+    init_vectors_norm_comp_R = [None] * nb_factors
+
+    while ((i_iter < nb_iter) and (delta_objective_error > delta_objective_error_threshold)):
+
+        for machine_idx_fac, j in enumerate(factor_number_generator):
             if lst_projection_functions[j].__name__ == "constant_proj":
                 continue
 
@@ -737,17 +731,17 @@ def palm4msa_fast4(arr_X_target: np.array,
             #       R.n_factors, j, -j-1)
 
             # compute minimum c value (according to paper)
-            L_norm, v0l[j] = L.compute_spectral_norm(v0=v0l[j]) \
-                if L.n_factors > 0 else (1, v0l[j])
-            R_norm, v0r[j] = R.compute_spectral_norm(v0=v0r[j]) \
-                if R.n_factors > 0 else (1, v0r[j])
-            min_c_value = (f_lambda * L_norm * R_norm) ** 2
+            L_norm, init_vectors_norm_comp_L[j] = L.compute_spectral_norm(init_vector_eigs_v0=init_vectors_norm_comp_L[j]) \
+                if L.n_factors > 0 else (1, init_vectors_norm_comp_L[j])
+            R_norm, init_vectors_norm_comp_R[j] = R.compute_spectral_norm(init_vector_eigs_v0=init_vectors_norm_comp_R[j]) \
+                if R.n_factors > 0 else (1, init_vectors_norm_comp_R[j])
+            min_c_value = (f_lambda * L_norm * R_norm) ** 2  # lipsitchz constant
             # add epsilon because it is exclusive minimum
             c = min_c_value * 1.001
-            if debug:
-                logger.debug("Lipsitchz constant value: {}; c value: {}"
-                             .format(min_c_value, c))
+            logger.debug("Lipsitchz constant value: {}; c value: {}"
+                         .format(min_c_value, c))
             # compute new factor value
+            # todo check if it is not redundant to recompute the S_factors_op
             res = f_lambda * S_factors_op.compute_product() - arr_X_target
             # res_RH = R.dot(res.T).T if R.n_factors > 0 else res
             res_RH = S_factors_op.apply_RH(n_factors=-j-1, X=res)
@@ -758,6 +752,7 @@ def palm4msa_fast4(arr_X_target: np.array,
             Sj = S_factors_op.get_factor(j)
 
             # normalize because all factors must have norm 1
+            # todo verifier que ce qui est fait ici n'est pas sous-optimal
             S_proj = lst_projection_functions[j](Sj - grad_step)
             S_proj = coo_matrix(S_proj)
             S_proj /= np.sqrt(S_proj.power(2).sum())
@@ -765,46 +760,43 @@ def palm4msa_fast4(arr_X_target: np.array,
             S_factors_op.set_factor(j, S_proj)
 
             if track_objective:
-                # TODO if update_right_to_left, objective_function is filled
-                #  from right to left (except last column for f_lambda): bug?
-                objective_function[i_iter, j - 1] = \
-                    compute_objective_function(arr_X_target,
+                objective_function[i_iter, machine_idx_fac] = compute_objective_function(arr_X_target,
                                                _f_lambda=f_lambda,
                                                _lst_S=S_factors_op)
-                # print(objective_function[i_iter, j - 1])
+                logger.debug("Iteration {}; Factor idx {}; Objective value {}".format(i_iter, j, objective_function[i_iter, machine_idx_fac]))
+
 
         # re-compute the full factorisation
+        # todo check if it is not redundant to recompute the S_factors_op
         arr_X_curr = S_factors_op.compute_product()
+
         # update lambda
-        f_lambda = np.sum(arr_X_target * arr_X_curr) / np.sum(arr_X_curr ** 2)
-        # print(f_lambda)
-        if debug:
-            logger.debug("Lambda value: {}".format(f_lambda))
+        f_lambda = update_scaling_factor(X=arr_X_target, X_est=arr_X_curr)
 
-        if track_objective:
-            objective_function[i_iter, -1] = \
-                compute_objective_function(arr_X_target, _f_lambda=f_lambda,
-                                           _lst_S=S_factors_op)
+        logger.debug("Lambda value: {}".format(f_lambda))
 
-        if debug and track_objective:
-            logger.debug("Iteration {}; Objective value: {}"
-                         .format(i_iter, objective_function[i_iter, -1]))
+        objective_function[i_iter, -1] = \
+            compute_objective_function(arr_X_target, _f_lambda=f_lambda,
+                                       _lst_S=S_factors_op)
 
-        obj_fun = np.linalg.norm(arr_X_target - f_lambda * arr_X_curr,
-                                 ord='fro') ** 2
+        logger.debug("Iteration {}; Objective value: {}"
+                     .format(i_iter, objective_function[i_iter, -1]))
+
         if i_iter >= 1:
-            delta_objective_error = \
-                np.abs(obj_fun - obj_fun_prev) / obj_fun_prev
-        obj_fun_prev = obj_fun
+            delta_objective_error = np.abs(objective_function[i_iter, -1] - objective_function[i_iter-1, -1]) / objective_function[i_iter-1, -1]
+
         # TODO vérifier que l'erreur absolue est plus petite que le
         # threshold plusieurs fois d'affilée
 
         i_iter += 1
+
+    # todo remove this and use an array filled with -1 as init (so it's a protected value from objective function)
     if track_objective:
         objective_function = objective_function[:i_iter, :]
     else:
         objective_function = None
 
+    # todo remove that if block
     if graphical_display and track_objective:
         plt.figure()
         plt.title("n factors {}".format(nb_factors))
