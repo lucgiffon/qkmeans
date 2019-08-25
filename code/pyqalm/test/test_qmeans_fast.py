@@ -9,6 +9,7 @@ from pyqalm.qk_means.qmeans_fast import qmeans as qmeans_fast
 
 
 class TestCompareQmeans(unittest.TestCase):
+    @unittest.skip("qmeans slow is deprecated")
     def test_compare_qmeans(self):
         nb_clusters = 9
         nb_iter_kmeans = 10
