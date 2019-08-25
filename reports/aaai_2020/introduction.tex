@@ -1,0 +1,59 @@
+\section{Introduction}
+
+\kmeans is one of the most popular clustering algorithms~\cite{hartigan1979algorithm,jain2010data}. It can be used beyond clustering, for other tasks such as indexing, data compression,  nearest-neighbor search and prediction, and local network community detection~\cite{muja2014scalable,van2016local}. \kmeans is also a pivotal process to help increase the speed and the accuracy of many machine learning techniques such as the Nyström approximation of kernel machines~\cite{si2016computationally} and RBF networks~\cite{que2016back}.
+%
+The  conventional  \kmeans  algorithm  has  a  complexity  of~$\bigO{\nexamples \nclusters \datadim}$ per iteration, where $\nexamples$ is the number of data points, $\nclusters$ the number of clusters and $\datadim$ is the dimension of the data points.
+However, the larger the number of clusters, the more iterations are needed to converge~\cite{arthur2006slow}.
+%
+As data dimensionality and data sample size continue to grow, it is critical to produce viable and cost-effective alternatives to the computationally expensive conventional \kmeans. 
+Previous attempts to alleviate the computational issues in \kmeans often relied on batch-, sparsity- and randomization-based methods~\cite{Sculley2010Web, boutsidis2014randomized,shen2017compressed,liu2017sparse}.
+
+Fast transforms have recently received increased attention in machine learning community as they can be used  to speed up random projections~\cite{le2013fastfood,gittens2016revisiting} and to improve landmark-based approximations~\cite{si2016computationally}.
+%
+These works primarily focused on fast transforms such as Fourier and Hadamard transforms, which are fixed before the learning begins. An interesting question is whether one can go beyond that and learn the fast transform from data. 
+%
+In a recent paper~\cite{LeMagoarou2016Flexible}, the authors introduced a sparse matrix approximation scheme aimed  at  reducing the  complexity  of  applying  linear  operators  in  high  dimension by   approximately   factorizing   the   corresponding   matrix   into few   sparse   factors. One interesting observation is that fast transforms, such as the  Hadamard  transform  and  the  Discrete  Cosine  transform, can be exactly or approximately decomposed as a product of sparse matrices.
+%
+In this paper, we take this idea further and investigate attractive and computationally less costly implementations of the \kmeans algorithm by learning a fast transform from data.
+%
+Specifically, we make the following contributions:
+\begin{itemize}
+	\item we introduce \texttt{QuicK-means}, a fast extension of \kmeans that rests on the idea of expressing the matrix of the $K$ centroids as a product of sparse matrices, a feat made possible by recent results devoted to find approximations of matrices as a product of sparse factors,
+	\item we show that each update step in one iteration of our algorithm  reduces the overall objective, which is enough to guarantee the convergence of \texttt{QuicK-means},
+	\item we perform a complexity analysis of our algorithm, showing that the computational gain in \texttt{QuicK-means}  has a direct impact in the assignment process of a point to a cluster, meaning that it is not only tangible at prediction time, but also at training time,
+	\item we provide an empirical evaluation of \texttt{QuicK-means}  performance which demonstrates its effectiveness on different datasets in the contexts of clustering and kernel Nystr\"om approximation.
+\end{itemize}
+
+
+
+
+
+%%%%%%%%%% Abstract 2 %%%%%%%%%%%%%%%%%%%%%
+%
+%In this paper, we propose the Q-means algorithm, an accelerated version of $K$-means that stems from recent advances in optimization to learn the centroid matrix as a product of sparse matrices.
+%This decomposition provides a structure similar to that of fast transforms (e.g., Fourier, Hadamard) in order to benefit from its computationnal efficiency while being adapted to the training data.
+%Indeed, the complexity of the matrix-vector product between the factorized $K \times D$ matrix $\mathbf{U}$ and any vector is lowered from $\mathcal{O}(KD)$ to $\mathcal{O}(P+Q \log Q)$, with $Q=\min (K, D)$ and $P=\max (K, D)$.
+%This dramatic acceleration is beneficial whenever a point is assigned to a cluster, i.e., at prediction time and in the assignation step at learning time.
+%In addition, we show that the computational overhead due to the decomposition procedure does not penalize the computational cost of the learning stage, 
+%which may be faster than the traditionnal Lloyd algorithm depending on the context.
+%
+%Finally, we provide discussions and numerical experiments that show the versatility of the proposed computationally-efficient Q-means algorithm.
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%\newpage
+%
+%Kernel machines are powerful tools to learn non-linear relationships in the data, but they do not scale well to nowadays large, real world, datasets. Indeed, they depend on the kernel matrix which has a very high storage ($\mathcal{O}(n^2)$) and computational ($\mathcal{O}(dn^2)$) cost with respect to the size of the dataset $n$ and the dimensionality of the data $d$.
+%
+%One plebiscited approach to tackle this problem is to use the Nyström approximation of the kernel matrix. This approach relies on the selection of some landmark points which summarize well the full dataset, and which are used in building a low rank decomposition of the complete kernel matrix. This decomposition is then used as a drop-in replacement for the kernel matrix in further kernel machines such as the SVM. The whole training process in that case is then decomposed in three steps: first, one must select the landmark points; second, the Nyström approximation is built and finally the kernel machine is learned using this approximation. 
+%
+%The chosen landmark points are crucial for the Nyström approximation. Multiple landmark selection methods have been investigated for their advantages and inconvenients \cite{kumar2012sampling}\cite{musco2017recursive}. One such selection method is the K-means algorithm from which the output center-points are taken for the Nyström landmark points. Although this method has rather high computational cost, it offers consistently one of the best approximation qualities for the Nyström approximation \cite{kumar2012sampling}. Recently, a new approach to landmark point selection has been proposed \cite{si2016computationally}: it aims at rendering the Nyström approximation even more efficient than it is in its vanilla form by taking advantage of some known fast transform algorithm such as the Haar or Hadamard transform. Indeed, they first emphasize that, for a large family of kernel functions, most of the computational cost of the Nyström method lies in the computation of the dot product between the examples of the training or testing set and the landmark points. After that, they propose a procedure to form the matrix of landmark points with some special structure, embedding the Haar or the Hadamard matrix. This special structure allows to use the associated fast transform algorithms when computing the matrix vector product between the landmark point matrix and any point, hence reducing its computational cost from $\mathcal{O}(md)$ to $\mathcal{O}(m)$ when the Haar transform is used, and to $\mathcal{O}(m \log d)$ when it is the Hadamard transform. In this approach, the structure of the landmark point matrix is constrained by the fixed fast-transform matrix. This might be handicaping for further use of the subsequent Nyström approximation.
+%
+%\textit{Would it be possible to form a landmark point matrix which has both the good approximation properties of the K-means method and the efficiency of fast transforms?} In this paper, we propose an algorithm with convergence proof that could be used to learn the landmark point matrix for the Nyström approximation, that is both close to the K-means center-points matrix and very efficient to use. This algorithm, which we call \textit{Q-means}, is built upon recent work \cite{magoarou2014learning} on approximating a given matrix by a product of few sparse matrices. If the number of sparse matrices involved is small enough, the gain in complexity in the induced matrix-vector multiplication could be of the same order than the one achieved with fast-transform algorithms, while the full reconstructed matrix isn't constrained by some predefined matrix definition.
+%
+%~\\
+%In the remaining of this paper, we start in Section \ref{sec:background} by giving some background on the K-means algorithm (Section \ref{sec:kmeans}) and the \textit{Hierarchical PALM4LED} algorithm that allows to learn a fast-transform as the product of sparse matrices (Section \ref{sec:palm4led}). We then describe our algorithm and give its convergence proof in Section \ref{sec:contribution}. Finally we discuss in Section \ref{sec:uses} how our \textit{Q-means} algorithm can be used in the Nyström approximation.
+%
+%Note that this paper describes work in progress and does not contain any experiments on the subject. In the Conclusion (Section \ref{sec:conclusion}), we discuss foreseen experiments and a larger scope of application of our method.
