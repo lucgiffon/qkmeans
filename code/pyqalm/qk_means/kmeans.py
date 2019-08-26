@@ -1,7 +1,7 @@
 import copy
 
 import numpy as np
-from pyqalm.qk_means.utils import get_distances, compute_objective, assign_points_to_clusters, get_squared_froebenius_norm_line_wise, assess_clusters_integrity
+from pyqalm.qk_means.utils import get_distances, compute_objective, assign_points_to_clusters, get_squared_froebenius_norm_line_wise, update_clusters_with_integrity_check
 from pyqalm.utils import logger
 
 
@@ -38,15 +38,15 @@ def kmeans(X_data, K_nb_cluster, nb_iter, initialization):
         cluster_names, counts = np.unique(indicator_vector, return_counts=True)
         cluster_names_sorted = np.argsort(cluster_names)
 
-        counts, cluster_names_sorted = assess_clusters_integrity(X_data,
-                                                                 X_data_norms,
-                                                                 U_centroids_hat,
-                                                                 K_nb_cluster,
-                                                                 counts,
-                                                                 indicator_vector,
-                                                                 distances,
-                                                                 cluster_names,
-                                                                 cluster_names_sorted)
+        counts, cluster_names_sorted = update_clusters_with_integrity_check(X_data,
+                                                                            X_data_norms,
+                                                                            U_centroids_hat,
+                                                                            K_nb_cluster,
+                                                                            counts,
+                                                                            indicator_vector,
+                                                                            distances,
+                                                                            cluster_names,
+                                                                            cluster_names_sorted)
 
         # check if all clusters still have points
         # for c in range(K_nb_cluster):

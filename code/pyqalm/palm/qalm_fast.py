@@ -14,6 +14,7 @@ from scipy.sparse import coo_matrix
 
 from pyqalm.utils import get_side_prod, logger
 from pyqalm.data_structures import SparseFactors
+from sklearn import datasets
 
 
 def hierarchical_palm4msa(arr_X_target: np.array,
@@ -91,8 +92,7 @@ def hierarchical_palm4msa(arr_X_target: np.array,
             # define constraints: ||0 = d pour T1; relaxed constraint on ||0 for T2
             f_lambda_init=f_lambda_init_split,
             nb_iter=nb_iter,
-            update_right_to_left=update_right_to_left,
-            graphical_display=graphical_display)
+            update_right_to_left=update_right_to_left)
 
         if residual_on_right:
             # residual_init = get_side_prod(lst_S_init[nb_factors_so_far:])
@@ -181,8 +181,7 @@ def hierarchical_palm4msa(arr_X_target: np.array,
                 "finetune"],
             f_lambda_init=f_lambda,
             nb_iter=nb_iter,
-            update_right_to_left=update_right_to_left,
-            graphical_display=graphical_display)
+            update_right_to_left=update_right_to_left)
 
         if residual_on_right:
             # f_lambda, (*lst_S[:nb_factors_so_far], arr_residual), _, _, \
@@ -281,6 +280,7 @@ def palm4msa_fast1(arr_X_target: np.array,
     lst S [-j] = Sj
 
     """
+    raise DeprecationWarning("Use palm4msa_fast4 instead")
 
     def update_S(S_old, _L, _R, _c, _lambda, projection_function):
         """
@@ -423,6 +423,7 @@ def palm4msa_fast2(arr_X_target: np.array,
     lst S [-j] = Sj
 
     """
+    raise DeprecationWarning("Use palm4msa_fast4 instead")
 
     logger.debug('Norme de arr_X_target: {}'.format(
         np.linalg.norm(arr_X_target, ord='fro')))
@@ -550,6 +551,7 @@ def palm4msa_fast3(arr_X_target: np.array,
     lst S [-j] = Sj
 
     """
+    raise DeprecationWarning("Use palm4msa_fast4 instead")
 
     if debug:
         logger.debug('Norme de arr_X_target: {}'.format(
@@ -680,16 +682,25 @@ def palm4msa_fast4(arr_X_target: np.array,
                    f_lambda_init: float,
                    nb_iter: int,
                    update_right_to_left=True,
-                   graphical_display=False,
-                   track_objective=False):
+                   track_objective=False,
+                   delta_objective_error_threshold=1e-6):
     """
     lst S init contains factors in decreasing indexes (e.g: the order along which they are multiplied in the product).
         example: S5 S4 S3 S2 S1
 
     lst S [-j] = Sj
 
+    :param arr_X_target:
+    :param lst_S_init:
+    :param nb_factors:
+    :param lst_projection_functions:
+    :param f_lambda_init:
+    :param nb_iter:
+    :param update_right_to_left:
+    :param track_objective: If true, the objective function is computed for each factor and not only at the end of each iteration.
+    :param delta_objective_error_threshold:
+    :return:
     """
-
     logger.debug('Norme de arr_X_target: {}'.format(np.linalg.norm(arr_X_target, ord='fro')))
     # initialization
     f_lambda = f_lambda_init
@@ -711,8 +722,6 @@ def palm4msa_fast4(arr_X_target: np.array,
         factor_number_generator = range(0, nb_factors, 1)
     # main loop
     i_iter = 0
-    # todo make the delta objective a parameter
-    delta_objective_error_threshold = 1e-6
     delta_objective_error = np.inf
 
     init_vectors_norm_comp_L = [None] * nb_factors
@@ -722,6 +731,11 @@ def palm4msa_fast4(arr_X_target: np.array,
 
         for machine_idx_fac, j in enumerate(factor_number_generator):
             if lst_projection_functions[j].__name__ == "constant_proj":
+                if track_objective:
+                    objective_function[i_iter, machine_idx_fac] = compute_objective_function(arr_X_target,
+                                                                                             _f_lambda=f_lambda,
+                                                                                             _lst_S=S_factors_op)
+                    logger.debug("Iteration {}; Factor idx {}; Objective value {}".format(i_iter, j, objective_function[i_iter, machine_idx_fac]))
                 continue
 
             L = S_factors_op.get_L(j)
@@ -784,31 +798,11 @@ def palm4msa_fast4(arr_X_target: np.array,
 
         if i_iter >= 1:
             delta_objective_error = np.abs(objective_function[i_iter, -1] - objective_function[i_iter-1, -1]) / objective_function[i_iter-1, -1]
+            logger.debug("Delta objective: {}".format(delta_objective_error))
 
-        # TODO vérifier que l'erreur absolue est plus petite que le
-        # threshold plusieurs fois d'affilée
+        # TODO vérifier que l'erreur absolue est plus petite que le threshold plusieurs fois d'affilée
 
         i_iter += 1
-
-    # todo remove this and use an array filled with -1 as init (so it's a protected value from objective function)
-    if track_objective:
-        objective_function = objective_function[:i_iter, :]
-    else:
-        objective_function = None
-
-    # todo remove that if block
-    if graphical_display and track_objective:
-        plt.figure()
-        plt.title("n factors {}".format(nb_factors))
-        for j in range(nb_factors + 1):
-            plt.semilogy(objective_function[:, j], label=str(j))
-        plt.legend()
-        plt.show()
-
-        plt.figure()
-        plt.semilogy(objective_function.flat)
-        plt.legend()
-        plt.show()
 
     return f_lambda, S_factors_op, arr_X_curr, objective_function, i_iter
 
@@ -819,9 +813,14 @@ if __name__ == '__main__':
     from scipy.linalg import hadamard
     from pyqalm.utils import get_lambda_proxsplincol
 
-    if False:
+    do_hierarchical = False
+
+    if not do_hierarchical:
         data = dict()
-        data['hadamard'] = hadamard(2048)
+        # data['hadamard'] = hadamard(64)
+
+        data['rando'] = datasets.make_blobs(64, 128)[0]
+        data['rando'] = data['rando'] / np.linalg.norm(data['rando'])
 
         # n_rows = 64
         # n_cols = 77
@@ -846,9 +845,8 @@ if __name__ == '__main__':
                 + [get_lambda_proxsplincol(nb_values_residual)]
 
             f_lambda_init = 1
-            nb_iter = 10
+            nb_iter = 20
             update_right_to_left = True
-            graphical_display = False
             # f_lambda_ref, lst_S_ref, arr_X_curr_ref, objective_function_ref, \
             # i_iter_ref = \
             #     palm4msa_slow(X,
@@ -860,7 +858,7 @@ if __name__ == '__main__':
             #              update_right_to_left=update_right_to_left,
             #              graphical_display=graphical_display)
 
-            out = palm4msa_fast3(X,
+            out = palm4msa_fast4(X,
                                  lst_S_init=lst_S_init,
                                  nb_factors=nb_factors,
                                  lst_projection_functions=lst_projection_functions,
@@ -868,7 +866,15 @@ if __name__ == '__main__':
                                  f_lambda_init=f_lambda_init,
                                  nb_iter=nb_iter,
                                  update_right_to_left=update_right_to_left,
-                                 graphical_display=graphical_display)
+                                 track_objective=True)
+
+            f_lambda, S_factors_op, arr_X_curr, objective_function, i_iter = out
+            objective_function = objective_function[:, -1][objective_function[:, -1] != -1]
+            plt.plot(objective_function / np.linalg.norm(data['rando'])**2)
+            plt.show()
+
+            plt.semilogy(np.abs(objective_function[np.arange(1, len(objective_function))] - objective_function[np.arange(1, len(objective_function))-1]) / objective_function[np.arange(1, len(objective_function))-1])
+            plt.show()
     else:
         data = dict()
         data['hadamard'] = hadamard(32)

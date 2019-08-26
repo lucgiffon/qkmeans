@@ -233,7 +233,7 @@ def build_constraint_sets(left_dim, right_dim, nb_factors, sparsity_factor):
     return lst_proj_op_by_fac_step, lst_proj_op_desc_by_fac_step
 
 
-def assess_clusters_integrity(X_data, X_data_norms, X_centroids_hat, K_nb_cluster, counts, indicator_vector, distances, cluster_names, cluster_names_sorted):
+def update_clusters_with_integrity_check(X_data, X_data_norms, X_centroids_hat, K_nb_cluster, counts, indicator_vector, distances, cluster_names, cluster_names_sorted):
     """
     Checki if no cluster has lost point and if yes, create a new cluster with the farthest point away in the cluster with the biggest population.
 

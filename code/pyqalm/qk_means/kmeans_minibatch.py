@@ -7,7 +7,7 @@ mpl_logger.setLevel(logging.WARNING)
 import copy
 
 import numpy as np
-from pyqalm.qk_means.utils import get_distances, compute_objective, assign_points_to_clusters, get_squared_froebenius_norm_line_wise, assess_clusters_integrity
+from pyqalm.qk_means.utils import get_distances, compute_objective, assign_points_to_clusters, get_squared_froebenius_norm_line_wise, update_clusters_with_integrity_check
 from pyqalm.utils import logger, DataGenerator
 from sklearn import datasets
 
