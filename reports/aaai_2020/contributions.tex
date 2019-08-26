@@ -16,11 +16,18 @@ Doing so will allow us to cope with the computational bulk imposed by the produc
 Building upon the \kmeans optimization problem~\eqref{eq:kmean_problem} and fast-operator approximation problem~\eqref{eq:palm4msa} the \qkmeans optimization problem 
 writes:
 %
-\begin{align}
+\begin{equation}
+\begin{split}
 \label{eq:qmean_problem}
- \argmin_{\rmS_1, \ldots, \rmS_{\nfactors}, \rvt} g\left(\rmS_1, \ldots, \rmS_{\nfactors}, \rvt\right)
-    \eqdef \sum_{k\in\intint{\nclusters}}\sum_{n: t_n = k} \left\|\rvx_n -\rvv_k\right\|^2 + \sum_{q\in\intint{\nfactors}} \delta_{\mathcal{E}_q}(\rmS_q) \text{ s. t. } \rmV = \prod_{q\in\intint{\nfactors}}\rmS_q
-\end{align}
+ \argmin_{\rmS_1, \ldots, \rmS_{\nfactors}, \rvt} & g\left(\rmS_1, \ldots, \rmS_{\nfactors}, \rvt\right) \\
+  = \argmin_{\rmS_1, \ldots, \rmS_{\nfactors}, \rvt} & \sum_{k\in\intint{\nclusters}}\sum_{n: t_n = k} \left\|\rvx_n -\rvv_k\right\|^2 + \sum_{q\in\intint{\nfactors}} \delta_{\mathcal{E}_q}(\rmS_q) \\
+ & \text{ s. t. } \rmV = \prod_{q\in\intint{\nfactors}}\rmS_q
+\end{split}  
+\end{equation}
+
+
+
+
 %
 This is a regularized version of the \kmeans optimization problem~\eqref{eq:kmean_problem} in which centroids $\rvv_k$ are constrained to form a matrix $\rmV$ with a fast-operator structure, the indicator functions $\delta_{\mathcal{E}_q}$ imposing the sparsity of matrices $\rmS_q$.
 More details on the modeling choices are given in the experimental part in section~\ref{sec:uses:settings}.
@@ -28,7 +35,8 @@ More details on the modeling choices are given in the experimental part in secti
 This problem can be solved using Algorithm~\ref{algo:qmeans},
 which proceeds in a similar way as Lloyd's algorithm by alternating an assignment step at line \ref{line:qmeans:assignment} and an update of the centroids at lines~\ref{line:qmeans:compute_means}--\ref{line:qmeans:U}. The assignment step can be computed efficiently thanks to the fast-structure in matrix $\rmV$. The update of the centroids relies on learning a fast-structure operator $\rmV$ that approximate of the true centroid matrix $\rmU$ weighted by the number of examples $n_k$ assigned to each cluster $k$.
 
-\begin{algorithm}[t]
+
+\begin{algorithm*}[t]
 	\caption{\qkmeans algorithm and its time complexity.}
 	\label{algo:qmeans}
 	\begin{algorithmic}[1]
@@ -59,7 +67,7 @@ with $n_k \eqdef |\{n: t_n^{(\tau)}=k\}|$
 	\ENDFOR
 	\ENSURE assignement vector $\rvt$ and sparse matrices $\left \lbrace \rmS_q : \rmS_q \in \mathcal{E}_q\right \rbrace_{q\in\intint{\nfactors}}$ such that $\prod_{q\in\intint{\nfactors}}\rmS_q \approx \rmU$ the $\nclusters$ means of the $\nexamples$ data points
 \end{algorithmic}
-\end{algorithm}
+\end{algorithm*}
 
 \iffalse
 \begin{remark}[Assignment/Re-estimation trade-off.]
@@ -80,12 +88,17 @@ Similarly to \kmeans, \qkmeans converges locally as stated in the following prop
 \begin{proposition}[Convergence of \qkmeans]
 \label{thm:convergence}
 The iterates $\left \lbrace\rmS^{(\tau)} \right \rbrace_{q\in\intint{\nfactors}}$ and $\rvt^{(\tau)}$ in Algorithm~\ref{algo:qmeans} are such that the values
-\begin{align}
+
+\begin{equation}
+\begin{split}
 \label{eq:qmean_problem_2}
-    g(\rmS_1^{(\tau)}, \ldots,\rmS_\nfactors^{(\tau)}, \rvt^{(\tau)})
-    = \sum_{k\in\intint{\nclusters}} \sum_{n: \rvt^{(\tau)}_n = k} \norm{\rvx_n - \rvv^{(\tau)}_k}^2 + \sum_{q\in\intint{\nfactors}} \delta_{\mathcal{E}_q}\left (\rmS_q^{(\tau)}\right )
-    \text{ s.t. } \rmV = \prod_{q\in\intint{\nfactors}}{\rmS_q^{(\tau)}}
-\end{align}
+    g(\rmS_1^{(\tau)}, \ldots,\rmS_\nfactors^{(\tau)}, \rvt^{(\tau)} ) & \\
+    = \sum_{k\in\intint{\nclusters}} \sum_{n: \rvt^{(\tau)}_n = k} & \norm{\rvx_n - \rvv^{(\tau)}_k}^2 + \sum_{q\in\intint{\nfactors}} \delta_{\mathcal{E}_q}\left (\rmS_q^{(\tau)}\right ) \\
+    \text{ s.t. } \rmV = \prod_{q\in\intint{\nfactors}} & {\rmS_q^{(\tau)}}
+\end{split} %
+\end{equation}
+
+
 of the objective function are non-increasing.
 \end{proposition}
 
@@ -110,27 +123,33 @@ g(\rmS_1^{(\tau-1)}, \ldots,\rmS_\nfactors^{(\tau-1)}, \rvt^{(\tau)}) \leq g(\rm
 \end{align*}
 
 \paragraph{Centroids update step (Lines \ref{line:qmeans:compute_means}--\ref{line:qmeans:U}).} We know consider a fixed assignment vector $\rvt$. We first note that for any cluster $k$ with true centroid $\rvu_k$ and approximated centroid $\rvv_k$, we have
-\begin{align*}
-	\sum_{n: t_n = k} \norm{\rvx_n -\rvv_k}^2
-	 & =\sum_{n: t_n = k} \norm{\rvx_n -\rvu_k+\rvu_k-\rvv_k}^2\\
-	& = \sum_{n: t_n = k}\left(\norm{\rvx_n-\rvu_k}^2+\norm{\rvu_k-\rvv_k}^2-2\langle\rvx_n-\rvu_k,\rvu_k-\rvv_k\rangle\right)\notag\\
-	& = \sum_{n: t_n= k} \norm{\rvx_n-\rvu_k}^2+n_k\norm{\rvu_k-\rvv_k}^2 - 2 \left\langle\underbrace{\sum_{n: t_n = k}\left (\rvx_n-\rvu_k\right )}_{=0},\rvu_k-\rvv_k\right\rangle\notag\\
-	&= \sum_{n: t_n = k} \norm{\rvx_n-\rvu_k}^2 + \norm{\sqrt{n_k}\left (\rvu_k-\rvv_k\right )}^2
-\end{align*}
-
-For a fixed $\rvt$, the new sparsely-factorized centroids are solutions of the following subproblem:
-%
 \begin{align}
- \argmin_{\rmS_1, \ldots,\rmS_Q} g(\rmS_1, \ldots,\rmS_Q, \rvt) 
- & = \argmin_{\rmS_1, \ldots,\rmS_Q} \sum_{k\in\intint{\nclusters}}  \sum_{n: t_n = k} \norm{\rvx_n - \rvv_k}^2_2 + \sum_{q\in\intint{\nfactors}} \delta_q(\rmS_q) 
- \text{ s. t. } \rmV = \prod_{q\in\intint{\nfactors}}{\rmS_q} \nonumber \\
- & = \argmin_{\rmS_1, \ldots,\rmS_Q} \norm{\rmD_{\sqrt{\rvn}} (\rmU - \rmV)}_F^2
- + \sum_{k\in\intint{\nclusters}} c_k + \sum_{q\in\intint{\nfactors}} \delta_q(\rmS_q)
- \text{ s. t. } \rmV = \prod_{q\in\intint{\nfactors}}{\rmS_q} \nonumber\\
-  & = \argmin_{\rmS_1, \ldots,\rmS_Q} \norm{\rmA - \rmD_{\sqrt{\rvn}} \prod_{q\in\intint{\nfactors}}{\rmS_q}}_F^2
- + \sum_{q\in\intint{\nfactors}} \delta_q(\rmS_q)
- \label{eq:qmeans_problem_t_fixed}
+    \label{eq:rewrite_assignement}
+	\sum_{n: t_n = k} \norm{\rvx_n -\rvv_k}^2
+	 & =\sum_{n: t_n = k} \norm{\rvx_n -\rvu_k+\rvu_k-\rvv_k}^2 \notag\\
+	& = \sum_{n: t_n = k}\left(\norm{\rvx_n-\rvu_k}^2+\norm{\rvu_k-\rvv_k}^2 \right. \notag\\
+	& \qquad \left. \vphantom{\norm{\rvx_n-\rvu_k}^2+\norm{\rvu_k-\rvv_k}^2} - 2\langle\rvx_n-\rvu_k,\rvu_k-\rvv_k\rangle \right)\notag\\
+    & = \sum_{n: t_n= k} \norm{\rvx_n-\rvu_k}^2+n_k\norm{\rvu_k-\rvv_k}^2 \notag\\
+    & \qquad - 2 \left\langle\underbrace{\sum_{n: t_n = k}\left (\rvx_n-\rvu_k\right )}_{=0},\rvu_k-\rvv_k\right\rangle\notag \\
+	&= \sum_{n: t_n = k} \norm{\rvx_n-\rvu_k}^2 + \norm{\sqrt{n_k}\left (\rvu_k-\rvv_k\right )}^2
 \end{align}
+
+For a fixed $\rvt$, the new sparsely-factorized centroids are solutions of the subproblem $\argmin_{\rmS_1, \ldots,\rmS_Q} g(\rmS_1, \ldots,\rmS_Q, \rvt)$ which can be rewritten thanks to~\eqref{eq:rewrite_assignement}:
+%
+%\begin{align}
+%\begin{split}
+%\argmin_{\rmS_1, \ldots,\rmS_Q} & g(\rmS_1, \ldots,\rmS_Q, \rvt) \\
+%= \argmin_{\rmS_1, \ldots,\rmS_Q} & \sum_{k\in\intint{\nclusters}}  \sum_{n: t_n = k} \norm{\rvx_n - \rvv_k}^2_2 + \sum_{q\in\intint{\nfactors}} \delta_q(\rmS_q) \\
+%& \text{ s. t. } \rmV = \prod_{q\in\intint{\nfactors}}{\rmS_q} \nonumber \\
+% \end{split}
+%\end{align}
+
+\begin{align}
+ \argmin_{\rmS_1, \ldots,\rmS_Q} & \norm{\rmD_{\sqrt{\rvn}} (\rmU - \rmV)}_F^2 + \sum_{k\in\intint{\nclusters}} c_k + \sum_{q\in\intint{\nfactors}} \delta_q(\rmS_q) \notag \\
+ & \text{ s. t. } \rmV = \prod_{q\in\intint{\nfactors}}{\rmS_q} \nonumber\\
+ = \argmin_{\rmS_1, \ldots,\rmS_Q} & \norm{\rmA - \prod_{q\in\left\{\intint{\nfactors} \cup \{0\}\right\}}{\rmS_q}}_F^2 + \sum_{q\in\left\{\intint{\nfactors} \cup \{0\}\right\}} \delta_q(\rmS_q) \notag \\
+ \label{eq:qmeans_problem_t_fixed}
+ \end{align}
 %
 where :
 %
@@ -143,9 +162,9 @@ where :
  \item $\rmA \eqdef \rmD_{\sqrt{\rvn}} \rmU$ is the unconstrained centroid matrix reweighted by the size of each cluster (see Line~\ref{line:qmeans:A}).
 \end{itemize}
 
-A local minimum of~\eqref{eq:qmeans_problem_t_fixed} is obtained by applying the \palm algorithm or its hierarchical variant to approximate $\rmA$, as in Line~\ref{line:qmeans:S}. The first factor is forced to equal $\rmD_{\sqrt{\rvn}}$ by setting $\mathcal{E}_0$ to a singleton at Line~\ref{line:qmeans:E0}. Using the previous estimate $\left \lbrace \rmS_q^{(\tau-1)}\right \rbrace_{q\in\intint{\nfactors}}$ to initialize this local minimization, we thus obtain that $g(\rmS_1^{(\tau)}, \ldots,\rmS_\nfactors^{(\tau)}, \rvt^{(\tau)}) \leq g(\rmS_1^{(\tau-1)}, \ldots,\rmS_\nfactors^{(\tau-1)}, \rvt^{(\tau)})$.
+We note that the problem~\eqref{eq:qmeans_problem_t_fixed} has exactly the form of~\eqref{eq:palm4msa} hence the \palm algorithm or its hierarchical variant is applied to obtain an approximation of $\rmA$ in a local minimum, as in Line~\ref{line:qmeans:S}. The first factor $\rmS_0$ is forced to equal $\rmD_{\sqrt{\rvn}}$ by setting $\mathcal{E}_0$ to a singleton at Line~\ref{line:qmeans:E0}. Using the previous estimates $\left \lbrace \rmS_q^{(\tau-1)}\right \rbrace_{q\in\intint{\nfactors}}$ to initialize this local minimization, we thus obtain that $g(\rmS_1^{(\tau)}, \ldots,\rmS_\nfactors^{(\tau)}, \rvt^{(\tau)}) \leq g(\rmS_1^{(\tau-1)}, \ldots,\rmS_\nfactors^{(\tau-1)}, \rvt^{(\tau)})$.
 
-We finally have, for any $\tau$,
+We finally have, for any $\tau$:
 \begin{align*}
 %g\left (\left \lbrace \rmS_q^{(\tau)}\right \rbrace_{q\in\intint{\nfactors}}, \rvt^{(\tau)}\right ) & \leq
 %g\left (\left \lbrace \rmS_q^{(\tau-1)}\right \rbrace_{q\in\intint{\nfactors}}, \rvt^{(\tau)}\right ) \leq
@@ -154,14 +173,14 @@ We finally have, for any $\tau$,
 %\ldots \leq
 %g\left (\left \lbrace \rmS_q^{(0)}\right \rbrace_{q\in\intint{\nfactors}}, \rvt^{(0)}\right )
 %\\
-g\left (\rmS_1^{(\tau)}, \ldots,\rmS_\nfactors^{(\tau)}, \rvt^{(\tau)}\right ) 
-& \leq
-g\left (\rmS_1^{(\tau-1)}, \ldots,\rmS_\nfactors^{(\tau-1)}, \rvt^{(\tau)}\right )
-\leq 
-g\left (\rmS_1^{(\tau-1)}, \ldots,\rmS_\nfactors^{(\tau-1)}, \rvt^{(\tau-1)}\right ) \\
-& \leq \ldots \leq
-g\left (\rmS_1^{(0)}, \ldots,\rmS_\nfactors^{(0)}, \rvt^{(0)}\right )
+g\left (\rmS_1^{(\tau)}, \ldots,\rmS_\nfactors^{(\tau)}, \rvt^{(\tau)}\right ) & \leq g\left (\rmS_1^{(\tau-1)}, \ldots,\rmS_\nfactors^{(\tau-1)}, \rvt^{(\tau)}\right ) \\
+& \leq g\left (\rmS_1^{(\tau-1)}, \ldots,\rmS_\nfactors^{(\tau-1)}, \rvt^{(\tau-1)}\right ) \\
+& \leq \ldots \leq g\left (\rmS_1^{(0)}, \ldots,\rmS_\nfactors^{(0)}, \rvt^{(0)}\right )
 \end{align*}
+
+~\\
+; which is a sufficient condition to assert the Algorithm~\ref{algo:qmeans} is a \textit{convergent} alternating algorithm.
+
 \end{proof}
 
 

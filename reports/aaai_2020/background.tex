@@ -34,10 +34,16 @@ belongs and ii) a reestimation step which refines the clusters and their centers
 In little more detail, the algorithm starts with an initialized set of $\nclusters$
  cluster centers $\rmU^{(0)}$ and proceeds as follows: at iteration $\tau$,
   the assignments are updated as
-\begin{align}
+
+\begin{equation}
+\begin{split}
 \label{eq:assignment_problem_kmeans}
-\forall n\in\intint{N}, t_n^{(\tau)} \leftarrow \argmin_{k \in \intint{\nclusters]}} \left\|\rvx_{n} - \rvu_{k}^{(\tau-1)}\right\|_2^2 = \argmin_{k \in \intint{\nclusters}} \left\|\rvu_{k}^{(\tau-1)}\right\|_2^2 - 2 \left\langle\rvu_{k}^{(\tau-1)}, \rvx_{n}\right\rangle,
-\end{align}
+\forall n\in\intint{N}, t_n^{(\tau)} \leftarrow & \argmin_{k \in \intint{\nclusters]}} \left\|\rvx_{n} - \rvu_{k}^{(\tau-1)}\right\|_2^2 \\
+&= \argmin_{k \in \intint{\nclusters}} \left\|\rvu_{k}^{(\tau-1)}\right\|_2^2 - 2 \left\langle\rvu_{k}^{(\tau-1)}, \rvx_{n}\right\rangle,
+\end{split}
+\end{equation}
+
+
  the reestimation of the cluster centers is performed as
 \begin{align}
 \label{eq:center_update}
