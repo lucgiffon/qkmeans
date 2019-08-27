@@ -86,7 +86,8 @@ class TestCompareQmeans(unittest.TestCase):
             if hierarchical_inside == True:
                 self.assertTrue(all(len(obj_palm) == self.nb_factors - 1 for obj_palm in lst_obj_palm))
                 self.assertTrue(all(all(len(sub_palm_split_fine) == 2 for sub_palm_split_fine in obj_palm) for obj_palm in lst_obj_palm))
-
+            else:
+                self.assertTrue(all(len(obj_palm) == self.nb_iter_palm for obj_palm in lst_obj_palm))
 
 if __name__ == '__main__':
     unittest.main()
