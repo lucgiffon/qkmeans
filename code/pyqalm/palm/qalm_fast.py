@@ -171,14 +171,12 @@ def hierarchical_palm4msa(arr_X_target: np.array,
             arr_residual = lst_S_out.get_factor(0).toarray()
 
         lst_objective_split_fine_fac_k.append(objective_palm_fine)
-        lst_objectives.append(np.stack(lst_objective_split_fine_fac_k))
+        lst_objectives.append(tuple(lst_objective_split_fine_fac_k))
 
         if return_objective_function:
             objective_function[k, 2] = compute_objective_function(arr_X_target,
                                                                   f_lambda,
                                                                   op_S_factors)
-
-    array_objectives = np.stack(lst_objectives)
 
     # last factor is residual of last palm4LED
     if residual_on_right:
@@ -192,7 +190,7 @@ def hierarchical_palm4msa(arr_X_target: np.array,
 
     arr_X_curr = f_lambda * op_S_factors.compute_product()
 
-    return f_lambda, op_S_factors, arr_X_curr, array_objectives, objective_function
+    return f_lambda, op_S_factors, arr_X_curr, lst_objectives, objective_function
 
 
 def palm4msa_fast1(arr_X_target: np.array,

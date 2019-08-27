@@ -76,8 +76,7 @@ def qmeans(X_data: np.ndarray,
     eye_norm = np.sqrt(K_nb_cluster)
 
     if hierarchical_inside:
-        # todo update this call when hierarchical palm4msa changes
-        _lambda_tmp, op_factors, U_centroids, nb_iter_by_factor, objective_palm = \
+        _lambda_tmp, op_factors, U_centroids, objective_palm, array_objective_hierarchical= \
             hierarchical_palm4msa(
                 arr_X_target=np.eye(K_nb_cluster) @ X_centroids_hat,
                 lst_S_init=lst_factors,
@@ -86,8 +85,9 @@ def qmeans(X_data: np.ndarray,
                 nb_iter=nb_iter_palm,
                 update_right_to_left=True,
                 residual_on_right=residual_on_right,
-                graphical_display=False)
-                # return_objective_function=False)
+                track_objective_palm=track_objective_palm,
+                delta_objective_error_threshold_palm=delta_objective_error_threshold_inner_palm,
+                return_objective_function=track_objective_palm)
     else:
         _lambda_tmp, op_factors, U_centroids, objective_palm, nb_iter_palm = \
             palm4msa(
@@ -108,6 +108,7 @@ def qmeans(X_data: np.ndarray,
 
     objective_function = np.ones(nb_iter) * -1
     lst_all_objective_functions_palm = []
+    lst_all_objective_functions_palm.append(objective_palm)
 
     i_iter = 0
     delta_objective_error = np.inf
@@ -150,7 +151,7 @@ def qmeans(X_data: np.ndarray,
 
 
         if hierarchical_inside:
-            _lambda_tmp, op_factors, _, nb_iter_by_factor, objective_palm = \
+            _lambda_tmp, op_factors, _, objective_palm, array_objective_hierarchical = \
                 hierarchical_palm4msa(
                     arr_X_target=diag_counts_sqrt[:, None,] *  X_centroids_hat,
                     lst_S_init=op_factors.get_list_of_factors(),
@@ -159,8 +160,9 @@ def qmeans(X_data: np.ndarray,
                     nb_iter=nb_iter_palm,
                     update_right_to_left=True,
                     residual_on_right=residual_on_right,
-                    graphical_display=False,
-                    return_objective_function=False)
+                    return_objective_function=track_objective_palm,
+                    track_objective_palm=track_objective_palm,
+                    delta_objective_error_threshold_palm=delta_objective_error_threshold_inner_palm)
 
         else:
             _lambda_tmp, op_factors, _, objective_palm, nb_iter_palm = \
@@ -186,11 +188,10 @@ def qmeans(X_data: np.ndarray,
 
         i_iter += 1
 
-    array_all_objective_functions_palm = np.stack(lst_all_objective_functions_palm)
 
     op_centroids = SparseFactors([lst_factors_[1] * _lambda] + lst_factors_[2:])
 
-    return objective_function[:i_iter], op_centroids, indicator_vector, array_all_objective_functions_palm
+    return objective_function[:i_iter], op_centroids, indicator_vector, lst_all_objective_functions_palm
 
 
 if __name__ == '__main__':
@@ -239,19 +240,18 @@ if __name__ == '__main__':
         "track_objective": track_objective_in_palm
     }
 
-    # logger.info('Running QuicK-means with H-Palm')
-    # objective_function_with_hier_palm, op_centroids_hier, indicator_hier, objective_function_hier_palm = \
-    #     qmeans(X,
-    #            nb_clusters,
-    #            nb_iter_kmeans,
-    #            nb_factors,
-    #            hierarchical_palm_init,
-    #            initialization=U_centroids_hat,
-    #            hierarchical_inside=True)
-    #            return_objective_function=True)
+    logger.info('Running QuicK-means with H-Palm')
+    objective_function_with_hier_palm, op_centroids_hier, indicator_hier, lst_objective_function_hier_palm = \
+        qmeans(X,
+               nb_clusters,
+               nb_iter_kmeans,
+               nb_factors,
+               hierarchical_palm_init,
+               initialization=U_centroids_hat,
+               hierarchical_inside=True)
 
     logger.info('Running QuicK-means with Palm')
-    objective_function_with_palm, op_centroids_palm, indicator_palm, objective_function_palm = \
+    objective_function_with_palm, op_centroids_palm, indicator_palm, lst_objective_function_palm = \
         qmeans(X, nb_clusters, nb_iter_kmeans, nb_factors,
                hierarchical_palm_init,
                initialization=U_centroids_hat)
@@ -269,7 +269,7 @@ if __name__ == '__main__':
     plt.figure()
     # plt.yscale("log")
 
-    # plt.plot(np.arange(len(objective_function_with_hier_palm)), objective_function_with_hier_palm, marker="x", label="hierarchical")
+    plt.plot(np.arange(len(objective_function_with_hier_palm)), objective_function_with_hier_palm, marker="x", label="hierarchical")
     plt.plot(np.arange(len(objective_function_with_palm)), objective_function_with_palm, marker="x", label="palm")
     plt.plot(np.arange(len(objective_values_k)), objective_values_k, marker="x", label="kmeans")
 
