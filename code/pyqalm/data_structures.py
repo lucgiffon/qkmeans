@@ -34,6 +34,9 @@ class SparseFactors(LinearOperator):
             assert self._lst_factors[i].shape[1] \
                    == self._lst_factors[i + 1].shape[0]
 
+    def __len__(self):
+        return len(self._lst_factors)
+
     @property
     def n_factors(self):
         return len(self._lst_factors)
