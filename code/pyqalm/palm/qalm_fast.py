@@ -24,8 +24,9 @@ def hierarchical_palm4msa(arr_X_target: np.array,
                           f_lambda_init: float = 1,
                           residual_on_right: bool = True,
                           update_right_to_left=True,
-                          graphical_display=False,
-                          return_objective_function=False):
+                          track_objective_palm=False,
+                          return_objective_function=False,
+                          delta_objective_error_threshold_palm=1e-6):
     """
 
 
@@ -45,11 +46,8 @@ def hierarchical_palm4msa(arr_X_target: np.array,
     if not update_right_to_left:
         raise NotImplementedError  # todo voir pourquoi ça plante... mismatch dimension
 
-    # min_shape = min(arr_X_target.shape)
-
     arr_residual = arr_X_target
 
-    # lst_S = deepcopy(lst_S_init)
     op_S_factors = SparseFactors(deepcopy(lst_S_init))
     nb_factors = op_S_factors.n_factors
 
@@ -59,23 +57,28 @@ def hierarchical_palm4msa(arr_X_target: np.array,
         len({"split", "finetune"}.difference(dct.keys())) == 0 for dct in
         lst_dct_projection_function)
 
-    lst_nb_iter_by_factor = []
-
-    f_lambda = f_lambda_init  # todo enlever?
+    f_lambda = f_lambda_init
 
     if return_objective_function:
         objective_function = np.empty((nb_factors, 3))
     else:
         objective_function = None
 
+    lst_objectives = []
+
     # main loop
     for k in range(nb_factors - 1):
+        lst_objective_split_fine_fac_k = []
+
         nb_factors_so_far = k + 1
 
         logger.info("Working on factor: {}".format(k))
         logger.info("Step split")
 
+        ########################## Step split ##########################################################
+
         if return_objective_function:
+            # compute objective before split step
             objective_function[k, 0] = compute_objective_function(arr_X_target, f_lambda, op_S_factors)
 
         # calcule decomposition en 2 du résidu précédent
@@ -92,81 +95,44 @@ def hierarchical_palm4msa(arr_X_target: np.array,
             # define constraints: ||0 = d pour T1; relaxed constraint on ||0 for T2
             f_lambda_init=f_lambda_init_split,
             nb_iter=nb_iter,
-            update_right_to_left=update_right_to_left)
+            update_right_to_left=update_right_to_left,
+            track_objective=track_objective_palm,
+            delta_objective_error_threshold=delta_objective_error_threshold_palm
+            )
 
         if residual_on_right:
-            # residual_init = get_side_prod(lst_S_init[nb_factors_so_far:])
-            # S_init = lst_S_init[k]
-            # lst_S_init_split_step = [S_init, residual_init]
             op_S_factors_init = SparseFactors(lst_S_init[nb_factors_so_far:])
-            residual_init = op_S_factors_init.compute_product()
+            residual_init = op_S_factors_init.compute_product() # todo I think this product can be prepared before and save computation
             lst_S_init_split_step = [lst_S_init[k], residual_init]
-
-        else:
-            # residual_init = get_side_prod(lst_S_init[:-nb_factors_so_far])
-            # S_init = lst_S_init[-nb_factors_so_far]
-            # lst_S_init_split_step = [residual_init, S_init]
-            op_S_factors_init = SparseFactors(lst_S_init[:-nb_factors_so_far])
-            residual_init = op_S_factors_init.compute_product()
-            lst_S_init_split_step = [residual_init,
-                                     lst_S_init[-nb_factors_so_far]]
-
-        if residual_on_right:
-            f_lambda_prime, S_out, unscaled_residual_reconstruction, _, \
-            nb_iter_this_factor = \
+            f_lambda_prime, S_out, unscaled_residual_reconstruction, objective_palm_split, _ = \
                 func_split_step_palm4msa(lst_S_init=lst_S_init_split_step)
             new_factor = S_out.get_factor(0)
             new_residual = S_out.get_factor(1)
+            op_S_factors.set_factor(k, new_factor)
+
         else:
-            f_lambda_prime, S_out, unscaled_residual_reconstruction, _, \
-            nb_iter_this_factor = \
+            op_S_factors_init = SparseFactors(lst_S_init[:-nb_factors_so_far])
+            residual_init = op_S_factors_init.compute_product() # todo I think this product can be prepared before and save computation
+            lst_S_init_split_step = [residual_init,
+                                     lst_S_init[-nb_factors_so_far]]
+            f_lambda_prime, S_out, unscaled_residual_reconstruction, objective_palm_split, _ = \
                 func_split_step_palm4msa(lst_S_init=lst_S_init_split_step)
             new_residual = S_out.get_factor(0)
             new_factor = S_out.get_factor(1)
+            op_S_factors.set_factor(nb_factors - nb_factors_so_far, new_factor)
+
 
         if k == 0:
             f_lambda = f_lambda_prime
-            # f_lambda = f_lambda
         else:
             f_lambda *= f_lambda_prime
 
-        if residual_on_right:
-            # lst_S[k] = new_factor
-            op_S_factors.set_factor(k, new_factor)
-        else:
-            # lst_S[nb_factors - nb_factors_so_far] = new_factor
-            op_S_factors.set_factor(nb_factors - nb_factors_so_far, new_factor)
-
-        if graphical_display:
-            plt.figure()
-            plt.subplot(221)
-            plt.title('Input residual Iteration {}, etape split'.format(k))
-            plt.imshow(arr_residual)
-            plt.colorbar()
-
-            plt.subplot(222)
-            if residual_on_right:
-                plt.imshow(f_lambda_prime * (new_factor @ new_residual))
-                plt.title('lambda * new_factor @ new_residual')
-            else:
-                plt.imshow(f_lambda_prime * (new_residual @ new_factor))
-                plt.title('lambda * new_residual @ new_factor')
-            plt.colorbar()
-
-            plt.subplot(223)
-            plt.imshow(f_lambda_prime * new_factor)
-            plt.colorbar()
-            plt.title('lambda*new_factor')
-
-            plt.subplot(224)
-            plt.imshow(new_residual)
-            plt.colorbar()
-            plt.title('new_residual')
-
-            plt.show()
+        lst_objective_split_fine_fac_k.append(objective_palm_split)
 
         # get the k first elements [:k+1] and the next one (k+1)th as arr_residual (depend on the residual_on_right option)
         logger.info("Step finetuning")
+
+        ########################## Step finetuning ##########################################################
 
         if return_objective_function:
             objective_function[k, 1] = compute_objective_function(arr_X_target,
@@ -181,14 +147,13 @@ def hierarchical_palm4msa(arr_X_target: np.array,
                 "finetune"],
             f_lambda_init=f_lambda,
             nb_iter=nb_iter,
-            update_right_to_left=update_right_to_left)
+            update_right_to_left=update_right_to_left,
+            track_objective=track_objective_palm,
+            delta_objective_error_threshold=delta_objective_error_threshold_palm)
 
         if residual_on_right:
-            # f_lambda, (*lst_S[:nb_factors_so_far], arr_residual), _, _, \
-            #     nb_iter_this_factor_bis = func_fine_tune_step_palm4msa(
-            #         lst_S_init=lst_S[:nb_factors_so_far] + [new_residual])
             lst_S_in = op_S_factors.get_list_of_factors()[:nb_factors_so_far]
-            f_lambda, lst_S_out, _, _, nb_iter_this_factor_bis = \
+            f_lambda, lst_S_out, _, objective_palm_fine, _ = \
                 func_fine_tune_step_palm4msa(
                     lst_S_init=lst_S_in + [new_residual])
             for i in range(nb_factors_so_far):
@@ -196,73 +161,38 @@ def hierarchical_palm4msa(arr_X_target: np.array,
             # TODO remove .toarray()?
             arr_residual = lst_S_out.get_factor(nb_factors_so_far).toarray()
         else:
-            # f_lambda, (arr_residual, *lst_S[-nb_factors_so_far:]), _, _, \
-            #     nb_iter_this_factor_bis = func_fine_tune_step_palm4msa(
-            #         lst_S_init=[new_residual] + lst_S[-nb_factors_so_far:])
             lst_S_in = op_S_factors.get_list_of_factors()[-nb_factors_so_far:]
-            f_lambda, lst_S_out, _, objective_function_palm4msa, nb_iter_this_factor_bis = \
+            f_lambda, lst_S_out, _, objective_palm_fine, _ = \
                 func_fine_tune_step_palm4msa(
                     lst_S_init=[new_residual] + lst_S_in)
+            for i in range(nb_factors_so_far):
+                op_S_factors.set_factor(-nb_factors_so_far + i, lst_S_out.get_factor(i + 1))
             # TODO remove .toarray()?
             arr_residual = lst_S_out.get_factor(0).toarray()
-            for i in range(nb_factors_so_far):
-                op_S_factors.set_factor(-nb_factors_so_far + i,
-                                        lst_S_out.get_factor(i + 1))
-        lst_nb_iter_by_factor.append(
-            nb_iter_this_factor + nb_iter_this_factor_bis)
+
+        lst_objective_split_fine_fac_k.append(objective_palm_fine)
+        lst_objectives.append(np.stack(lst_objective_split_fine_fac_k))
 
         if return_objective_function:
             objective_function[k, 2] = compute_objective_function(arr_X_target,
                                                                   f_lambda,
                                                                   op_S_factors)
 
-        if graphical_display:
-            plt.figure()
-            plt.subplot(221)
-            plt.title('Residual Iteration {}, step fine tune '.format(k))
-            plt.imshow(arr_residual)
-            plt.colorbar()
-
-            plt.subplot(222)
-            # plt.imshow(f_lambda * get_side_prod(
-            #     lst_S[:nb_factors_so_far] + [arr_residual]))
-            lst_S_in = op_S_factors.get_list_of_factors()[:nb_factors_so_far]
-            prod = SparseFactors(lst_S_in + [arr_residual]).compute_product()
-            plt.imshow(f_lambda * prod)
-            plt.colorbar()
-            plt.title('reconstructed')
-
-            plt.subplot(223)
-            # plt.imshow(lst_S[k])
-            plt.imshow(op_S_factors.get_factor(k))
-            plt.colorbar()
-            plt.title('current factor')
-
-            plt.subplot(224)
-            plt.imshow(arr_residual)
-            plt.colorbar()
-            plt.title('residual (right factor)')
-
-            plt.show()
+    array_objectives = np.stack(lst_objectives)
 
     # last factor is residual of last palm4LED
     if residual_on_right:
-        # lst_S[-1] = arr_residual
         op_S_factors.set_factor(-1, arr_residual)
     else:
-        # lst_S[0] = arr_residual
         op_S_factors.set_factor(0, arr_residual)
 
     if return_objective_function:
         objective_function[nb_factors - 1, :] = np.array(
-            [compute_objective_function(arr_X_target, f_lambda, op_S_factors)]
-            * 3)
+            [compute_objective_function(arr_X_target, f_lambda, op_S_factors)] * 3)
 
-    # arr_X_curr = f_lambda * multi_dot(lst_S)
     arr_X_curr = f_lambda * op_S_factors.compute_product()
 
-    return f_lambda, op_S_factors, arr_X_curr, lst_nb_iter_by_factor, \
-           objective_function
+    return f_lambda, op_S_factors, arr_X_curr, array_objectives, objective_function
 
 
 def palm4msa_fast1(arr_X_target: np.array,
@@ -813,7 +743,7 @@ if __name__ == '__main__':
     from scipy.linalg import hadamard
     from pyqalm.utils import get_lambda_proxsplincol
 
-    do_hierarchical = False
+    do_hierarchical = True
 
     if not do_hierarchical:
         data = dict()
@@ -939,5 +869,4 @@ if __name__ == '__main__':
             nb_iter=nb_iter,
             update_right_to_left=True,
             residual_on_right=True,
-            graphical_display=False,
             return_objective_function=True)
