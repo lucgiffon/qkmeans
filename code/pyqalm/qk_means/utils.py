@@ -256,7 +256,7 @@ def update_clusters_with_integrity_check(X_data, X_data_norms, X_centroids_hat, 
         biggest_cluster = cluster_names[biggest_cluster_index]
         biggest_cluster_data_indexes = indicator_vector == biggest_cluster
         index_of_farthest_point_in_biggest_cluster = np.argmax(distances[:, c][biggest_cluster_data_indexes])
-        farthest_point_in_biggest_cluster = X_data[biggest_cluster_data_indexes][index_of_farthest_point_in_biggest_cluster]
+        farthest_point_in_biggest_cluster = X_data[biggest_cluster_data_indexes, index_of_farthest_point_in_biggest_cluster]
         absolute_index_of_farthest_point_in_biggest_cluster = np.where(biggest_cluster_data_indexes)[0][index_of_farthest_point_in_biggest_cluster]
 
         cluster_data = X_data[indicator_vector == c]
@@ -275,6 +275,6 @@ def update_clusters_with_integrity_check(X_data, X_data_norms, X_centroids_hat, 
             distances_to_new_cluster = get_distances(X_data, X_centroids_hat[c].reshape(1, -1), precomputed_data_points_norm=X_data_norms)
             distances[:, c] = distances_to_new_cluster.flatten()
         else:
-            X_centroids_hat[c] = np.mean(X_data[indicator_vector == c], 0)
+            X_centroids_hat[c] = np.mean(X_data[indicator_vector == c, :], 0)
 
     return counts, cluster_names_sorted

@@ -10,7 +10,7 @@ import numpy as np
 from numpy.linalg import norm
 import matplotlib.pyplot as plt
 from pyqalm.palm.utils import compute_objective_function, update_scaling_factor
-from scipy.sparse import coo_matrix
+from scipy.sparse import coo_matrix, csr_matrix
 
 from pyqalm.utils import get_side_prod, logger
 from pyqalm.data_structures import SparseFactors
@@ -694,9 +694,8 @@ def palm4msa_fast4(arr_X_target: np.array,
             Sj = S_factors_op.get_factor(j)
 
             # normalize because all factors must have norm 1
-            # todo verifier que ce qui est fait ici n'est pas sous-optimal
             S_proj = lst_projection_functions[j](Sj - grad_step)
-            S_proj = coo_matrix(S_proj)
+            S_proj = csr_matrix(S_proj)
             S_proj /= np.sqrt(S_proj.power(2).sum())
 
             S_factors_op.set_factor(j, S_proj)
