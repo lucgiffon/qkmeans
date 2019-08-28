@@ -1,4 +1,5 @@
 \section{\palm algorithm}
+\todo[inline]{Ajouter une figure qui illustre un résultat de PALM (figure avec visu des facteurs sparses et de la matrice reconstruite)}
 \label{sec:app:palm4msa}
 
 The \palm algorithm~\cite{LeMagoarou2016Flexible} is given in Algorithm~\ref{algo:palm4msa} together with the time complexity of each line, using $A=\min(\nclusters, \datadim)$ and $B=\max(\nclusters, \datadim)$. 
@@ -72,4 +73,48 @@ In such conditions, the complexity of each line is:
 
 Hence, the overal time complexity of \palm is in $\bigO{AB\left (\log^2 A+\log B\right )}$, due to Lines~\ref{line:palm:D} and~\ref{line:palm:update:S}.
 
+\section{Datasets}
 
+Table~\ref{table:data} provides some statistics about the used datasets.
+
+\begin{table*}[!h]
+\centering
+\begin{tabular}{|c|c|c|c|c|c|}
+\hline
+\textbf{Dataset} & \textbf{Data dim.} $\datadim$        & \textbf{\# classes} & \textbf{Training set size} $\nexamples$ & \textbf{Test set size} $\nexamples'$ \\ \hline
+MNIST                   & 784   & 10        & 60 000    & 10 000               \\ \hline
+Fashion-MNIST           & 784   & 10        & 60 000    & 10 000               \\ \hline
+% LFW                     & 1850  & 2529      & 8866      & N/A               \\ \hline
+Blobs (clusters std: 12)   & 2000  & 1000      & 29000      & 1000               \\ \hline
+\end{tabular}
+\caption{Datasets statistics}
+\label{table:data}
+\end{table*}
+
+\section{Sparse-factorization speed}
+\label{seq:sparse_factor_benchmarking}
+While more efficient implementations may be beneficial for larger deployment, our implementation is sufficient as a proof of concept for assessing the performance of the proposed approach. 
+In particular, the running times of fast operators of the form $\prod_{q\in\intint{\nfactors}}{\rmS_q}$ have been measured when applying to random vectors, for several sparsity levels: 
+as shown in Figure~\ref{fig:time_csr}, they are significantly faster than dense operators -- implemented as a \texttt{numpy.ndarray} matrix --, especially when the data size is larger than $10^3$.
+\begin{figure}[tbh]
+\centering
+\includegraphics[width=.5\textwidth]{RunningTime4VaryingSparsity.png}
+\caption{Running times, averaged over 30 runs, when applying dense or fast $\datadim \times \datadim$ operators to a set of 100 random vectors. The number of factors in fast operators equals $\log_2\left (\datadim\right )$ and the sparsity level denotes the number of non-zero coefficients per row and per column in each factor.}
+\label{fig:time_csr}
+\end{figure}
+
+\section{Hierarchical-Palm4MSA}
+\todo[inline]{Faire une référence à ce résultat hierarchical dans le texte}
+\begin{figure}[h]
+\begin{subfigure}[t]{.49\textwidth}
+\includegraphics[width=\textwidth]{mnist30_hqkmeans_centroids.png}
+\caption{Hierarchical-\palm \qkmeans centroids.}
+\label{fig:mnist:hqkmeans:centroids}
+\end{subfigure}
+\begin{subfigure}[t]{.49\textwidth}
+\includegraphics[width=\textwidth]{fashmnist30_hqkmeans_centroids.png}
+\caption{Hierarchical-\palm \qkmeans centroids.}
+\label{fig:fmnist:hqkmeans:centroids}
+\end{subfigure}
+\caption{Clustering results on MNIST (left) and Fashion-MNIST (right) for $\nclusters=30$ clusters.}
+\end{figure}
