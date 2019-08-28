@@ -40,6 +40,7 @@ def main(small_dim):
 
     sparsity_factor = 2
     nb_iter_palm = 300
+    delta_objective_error_threshold = 1e-6
 
     lst_constraints, lst_constraints_vals = build_constraint_set_smart(
         U_centroids_hat.shape[0], U_centroids_hat.shape[1], nb_factors,
@@ -50,11 +51,12 @@ def main(small_dim):
         "init_lambda": 1.,
         "nb_iter": nb_iter_palm,
         "lst_constraint_sets": lst_constraints,
-        "residual_on_right": residual_on_right
+        "residual_on_right": residual_on_right,
+        "delta_objective_error_threshold": 1e-6,
+        "track_objective": False,
     }
 
     # try:
-    graphical_display = False
     # logger.info('Running QuicK-means with H-Palm')
     # objective_function_with_hier_palm, op_centroids_hier, indicator_hier = \
     #     qmeans(X, nb_clusters, nb_iter_kmeans,
@@ -66,10 +68,13 @@ def main(small_dim):
 
     logger.info('Running QuicK-means with Palm')
     objective_function_palm, op_centroids_palm, indicator_palm = \
-        qmeans(X, nb_clusters, nb_iter_kmeans, nb_factors,
-               hierarchical_palm_init,
+        qmeans(X_data=X,
+               K_nb_cluster=nb_clusters,
+               nb_iter=nb_iter_kmeans,
+               nb_factors=nb_factors,
+               params_palm4msa=hierarchical_palm_init,
                initialization=U_centroids_hat,
-               graphical_display=graphical_display)
+               delta_objective_error_threshold=delta_objective_error_threshold)
     # return_objective_function=True)
     # except Exception as e:
     #     logger.info("There have been a problem in qmeans: {}".format(str(e)))

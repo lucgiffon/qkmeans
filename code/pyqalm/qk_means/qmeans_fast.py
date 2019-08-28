@@ -45,6 +45,7 @@ def init_lst_factors(d_in, d_out, p_nb_factors):
 
     return lst_factors
 
+
 def qmeans(X_data: np.ndarray,
            K_nb_cluster: int,
            nb_iter: int,
