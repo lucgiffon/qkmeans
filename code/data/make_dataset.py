@@ -137,7 +137,8 @@ MAP_NAME_DATASET = {
     "census": load_census1990,
     "plants": load_plants,
     "caltech256_50": lambda: load_caltech(50),
-    "caltech256_32": lambda: load_caltech(32)
+    "caltech256_32": lambda: load_caltech(32),
+    "caltech256_28": lambda: load_caltech(28)
 }
 
 MAP_NAME_CLASSES_PRESENCE = {
@@ -147,7 +148,8 @@ MAP_NAME_CLASSES_PRESENCE = {
     "census": False,
     "plants": False,
     "caltech256_50": True,
-    "caltech256_32": True
+    "caltech256_32": True,
+    "caltech256_28": True
 }
 
 def _download_all_data(output_dirpath):
