@@ -97,7 +97,7 @@ if __name__ == '__main__':
     from pyqalm.data_structures import SparseFactors
     from pyqalm.palm.qalm_fast import palm4msa_fast4, hierarchical_palm4msa
     from pyqalm.palm.utils import compute_objective_function
-    from pyqalm.palm.projection_operators import prox_splincol
+    from pyqalm.palm.projection_operators import prox_splincol, projection_max_by_col
 
     logger.setLevel(logging.ERROR)
 
@@ -117,6 +117,7 @@ if __name__ == '__main__':
     lp.add_function(qmeans)
     lp.add_function(get_distances)
     lp.add_function(prox_splincol)
+    lp.add_function(projection_max_by_col)
     # Set function to run
     lp_wrapper = lp(main)
 
