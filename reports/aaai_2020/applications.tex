@@ -170,13 +170,68 @@ and this advantage is even stronger with the clustering obtained by our \qkmeans
 \label{fig:nn:blobs}
 \end{figure}
 
- 
-\begin{table*}[]
 
-\centering
-\begin{tabular}{@{}l|P{2.5cm}}
+% \begin{table*}[!htb]
+% \caption{Results on the classification task. Results are averaged over 5 runs. ``N/A'' denotes experiments that did not finish. For the \qkmeans results, only those obtained with sparsity level = 5 are displayed.}
+% \centering
+% \begin{adjustbox}{max width=0.8\textwidth}
+% \begin{minipage}{.5\linewidth}
+% % \centering
+% \begin{tabular}{@{}lc}
+% \toprule
+%                                     & \thead{Accuracy \\ \texttt{Blobs}} \\ \midrule
+% 1NN Brute force search              & N/A   \\
+% 1NN KD Tree                         & N/A   \\
+% 1NN Ball Tree                       & N/A   \\ \midrule \midrule
+% 1NN K-means 128 Clusters            & 0.96      \\
+% 1NN K-means 256 Clusters            & 0.97      \\
+% 1NN K-means 512 Clusters            & 0.99      \\ \midrule
+% 1NN QK-means 128 Clusters           & 0.74     \\
+% 1NN QK-means 256 Clusters           & 0.66      \\
+% 1NN QK-means 512 Clusters           & 0.66      \\ \midrule \midrule
+% Nyström K-means + SVM 128 Clusters  & 0.98      \\
+% Nyström K-means + SVM 256 Clusters  & 1.0      \\
+% Nyström K-means + SVM 512 Clusters  & 1.0      \\ \midrule
+% Nyström QK-means + SVM 128 Clusters & 0.95      \\
+% Nyström QK-means + SVM 256 Clusters & 1.0      \\
+% Nyström QK-means + SVM 512 Clusters & 1.0      \\ \bottomrule
+% \end{tabular}
+% \caption{\texttt{Blobs} dataset}
+% \end{minipage}%
+% \begin{minipage}{.5\linewidth}
+% % \centering
+% \begin{tabular}{@{}lcc}
+% \toprule
+%                                     & \thead{Accuracy \\ \texttt{Fashion-MNIST}} & \thead{Accuracy \\ \texttt{MNIST}} \\ \midrule
+% 1NN Brute force search              &  0.85   &  0.97 \\
+% 1NN KD Tree                         & 0.85  &  0.97  \\
+% 1NN Ball Tree                       & 0.85  &  0.97  \\ \midrule \midrule
+% 1NN K-means 10 Clusters            & 0.84  &  0.96  \\
+% 1NN K-means 16 Clusters            & 0.84  &  0.96  \\
+% 1NN K-means 30 Clusters            & 0.84  &  0.96  \\ \midrule
+% 1NN QK-means 10 Clusters           & 0.84  &  0.96  \\
+% 1NN QK-means 16 Clusters           & 0.84  &  0.96  \\
+% 1NN QK-means 30 Clusters           & 0.84  &  0.96  \\ \midrule \midrule
+% Nyström K-means + SVM 10 Clusters  &  0.71  & 0.74  \\
+% Nyström K-means + SVM 16 Clusters  &  0.75  & 0.83  \\
+% Nyström K-means + SVM 30 Clusters  &  0.78  & 0.88  \\ \midrule
+% Nyström QK-means + SVM 10 Clusters &  0.71  & 0.74  \\
+% Nyström QK-means + SVM 16 Clusters &  0.74  & 0.82  \\
+% Nyström QK-means + SVM 30 Clusters &  0.77  & 0.88  \\ \bottomrule
+% \end{tabular}
+% \caption{\texttt{MNIST} and \texttt{Fashion-MNIST} datasets}
+% \end{minipage}
+% \end{adjustbox}
+% \end{table*}
+
+\begin{table*}[!htb]
+\begin{adjustbox}{center, max width=0.9\textwidth}
+
+\begin{subtable}{.5\textwidth}
+% \centering
+\begin{tabular}{@{}lc}
 \toprule
-                                    & Accuracy \texttt{Blobs} \\ \midrule
+                                    & \thead{Accuracy \\ \texttt{Blobs}} \\ \midrule
 1NN Brute force search              & N/A   \\
 1NN KD Tree                         & N/A   \\
 1NN Ball Tree                       & N/A   \\ \midrule \midrule
@@ -193,18 +248,14 @@ Nyström QK-means + SVM 128 Clusters & 0.95      \\
 Nyström QK-means + SVM 256 Clusters & 1.0      \\
 Nyström QK-means + SVM 512 Clusters & 1.0      \\ \bottomrule
 \end{tabular}
+\caption{\texttt{Blobs} dataset}
 
-\caption{Results on the classification task on \texttt{Blobs} dataset. Results are averaged over 5 runs. ``N/A'' denotes experiments that did not finish. Only results with sparsity value 5 are displayed for \qkmeans experiments. For the \qkmeans results, only those obtained with sparsity level = 5 are displayed.}
-\label{table:results_blobs}
-
-\end{table*}
-
-\begin{table*}[]
-
-\centering
-\begin{tabular}{@{}l|P{2.5cm}|P{2.5cm}}
+\end{subtable}%
+\begin{subtable}{.5\textwidth}
+% \centering
+\begin{tabular}{@{}lcc}
 \toprule
-                                    & Accuracy \texttt{Fashion-MNIST} & Accuracy \texttt{MNIST} \\ \midrule
+                                    & \thead{Accuracy \\ \texttt{Fashion-MNIST}} & \thead{Accuracy \\ \texttt{MNIST}} \\ \midrule
 1NN Brute force search              &  0.85   &  0.97 \\
 1NN KD Tree                         & 0.85  &  0.97  \\
 1NN Ball Tree                       & 0.85  &  0.97  \\ \midrule \midrule
@@ -221,11 +272,70 @@ Nyström QK-means + SVM 10 Clusters &  0.71  & 0.74  \\
 Nyström QK-means + SVM 16 Clusters &  0.74  & 0.82  \\
 Nyström QK-means + SVM 30 Clusters &  0.77  & 0.88  \\ \bottomrule
 \end{tabular}
-
-\caption{Results on the classification task on the \texttt{MNIST} and \texttt{Fashion-MNIST} datasets. Results are averaged over 5 runs. ``N/A'' denotes experiments that did not finish. For the \qkmeans results, only those obtained with sparsity level = 5 are displayed.}
+\caption{\texttt{MNIST} and \texttt{Fashion-MNIST} datasets}
 \label{table:results_mnist_fmnist}
-
+\end{subtable}
+\end{adjustbox}
+\caption{Results on the classification task. Results are averaged over 5 runs. ``N/A'' denotes experiments that did not finish. For the \qkmeans results, only those obtained with sparsity level = 5 are displayed.}
 \end{table*}
+
+
+% \begin{table*}[]
+% 
+% \centering
+% \begin{tabular}{@{}l|P{2.5cm}}
+% \toprule
+%                                     & Accuracy \texttt{Blobs} \\ \midrule
+% 1NN Brute force search              & N/A   \\
+% 1NN KD Tree                         & N/A   \\
+% 1NN Ball Tree                       & N/A   \\ \midrule \midrule
+% 1NN K-means 128 Clusters            & 0.96      \\
+% 1NN K-means 256 Clusters            & 0.97      \\
+% 1NN K-means 512 Clusters            & 0.99      \\ \midrule
+% 1NN QK-means 128 Clusters           & 0.74     \\
+% 1NN QK-means 256 Clusters           & 0.66      \\
+% 1NN QK-means 512 Clusters           & 0.66      \\ \midrule \midrule
+% Nyström K-means + SVM 128 Clusters  & 0.98      \\
+% Nyström K-means + SVM 256 Clusters  & 1.0      \\
+% Nyström K-means + SVM 512 Clusters  & 1.0      \\ \midrule
+% Nyström QK-means + SVM 128 Clusters & 0.95      \\
+% Nyström QK-means + SVM 256 Clusters & 1.0      \\
+% Nyström QK-means + SVM 512 Clusters & 1.0      \\ \bottomrule
+% \end{tabular}
+% 
+% %\caption{}
+% \label{table:results_blobs}
+
+% \end{table*}
+
+% \begin{table*}[]
+
+% \centering
+
+% \begin{tabular}{@{}l|P{2.5cm}|P{2.5cm}}
+% \toprule
+%                                     & Accuracy \texttt{Fashion-MNIST} & Accuracy \texttt{MNIST} \\ \midrule
+% 1NN Brute force search              &  0.85   &  0.97 \\
+% 1NN KD Tree                         & 0.85  &  0.97  \\
+% 1NN Ball Tree                       & 0.85  &  0.97  \\ \midrule \midrule
+% 1NN K-means 10 Clusters            & 0.84  &  0.96  \\
+% 1NN K-means 16 Clusters            & 0.84  &  0.96  \\
+% 1NN K-means 30 Clusters            & 0.84  &  0.96  \\ \midrule
+% 1NN QK-means 10 Clusters           & 0.84  &  0.96  \\
+% 1NN QK-means 16 Clusters           & 0.84  &  0.96  \\
+% 1NN QK-means 30 Clusters           & 0.84  &  0.96  \\ \midrule \midrule
+% Nyström K-means + SVM 10 Clusters  &  0.71  & 0.74  \\
+% Nyström K-means + SVM 16 Clusters  &  0.75  & 0.83  \\
+% Nyström K-means + SVM 30 Clusters  &  0.78  & 0.88  \\ \midrule
+% Nyström QK-means + SVM 10 Clusters &  0.71  & 0.74  \\
+% Nyström QK-means + SVM 16 Clusters &  0.74  & 0.82  \\
+% Nyström QK-means + SVM 30 Clusters &  0.77  & 0.88  \\ \bottomrule
+% \end{tabular}
+
+% \caption{}
+% \label{table:results_mnist_fmnist}
+% 
+% \end{table*}
 
 \subsection{Nyström approximation}
 
