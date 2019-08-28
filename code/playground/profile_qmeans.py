@@ -67,7 +67,7 @@ def main(small_dim):
     # # return_objective_function=True)
 
     logger.info('Running QuicK-means with Palm')
-    objective_function_palm, op_centroids_palm, indicator_palm = \
+    objective_function_palm, op_centroids_palm, indicator_palm, _ = \
         qmeans(X_data=X,
                K_nb_cluster=nb_clusters,
                nb_iter=nb_iter_kmeans,
