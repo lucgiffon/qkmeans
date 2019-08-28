@@ -43,6 +43,10 @@ caltech256_32: data/external/caltech256_32.npz
 data/external/caltech256_32.npz:
 	$(PYTHON_INTERPRETER) code/data/make_dataset.py caltech256_32 data/external
 
+caltech256_28: data/external/caltech256_28.npz
+data/external/caltech256_28.npz:
+	$(PYTHON_INTERPRETER) code/data/make_dataset.py caltech256_28 data/external
+
 
 
 ## Delete all compiled Python files
