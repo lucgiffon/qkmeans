@@ -456,6 +456,8 @@ class DataGenerator(keras.utils.Sequence):
             self.n_classes = len(set(labels))
         self.shuffle = shuffle
         self.to_categorical = to_categorical
+        if (self.to_categorical and not self.labels):
+            raise AssertionError("Can't use 'to_categorical' if no labels are provided")
         self.return_indexes = return_indexes
         self.on_epoch_end()
 

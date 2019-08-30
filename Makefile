@@ -48,6 +48,11 @@ data/external/caltech256_28.npz:
 	$(PYTHON_INTERPRETER) code/data/make_dataset.py caltech256_28 data/external
 
 
+blobs_1_billion: data/external/blobs_1_billion.dat
+data/external/blobs_1_billion.dat:
+	$(PYTHON_INTERPRETER) code/data/make_dataset.py blobs_1_billion data/external
+
+
 
 ## Delete all compiled Python files
 clean:

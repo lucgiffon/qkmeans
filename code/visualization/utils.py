@@ -6,7 +6,7 @@ from pyqalm.utils import logger
 output_file_end_re = {
     "centroids": r"_centroids.npy",
     "results": r"_results.csv",
-    "objective": r"_objective_.+.csv"
+    "objective": r"_objective.npz"
 }
 
 def display_cmd_lines_from_root_name_list(root_names_list, src_results_dir, find_in_stderr=False):
@@ -58,7 +58,8 @@ def display_cmd_lines_from_root_name_list(root_names_list, src_results_dir, find
                 for lin in lines:
                     match = regex_cmd_line.match(lin)
                     if match:
-                        cmd_lines.append(" ".join(match.group(1).split()[1:]) + "\t" + root_name)
+                        # cmd_lines.append(" ".join(match.group(1).split()[1:]) + "\t" + root_name) # with root name
+                        cmd_lines.append(" ".join(match.group(1).split()[1:])) # without root name
                         break
 
             # print("".join(lines))

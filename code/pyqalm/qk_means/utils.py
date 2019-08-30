@@ -1,6 +1,6 @@
 import numpy as np
 from pyqalm.data_structures import SparseFactors
-from pyqalm.utils import constant_proj, get_lambda_proxsplincol, logger
+from pyqalm.utils import constant_proj, get_lambda_proxsplincol, logger, DataGenerator
 
 
 def get_squared_froebenius_norm_line_wise(data_arr):
@@ -13,6 +13,13 @@ def get_squared_froebenius_norm_line_wise(data_arr):
 
     return centroid_norms
 
+def get_squared_froebenius_norm_line_wise_batch_by_batch(data_arr_memmap, batch_size):
+    data_norms = np.zeros(data_arr_memmap.shape[0])
+    logger.debug("Start computing norm of datat array of shape {}, batch by batch".format(data_arr_memmap.shape))
+    for i_batch, batch in enumerate(DataGenerator(data_arr_memmap, batch_size=batch_size, return_indexes=False)):
+        logger.debug("Compute norm of batch {}/{}".format(i_batch, data_arr_memmap.shape[0]//batch_size))
+        data_norms[i_batch*batch_size:(i_batch+1)*batch_size] = np.linalg.norm(batch, axis=1) ** 2
+    return data_norms
 
 def get_distances(X_data, centroids, precomputed_centroids_norm=None, precomputed_data_points_norm=None):
     """
@@ -278,3 +285,28 @@ def update_clusters_with_integrity_check(X_data, X_data_norms, X_centroids_hat, 
             X_centroids_hat[c] = np.mean(X_data[indicator_vector == c, :], 0)
 
     return counts, cluster_names_sorted
+
+def update_clusters(X_data, X_centroids_hat, K_nb_cluster, counts_before, new_counts, indicator_vector):
+    """
+    Update centroids and return new counts of each centroid.
+    All changes are made in place.
+
+    :param X_data:
+    :param X_data_norms:
+    :param X_centroids_hat:
+    :param K_nb_cluster:
+    :param new_counts:
+    :param indicator_vector:
+    :param distances:
+    :param cluster_names:
+    :param cluster_names_sorted:
+    :return:
+    """
+    total_count_vector = counts_before + new_counts
+    for c in range(K_nb_cluster):
+        if total_count_vector[c] != 0:
+            X_centroids_hat[c] = ((counts_before[c] / total_count_vector[c]) * X_centroids_hat[c]) +  ((1. / total_count_vector[c]) * np.sum(X_data[indicator_vector == c, :], 0))
+        else:
+            logger.warning("Cluster {} has zero point, continue".format(c))
+
+    return total_count_vector
