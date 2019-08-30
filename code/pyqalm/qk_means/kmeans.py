@@ -5,7 +5,8 @@ from pyqalm.qk_means.utils import get_distances, compute_objective, assign_point
 from pyqalm.utils import logger
 
 
-def kmeans(X_data, K_nb_cluster, nb_iter, initialization):
+def kmeans(X_data, K_nb_cluster, nb_iter, initialization,
+           delta_objective_error_threshold=1e-6):
 
     X_data_norms = get_squared_froebenius_norm_line_wise(X_data)
 
@@ -20,7 +21,6 @@ def kmeans(X_data, K_nb_cluster, nb_iter, initialization):
 
     # Loop for the maximum number of iterations
     i_iter = 0
-    delta_objective_error_threshold = 1e-6
     delta_objective_error = np.inf
     while (i_iter == 0) or ((i_iter < nb_iter) and (delta_objective_error > delta_objective_error_threshold)):
 
