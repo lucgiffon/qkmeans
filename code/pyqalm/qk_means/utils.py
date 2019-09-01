@@ -91,7 +91,7 @@ def assign_points_to_clusters(X, centroids, X_norms=None):
     return indicator_vector, distances
 
 
-def build_constraint_set_smart(left_dim, right_dim, nb_factors, sparsity_factor, residual_on_right):
+def build_constraint_set_smart(left_dim, right_dim, nb_factors, sparsity_factor, residual_on_right, fast_unstable_proj=False):
     """
 
     :param left_dim:
@@ -111,7 +111,7 @@ def build_constraint_set_smart(left_dim, right_dim, nb_factors, sparsity_factor,
                 lambda_func.__name__ = "ident"
                 local_lst_constraints.append(lambda_func)
             else:
-                lambda_func = get_lambda_proxsplincol(val)
+                lambda_func = get_lambda_proxsplincol(val, fast_unstable=fast_unstable_proj)
                 lambda_func.__name__ = "proxsplincol_{}".format(val)
                 local_lst_constraints.append(lambda_func)
 

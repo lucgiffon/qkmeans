@@ -73,8 +73,8 @@ def get_side_prod(lst_factors, id_shape=(0,0)):
     return side_prod
 
 
-def get_lambda_proxsplincol(nb_keep_values):
-    return lambda mat: prox_splincol(mat, nb_keep_values)
+def get_lambda_proxsplincol(nb_keep_values, fast_unstable=False):
+    return lambda mat: prox_splincol(mat, nb_keep_values, fast_unstable=fast_unstable)
 
 
 def constant_proj(mat):

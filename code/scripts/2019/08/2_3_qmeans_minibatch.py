@@ -140,7 +140,8 @@ def main_qmeans(X, U_init):
                                                                                right_dim=U_init.shape[1],
                                                                                nb_factors=paraman["--nb-factors"] + 1,
                                                                                sparsity_factor=paraman["--sparsity-factor"],
-                                                                               residual_on_right=paraman["--residual-on-right"])
+                                                                               residual_on_right=paraman["--residual-on-right"],
+                                                                               fast_unstable_proj=True)
 
     parameters_palm4msa = {
         "init_lambda": 1.,
@@ -530,7 +531,8 @@ def process_palm_on_top_of_kmeans(kmeans_centroids):
                                                                                right_dim=kmeans_centroids.shape[1],
                                                                                nb_factors=paraman["--nb-factors"] + 1,
                                                                                sparsity_factor=paraman["--sparsity-factor"],
-                                                                               residual_on_right=paraman["--residual-on-right"])
+                                                                               residual_on_right=paraman["--residual-on-right"],
+                                                                               fast_unstable_proj=True)
 
     lst_factors = init_lst_factors(*kmeans_centroids.shape, paraman["--nb-factors"] + 1)
 
