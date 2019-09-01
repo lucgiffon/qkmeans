@@ -310,3 +310,33 @@ def update_clusters(X_data, X_centroids_hat, K_nb_cluster, counts_before, new_co
             logger.warning("Cluster {} has zero point, continue".format(c))
 
     return total_count_vector
+
+def check_cluster_integrity(X_data, X_centroids_hat, K_nb_cluster, counts, indicator_vector):
+    """
+    Check for each cluster if it has data points in it. If not, create a new cluster from the data points of the most populated cluster so far.
+
+    :param X_data:
+    :param X_centroids_hat:
+    :param K_nb_cluster:
+    :param counts:
+    :param indicator_vector:
+    :return:
+    """
+    for c in range(K_nb_cluster):
+
+        cluster_data = X_data[indicator_vector == c]
+        if len(cluster_data) == 0:
+            biggest_cluster_index = np.argmax(counts)  # type: int
+            biggest_cluster_data_indexes_bool = indicator_vector == biggest_cluster_index
+            biggest_cluster_actual_data_indexes = np.where(biggest_cluster_data_indexes_bool)[0]
+
+            random_index_in_biggest_cluster = np.random.choice(biggest_cluster_actual_data_indexes, size=1)[0]
+            random_point_in_biggest_cluster = X_data[random_index_in_biggest_cluster]
+
+            logger.warning("cluster has lost data, add new cluster. cluster idx: {}".format(c))
+            X_centroids_hat[c] = random_point_in_biggest_cluster.reshape(1, -1)
+            counts[biggest_cluster_index] -= 1
+            counts[c] = 1
+
+            indicator_vector[random_index_in_biggest_cluster] = c
+

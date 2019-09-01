@@ -15,7 +15,7 @@ from pprint import pformat
 
 import numpy as np
 from pyqalm.qk_means.utils import compute_objective, assign_points_to_clusters, build_constraint_set_smart, get_squared_froebenius_norm_line_wise, update_clusters_with_integrity_check, \
-    get_squared_froebenius_norm_line_wise_batch_by_batch, update_clusters
+    get_squared_froebenius_norm_line_wise_batch_by_batch, update_clusters, check_cluster_integrity
 from pyqalm.qk_means.kmeans import kmeans
 from scipy.sparse import csr_matrix
 from sklearn import datasets
@@ -168,6 +168,9 @@ def qkmeans_minibatch(X_data: np.ndarray,
 
         objective_function[i_iter] = objective_value_so_far ** 2
 
+        # inplace modification of X_centrois_hat and full_count_vector and full_indicator_vector
+        check_cluster_integrity(X_data, X_centroids_hat, K_nb_cluster, full_count_vector, full_indicator_vector)
+
         #########################
         # Do palm for iteration #
         #########################
@@ -221,11 +224,9 @@ def qkmeans_minibatch(X_data: np.ndarray,
 
         i_iter += 1
 
-
-
     op_centroids = SparseFactors([lst_factors_[1] * _lambda] + lst_factors_[2:])
 
-    return objective_function[:i_iter], op_centroids, indicator_vector, lst_all_objective_functions_palm
+    return objective_function[:i_iter], op_centroids, full_indicator_vector, lst_all_objective_functions_palm
 
 
 if __name__ == "__main__":

@@ -9,6 +9,7 @@ import pandas
 from pathlib import Path
 from dotenv import find_dotenv, load_dotenv
 import tarfile
+import re
 # from keras.datasets import mnist, fashion_mnist
 from sklearn import preprocessing
 import matplotlib.pyplot as plt
@@ -161,21 +162,26 @@ def _download_all_data(output_dirpath):
         _download_single_dataset(output_dirpath, key)
 
 def _download_single_dataset(output_dirpath, dataname):
-    if dataname == "blobs_1_billion":
-        output_path = project_dir / output_dirpath / (dataname + ".dat")
+    regex_million = re.compile(r"blobs_(\d)_million")
+    match = regex_million.match(dataname)
+    if match:
+        output_path_obs = project_dir / output_dirpath / (dataname + ".dat")
+        output_path_labels = project_dir / output_dirpath / (dataname + ".lab")
         size_batch = 10000
-        data_size = int(1e6)
+        data_size = int(1e6) * int(match.group(1))
         nb_features = 2000
         nb_centers = 1000
-        fp = np.memmap(output_path, dtype='float32', mode='w+', shape=(data_size, nb_features))
+        fp_obs = np.memmap(output_path_obs, dtype='float32', mode='w+', shape=(data_size, nb_features))
+        fp_labels = np.memmap(output_path_labels, mode='w+', shape=(data_size,))
 
         total_nb_chunks = int(data_size // size_batch)
-        logger.info("blobs_1_billion Data created in file: {}".format(output_path))
+        logger.info("blobs_1_billion Data created in file: {}; labels stored in file: {}".format(output_path_obs, output_path_labels))
         logger.info("About to create 1 billion blobs dataset: {} chunks of {} examples dim {}. Total {} examples.".format(total_nb_chunks, size_batch, nb_features, data_size))
         for i in range(total_nb_chunks):
             logger.info("Chunk {}/{}".format(i+1, total_nb_chunks))
-            X, _ = make_blobs(size_batch, n_features=nb_features, centers=nb_centers, cluster_std=12.)
-            fp[i * size_batch:(i + 1) * size_batch] = X
+            X, y = make_blobs(size_batch, n_features=nb_features, centers=nb_centers, cluster_std=12.)
+            fp_obs[i * size_batch:(i + 1) * size_batch] = X
+            fp_labels[i * size_batch:(i + 1) * size_batch] = y
 
     else:
         if MAP_NAME_CLASSES_PRESENCE[dataname]:
