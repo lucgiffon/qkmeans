@@ -44,7 +44,8 @@ def main(small_dim):
 
     lst_constraints, lst_constraints_vals = build_constraint_set_smart(
         U_centroids_hat.shape[0], U_centroids_hat.shape[1], nb_factors,
-        sparsity_factor=sparsity_factor, residual_on_right=residual_on_right)
+        sparsity_factor=sparsity_factor, residual_on_right=residual_on_right,
+        fast_unstable_proj=True)
     logger.info("constraints: {}".format(pformat(lst_constraints_vals)))
 
     hierarchical_palm_init = {
@@ -97,7 +98,7 @@ if __name__ == '__main__':
     from pyqalm.data_structures import SparseFactors
     from pyqalm.palm.qalm_fast import palm4msa_fast4, hierarchical_palm4msa
     from pyqalm.palm.utils import compute_objective_function
-    from pyqalm.palm.projection_operators import prox_splincol, projection_max_by_col
+    from pyqalm.palm.projection_operators import prox_splincol, _projection_max_by_col
 
     logger.setLevel(logging.ERROR)
 
@@ -117,7 +118,7 @@ if __name__ == '__main__':
     lp.add_function(qmeans)
     lp.add_function(get_distances)
     lp.add_function(prox_splincol)
-    lp.add_function(projection_max_by_col)
+    lp.add_function(_projection_max_by_col)
     # Set function to run
     lp_wrapper = lp(main)
 
