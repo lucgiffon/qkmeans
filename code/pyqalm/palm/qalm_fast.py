@@ -740,7 +740,7 @@ if __name__ == '__main__':
     from scipy.linalg import hadamard
     from pyqalm.utils import get_lambda_proxsplincol
 
-    do_hierarchical = True
+    do_hierarchical = False
 
     if not do_hierarchical:
         data = dict()
@@ -768,8 +768,8 @@ if __name__ == '__main__':
             nb_keep_values = 2 * d
             nb_values_residual = int(d / 2 ** nb_factors) * d
             lst_projection_functions = \
-                [get_lambda_proxsplincol(nb_keep_values)] * nb_factors \
-                + [get_lambda_proxsplincol(nb_values_residual)]
+                [get_lambda_proxsplincol(nb_keep_values, fast_unstable=True)] * nb_factors \
+                + [get_lambda_proxsplincol(nb_values_residual, fast_unstable=True)]
 
             f_lambda_init = 1
             nb_iter = 20
@@ -833,12 +833,12 @@ if __name__ == '__main__':
         for k in range(nb_factors - 1):
             nb_values_residual = int(d / 2 ** (k + 1)) * d
             dct_step_lst_nb_keep_values = {
-                "split": [get_lambda_proxsplincol(nb_keep_values),
-                          get_lambda_proxsplincol(nb_values_residual)],
-                "finetune": [get_lambda_proxsplincol(nb_keep_values)] * (
+                "split": [get_lambda_proxsplincol(nb_keep_values, fast_unstable=True),
+                          get_lambda_proxsplincol(nb_values_residual, fast_unstable=True)],
+                "finetune": [get_lambda_proxsplincol(nb_keep_values, fast_unstable=True)] * (
                         k + 1) + [
                                 get_lambda_proxsplincol(
-                                    nb_values_residual)]
+                                    nb_values_residual, fast_unstable=True)]
             }
             lst_proj_op_by_fac_step.append(dct_step_lst_nb_keep_values)
 

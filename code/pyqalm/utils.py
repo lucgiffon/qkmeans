@@ -73,8 +73,8 @@ def get_side_prod(lst_factors, id_shape=(0,0)):
     return side_prod
 
 
-def get_lambda_proxsplincol(nb_keep_values):
-    return lambda mat: prox_splincol(mat, nb_keep_values)
+def get_lambda_proxsplincol(nb_keep_values, fast_unstable=False):
+    return lambda mat: prox_splincol(mat, nb_keep_values, fast_unstable=fast_unstable)
 
 
 def constant_proj(mat):
@@ -215,6 +215,9 @@ class ParameterManager(dict):
 
         self["--delta-threshold"] = float(self["--delta-threshold"])
 
+        self["--minibatch"] = int(self["--minibatch"]) if self["--minibatch"] is not None else None
+        self["--max-eval-train-size"] = int(self["--max-eval-train-size"])
+
         self.__init_nb_factors()
         self.__init_output_file()
         self.__init_seed()
@@ -290,6 +293,8 @@ class ParameterManager(dict):
             return blobs_dataset(blob_size, blob_features, blob_centers)
         elif self["--lfw"]:
             return lfw_dataset(self["--seed"])
+        elif self["--million-blobs"] is not None:
+            return million_blobs_dataset(int(self["--million-blobs"]))
         else:
             raise NotImplementedError("Unknown dataset.")
 
@@ -406,6 +411,22 @@ def lfw_dataset(seed=None):
         "y_test": y_test
     }
 
+def million_blobs_dataset(nb_million):
+    data_dir_obs = project_dir / "data/external" / "blobs_{}_million.dat".format(nb_million)
+    data_dir_labels = project_dir / "data/external" / "blobs_{}_million.lab".format(nb_million)
+    X = np.memmap(data_dir_obs, mode="r", dtype="float32", shape=(int(1e6) * nb_million, 2000))
+    y = np.memmap(data_dir_labels, mode="r", shape=(int(1e6) * nb_million,))
+    test_size = 1000
+    X_train, X_test = X[:-test_size], X[-test_size:]
+    y_train, y_test = y[:-test_size], y[-test_size:]
+    return {
+        "x_train": X_train,
+        "y_train": y_train,
+        "x_test": X_test,
+        "y_test": y_test
+    }
+
+
 
 def create_directory(_dir, parents=True, exist_ok=True):
     """
@@ -456,6 +477,8 @@ class DataGenerator(keras.utils.Sequence):
             self.n_classes = len(set(labels))
         self.shuffle = shuffle
         self.to_categorical = to_categorical
+        if (self.to_categorical and not self.labels):
+            raise AssertionError("Can't use 'to_categorical' if no labels are provided")
         self.return_indexes = return_indexes
         self.on_epoch_end()
 
