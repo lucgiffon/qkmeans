@@ -1,6 +1,5 @@
 all:
   qmeans_big:
-  kmeans_big:
 
 base:
   seed: {"--seed": "range(5)"}
@@ -19,13 +18,9 @@ base_big:
 palm:
   sparsity_factor: {"--sparsity-factor": ["2"]}
   delta_threshold: {"--delta-threshold": ["1e-1", "1e-2", "1e-3", "1e-4", "1e-5"]}
-  hierarchical_init: [""]
+  hierarchical_init: ["--hierarchical-init"]
 
 qmeans_big:
   qmeans: ["qmeans"]
   palm:
-  base_big:
-
-kmeans_big:
-  kmeans: ["kmeans"]
   base_big:

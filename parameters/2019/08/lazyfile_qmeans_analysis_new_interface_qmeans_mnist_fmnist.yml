@@ -17,8 +17,8 @@ base_big:
   dataset: ["--mnist", "--fashion-mnist"]
 
 palm:
-  sparsity_factor: {"--sparsity-factor": "[2, 3, 5]"}
-  hierarchical: [""]
+  sparsity_factor: {"--sparsity-factor": ["2", "3", "5"]}
+  hierarchical: ["", "--hierarchical-init"]
 
 qmeans_big:
   qmeans: ["qmeans"]
