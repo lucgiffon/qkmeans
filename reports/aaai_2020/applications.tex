@@ -155,80 +155,19 @@ and this advantage is even stronger with the clustering obtained by our \qkmeans
 
 \begin{figure}[tbh]
 \centering
-%\begin{subfigure}[b]{.49\textwidth}
-%\includegraphics[width=\textwidth]{blobs_1nn_accuracy.png}
-%\caption{Accuracy.}
-%\label{fig:nn:blobs:accuracy}
-%\end{subfigure}
-%\begin{subfigure}[b]{.49\textwidth}
 \includegraphics[width=.45\textwidth]{blobs_1nn_inference_time.png}
-%\caption{Running times.}
 \label{fig:nn:blobs:times}
-%\end{subfigure}
-
 \caption{Running time of nearest neighbor search on blobs data. Results are averaged over 5 runs (vertical lines: standard deviation) and the average number of parameters actually learned is reported above each bar. The results for the Brute Force Search, KD Tree and Ball Tree are not displayed because they were longer than 10 times the K-means search version.}
 \label{fig:nn:blobs}
 \end{figure}
 
 
-% \begin{table*}[!htb]
-% \caption{Results on the classification task. Results are averaged over 5 runs. ``N/A'' denotes experiments that did not finish. For the \qkmeans results, only those obtained with sparsity level = 5 are displayed.}
-% \centering
-% \begin{adjustbox}{max width=0.8\textwidth}
-% \begin{minipage}{.5\linewidth}
-% % \centering
-% \begin{tabular}{@{}lc}
-% \toprule
-%                                     & \thead{Accuracy \\ \texttt{Blobs}} \\ \midrule
-% 1NN Brute force search              & N/A   \\
-% 1NN KD Tree                         & N/A   \\
-% 1NN Ball Tree                       & N/A   \\ \midrule \midrule
-% 1NN K-means 128 Clusters            & 0.96      \\
-% 1NN K-means 256 Clusters            & 0.97      \\
-% 1NN K-means 512 Clusters            & 0.99      \\ \midrule
-% 1NN QK-means 128 Clusters           & 0.74     \\
-% 1NN QK-means 256 Clusters           & 0.66      \\
-% 1NN QK-means 512 Clusters           & 0.66      \\ \midrule \midrule
-% Nyström K-means + SVM 128 Clusters  & 0.98      \\
-% Nyström K-means + SVM 256 Clusters  & 1.0      \\
-% Nyström K-means + SVM 512 Clusters  & 1.0      \\ \midrule
-% Nyström QK-means + SVM 128 Clusters & 0.95      \\
-% Nyström QK-means + SVM 256 Clusters & 1.0      \\
-% Nyström QK-means + SVM 512 Clusters & 1.0      \\ \bottomrule
-% \end{tabular}
-% \caption{\texttt{Blobs} dataset}
-% \end{minipage}%
-% \begin{minipage}{.5\linewidth}
-% % \centering
-% \begin{tabular}{@{}lcc}
-% \toprule
-%                                     & \thead{Accuracy \\ \texttt{Fashion-MNIST}} & \thead{Accuracy \\ \texttt{MNIST}} \\ \midrule
-% 1NN Brute force search              &  0.85   &  0.97 \\
-% 1NN KD Tree                         & 0.85  &  0.97  \\
-% 1NN Ball Tree                       & 0.85  &  0.97  \\ \midrule \midrule
-% 1NN K-means 10 Clusters            & 0.84  &  0.96  \\
-% 1NN K-means 16 Clusters            & 0.84  &  0.96  \\
-% 1NN K-means 30 Clusters            & 0.84  &  0.96  \\ \midrule
-% 1NN QK-means 10 Clusters           & 0.84  &  0.96  \\
-% 1NN QK-means 16 Clusters           & 0.84  &  0.96  \\
-% 1NN QK-means 30 Clusters           & 0.84  &  0.96  \\ \midrule \midrule
-% Nyström K-means + SVM 10 Clusters  &  0.71  & 0.74  \\
-% Nyström K-means + SVM 16 Clusters  &  0.75  & 0.83  \\
-% Nyström K-means + SVM 30 Clusters  &  0.78  & 0.88  \\ \midrule
-% Nyström QK-means + SVM 10 Clusters &  0.71  & 0.74  \\
-% Nyström QK-means + SVM 16 Clusters &  0.74  & 0.82  \\
-% Nyström QK-means + SVM 30 Clusters &  0.77  & 0.88  \\ \bottomrule
-% \end{tabular}
-% \caption{\texttt{MNIST} and \texttt{Fashion-MNIST} datasets}
-% \end{minipage}
-% \end{adjustbox}
-% \end{table*}
-
 \begin{table*}[!htb]
 \begin{adjustbox}{center, max width=0.9\textwidth}
 
 \begin{subtable}{.5\textwidth}
-% \centering
+\label{table:results_blobs}
+
 \begin{tabular}{@{}lc}
 \toprule
                                     & \thead{Accuracy \\ \texttt{Blobs}} \\ \midrule
@@ -279,63 +218,7 @@ Nyström QK-means + SVM 30 Clusters &  0.77  & 0.88  \\ \bottomrule
 \caption{Results on the classification task. Results are averaged over 5 runs. ``N/A'' denotes experiments that did not finish. For the \qkmeans results, only those obtained with sparsity level = 5 are displayed.}
 \end{table*}
 
-
-% \begin{table*}[]
-% 
-% \centering
-% \begin{tabular}{@{}l|P{2.5cm}}
-% \toprule
-%                                     & Accuracy \texttt{Blobs} \\ \midrule
-% 1NN Brute force search              & N/A   \\
-% 1NN KD Tree                         & N/A   \\
-% 1NN Ball Tree                       & N/A   \\ \midrule \midrule
-% 1NN K-means 128 Clusters            & 0.96      \\
-% 1NN K-means 256 Clusters            & 0.97      \\
-% 1NN K-means 512 Clusters            & 0.99      \\ \midrule
-% 1NN QK-means 128 Clusters           & 0.74     \\
-% 1NN QK-means 256 Clusters           & 0.66      \\
-% 1NN QK-means 512 Clusters           & 0.66      \\ \midrule \midrule
-% Nyström K-means + SVM 128 Clusters  & 0.98      \\
-% Nyström K-means + SVM 256 Clusters  & 1.0      \\
-% Nyström K-means + SVM 512 Clusters  & 1.0      \\ \midrule
-% Nyström QK-means + SVM 128 Clusters & 0.95      \\
-% Nyström QK-means + SVM 256 Clusters & 1.0      \\
-% Nyström QK-means + SVM 512 Clusters & 1.0      \\ \bottomrule
-% \end{tabular}
-% 
-% %\caption{}
-% \label{table:results_blobs}
-
-% \end{table*}
-
-% \begin{table*}[]
-
-% \centering
-
-% \begin{tabular}{@{}l|P{2.5cm}|P{2.5cm}}
-% \toprule
-%                                     & Accuracy \texttt{Fashion-MNIST} & Accuracy \texttt{MNIST} \\ \midrule
-% 1NN Brute force search              &  0.85   &  0.97 \\
-% 1NN KD Tree                         & 0.85  &  0.97  \\
-% 1NN Ball Tree                       & 0.85  &  0.97  \\ \midrule \midrule
-% 1NN K-means 10 Clusters            & 0.84  &  0.96  \\
-% 1NN K-means 16 Clusters            & 0.84  &  0.96  \\
-% 1NN K-means 30 Clusters            & 0.84  &  0.96  \\ \midrule
-% 1NN QK-means 10 Clusters           & 0.84  &  0.96  \\
-% 1NN QK-means 16 Clusters           & 0.84  &  0.96  \\
-% 1NN QK-means 30 Clusters           & 0.84  &  0.96  \\ \midrule \midrule
-% Nyström K-means + SVM 10 Clusters  &  0.71  & 0.74  \\
-% Nyström K-means + SVM 16 Clusters  &  0.75  & 0.83  \\
-% Nyström K-means + SVM 30 Clusters  &  0.78  & 0.88  \\ \midrule
-% Nyström QK-means + SVM 10 Clusters &  0.71  & 0.74  \\
-% Nyström QK-means + SVM 16 Clusters &  0.74  & 0.82  \\
-% Nyström QK-means + SVM 30 Clusters &  0.77  & 0.88  \\ \bottomrule
-% \end{tabular}
-
-% \caption{}
-% \label{table:results_mnist_fmnist}
-% 
-% \end{table*}
+\todo[inline]{ajouter les stds dans les tableaux}
 
 \subsection{Nyström approximation}
 
@@ -384,55 +267,42 @@ As shown in the next sub-section, our algorithm allow to obtain an efficient Nys
 
 \subsubsection{Results}
 
-The Figure~\ref{fig:nystrom} summarizes the results achieved in the Nyström approximation setting. 
+The Table~\ref{tab:nystrom} summarizes the results achieved in the Nyström approximation setting. More results may be found in supplementary material \addLG{ajouter references au supplementary material. Comment faire? sachant que ce sera dans un document séparé}. 
 
-The Figures on the right display the average time for computing one line of the approximated matrix in Equation~\ref{eq:nystrom}. In Figure~\ref{fig:blobs:nystrom_time}, we clearly see the speed-up offered using the \qkmeans method on the \texttt{Blobs} dataset. On the \texttt{Mnist} and \texttt{Fashion-MNIST} dataset (Figure~\ref{fig:mnist:nystrom_time}~and~\ref{fig:fashmnist:nystrom_time}), this speed-up is sensible but not as clear because the standard deviation is much larger. 
+The bottom part displays the average time for computing one line of the approximated matrix in Equation~\ref{eq:nystrom}. For $K=512$, when it is big enough, we clearly see the speed-up offered using the \qkmeans method on the \texttt{Blobs} dataset. On the \texttt{Mnist} and \texttt{Fashion-MNIST} dataset, this speed-up is sensible but not as clear because the standard deviation is much larger. 
 
-The Figures on the left show the approximation error of the Nyström approximation based on different sampling schemes w.r.t. the real kernel matrix. This error is computed by the Froebenius norm of the difference between the matrices and then normalized:
+The top part shows the approximation error of the Nyström approximation based on different sampling schemes w.r.t. the real kernel matrix. This error is computed by the Froebenius norm of the difference between the matrices and then normalized:
 
 \begin{equation}
  error = \frac{||\rmK - \tilde\rmK||_F}{||\rmK||_F}
 \end{equation}
 
-. The \qkmeans approach gives better reconstruction error than the Nyström method based on uniform sampling although they are slightly worse than the one obtained with the \kmeans centroids. We see that that the difference in approximation error between \kmeans and \qkmeans is almost negligeable when compared to the approximation error obtained with the uniform sampling scheme.
+. The \qkmeans approach gives better reconstruction error than the Nyström method based on uniform sampling although it is slightly worse than the one obtained with the regular \kmeans centroids. We see that that the difference in approximation error between \kmeans and \qkmeans is almost negligible when compared to the approximation error obtained with the uniform sampling scheme.
 
 From a more practical point of view, we show in Table~\ref{table:results_blobs} and Table~\ref{table:results_mnist_fmnist} that the Nyström approximation based on \qkmeans can then be used in a linear SVM and achieve as good performance as the one based on the \kmeans approach.
 
 
-\begin{figure*}
-\begin{subfigure}[b]{.49\textwidth}
-\includegraphics[width=\textwidth]{blobs_nystrom_error.png}
-\caption{\texttt{Blobs}: Nyström reconstruction error.}
-\label{fig:blobs:nystrom_error}
-\end{subfigure}
-\begin{subfigure}[b]{.49\textwidth}
-\includegraphics[width=\textwidth]{blobs_nystrom_inference_time.png}
-\caption{\texttt{Blobs}: Nyström inference time.}
-\label{fig:blobs:nystrom_time}
-\end{subfigure}
-\begin{subfigure}[b]{.49\textwidth}
-\includegraphics[width=\textwidth]{mnist_nystrom_error.png}
-\caption{\texttt{MNIST}: Nyström reconstruction error.}
-\label{fig:mnist:nystrom_error}
-\end{subfigure}
-\begin{subfigure}[b]{.49\textwidth}
-\includegraphics[width=\textwidth]{mnist_nystrom_inference_time.png}
-\caption{\texttt{MNIST}: Nyström inference time.}
-\label{fig:mnist:nystrom_time}
-\end{subfigure}
-\begin{subfigure}[b]{.49\textwidth}
-\includegraphics[width=\textwidth]{fashmnist_nystrom_error.png}
-\caption{\texttt{Fashion-MNIST}: Nyström reconstruction error.}
-\label{fig:fashmnist:nystrom_error}
-\end{subfigure}
-\begin{subfigure}[b]{.49\textwidth}
-\includegraphics[width=\textwidth]{fashmnist_nystrom_inference_time.png}
-\caption{\texttt{Fashion-MNIST}: Nyström inference time.}
-\label{fig:fashmnist:nystrom_time}
-\end{subfigure}
-\caption{Nystr\"om approximation results: accuracy (left) and running times (right). The uniform sampling based Nyström approximation running times are not displayed because they are the same as for the Nyström approximation based on \kmeans centroids. Every experiment results are averaged over 5 runs. The vertical black lines are the standard deviation w.r.t. the runs.}
-\label{fig:nystrom}
-\end{figure*}
+
+\begin{table*}[!htb]
+\label{tab:nystrom}
+% \centering
+\resizebox{\textwidth}{!}{\begin{tabular}{@{}ccccc|ccc}
+\toprule
+                                                &                       & \thead{\texttt{Blobs K=128}} & \thead{\texttt{Blobs K=256}} & \thead{\texttt{Blobs K=512}} & \thead{\texttt{MNIST K=10}} & \thead{\texttt{MNIST K=16}} & \thead{\texttt{MNIST K=30}} \\ \midrule
+\multirow{3}{*}{\shortstack{Reconstruction \\ error}}   & \kmeans               & \boldsymbol{$0.032$}   & \boldsymbol{$0.030$}   & \boldsymbol{$0.027$}   & \boldsymbol{$0.087$}   & \boldsymbol{$0.069$}   & \boldsymbol{$0.049$}   \\
+                                                        & \qkmeans              & \boldsymbol{$0.032$}   &  \underline{$0.031$}  & \underline{$0.029$}   & \underline{$0.091$}   & \underline{$0.083$}   & \underline{$0.061$}   \\
+                                                        & Uniform sampling      & $0.035$   & $0.032$   & $0.030$  & $0.184(\pm0.02)$   & $0.147(\pm0.01)$   & $0.105(\pm0.01)$   \\
+\midrule \midrule
+\multirow{2}{*}{\shortstack{Inference \\ time (ms)}}         & \kmeans               & \boldsymbol{$0.11(\pm0.01)$}   & \boldsymbol{$0.17(\pm0.02)$}   & $0.32(\pm0.01)$   & \boldsymbol{$0.06(\pm0.02)$}   & \boldsymbol{$0.06(\pm0.02)$}   & $0.07(\pm0.02)$   \\
+                                                        & \qkmeans              & $0.13(\pm0.01)$   & $0.18(\pm0.01)$   & \boldsymbol{$0.22(\pm0.04)$}   & $0.08(\pm0.01)$   & $0.07(\pm0.02)$   & \boldsymbol{$0.06(\pm0.02)$}   \\
+\bottomrule
+\end{tabular}}
+\caption{
+Nystr\"om approximation results: reconstruction error and running times for landmark selection methods based on either \kmeans, \qkmeans or uniform sampling. The \qkmeans results are obtained with sparse factors with at least 2 values in each line and each column. The uniform sampling based Nyström approximation running times are not displayed because they are the same as for the Nyström approximation based on \kmeans centroids. Every experiment results are averaged over 5 runs. The standard deviation for the reconstruction error are not displayed because they are lower than $0.005$. Best results are bold while second best are underlined.}
+
+\end{table*}
+\todo[inline]{add uniform sampling results to this table}
+
 
 %{RBF networks}
 
