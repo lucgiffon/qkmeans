@@ -8,6 +8,11 @@ output_file_end_re = {
     "results": r"_results.csv",
     "objective": r"_objective.npz"
 }
+output_file_end_re_old = {
+    "centroids": r"_centroids.npy",
+    "results": r"_results.csv",
+    "objective": r"_objective_.means_objective.csv"
+}
 
 def display_cmd_lines_from_root_name_list(root_names_list, src_results_dir, find_in_stderr=False):
     cmd_lines = []
@@ -67,7 +72,7 @@ def display_cmd_lines_from_root_name_list(root_names_list, src_results_dir, find
     return cmd_lines
 
 
-def get_dct_result_files_by_root(src_results_dir):
+def get_dct_result_files_by_root(src_results_dir, old_filename_objective=False):
     """
     From a directory with the result of oarjobs give the dictionnary of results file for each experiment. Files are:
 
@@ -135,7 +140,13 @@ def get_dct_result_files_by_root(src_results_dir):
 
         dct_files = {}
         complete = True
-        for type_file, root_re in output_file_end_re.items():
+
+        if old_filename_objective:
+            used_output_file_end_re =  output_file_end_re_old
+        else:
+            used_output_file_end_re = output_file_end_re
+
+        for type_file, root_re in used_output_file_end_re.items():
             forged_re_compiled = re.compile(r"{}".format(root_name) + root_re)
             try:
                 dct_files[type_file] = list(filter(forged_re_compiled.match, lst_str_filenames))[0]
