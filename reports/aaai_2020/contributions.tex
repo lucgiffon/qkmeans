@@ -1,4 +1,4 @@
-%!TEX root=neurips2019_qmeans.tex
+%!TEX root=aaai2020_qmeans.tex
 
 \section{QuicK-means}
 \label{sec:contribution}
@@ -6,45 +6,49 @@
 We here introduce our main contribution, \texttt{QuicK-means} (abbreviated by \qkmeans), 
 show its convergence property and analyze its computational complexity.
 
+WATCH: CENTROIDS vs CENTERS... We have specified that we would consider
+centers from the get-go...
+
 \subsection{\qkmeans: Encoding Centroids as Products of Sparse Matrices}
 
 \texttt{QuicK-means} is a variant of the \kmeans algorithm in which the matrix of centroids $\rmU$
 is approximated as a product $\rmV=\prod_{\in\intint{\nfactors}}\rmS_q$ of sparse matrices $\rmS_q$.
 Doing so will allow us to cope with the computational bulk imposed by the product $\rmU\rvx$
-(cf.~\eqref{eq:assignment_problem_kmeans}) at the core of the cluster assignment process.
+---obtained by a simple rewriting of~\eqref{eq:assignment_problem_kmeans}--- that shows up in the cluster assignment 
+process.
 
 Building upon the \kmeans optimization problem~\eqref{eq:kmean_problem} and fast-operator approximation problem~\eqref{eq:palm4msa} the \qkmeans optimization problem 
 writes:
 %
-\begin{equation}
-\begin{split}
+\begin{align}
 \label{eq:qmean_problem}
- \argmin_{\rmS_1, \ldots, \rmS_{\nfactors}, \rvt} & g\left(\rmS_1, \ldots, \rmS_{\nfactors}, \rvt\right) \\
-  = \argmin_{\rmS_1, \ldots, \rmS_{\nfactors}, \rvt} & \sum_{k\in\intint{\nclusters}}\sum_{n: t_n = k} \left\|\rvx_n -\rvv_k\right\|^2 + \sum_{q\in\intint{\nfactors}} \delta_{\mathcal{E}_q}(\rmS_q) \\
- & \text{ s. t. } \rmV = \prod_{q\in\intint{\nfactors}}\rmS_q
-\end{split}  
+ \argmin_{\left\{\rmS_q\right\}_{q=1}^{\nfactors}, \rvt} & g\left(\left\{\rmS_q\right\}_{q=1}^{\nfactors}, \rvt\right)\\
+ \intertext{with}
+  g\left(\left\{\rmS_q\right\}_{q=1}^{\nfactors}, \rvt\right)&:=  \sum_{k\in\intint{\nclusters}}\sum_{n: t_n = k} \left\|\rvx_n -\rvv_k\right\|^2 + \sum_{q\in\intint{\nfactors}} \delta_{\mathcal{E}_q}(\rmS_q)\label{eq:objective}
+\end{align}
+and where the matrix of centroids is parameterized as
+\begin{equation}
+	\label{eq:centroids}
+	\rmV = \prod_{q\in\intint{\nfactors}}\rmS_q
 \end{equation}
 
-
-
-
 %
-This is a regularized version of the \kmeans optimization problem~\eqref{eq:kmean_problem} in which centroids $\rvv_k$ are constrained to form a matrix $\rmV$ with a fast-operator structure, the indicator functions $\delta_{\mathcal{E}_q}$ imposing the sparsity of matrices $\rmS_q$.
-More details on the modeling choices are given in the experimental part in section~\ref{sec:uses:settings}.
+This is a (???) regularized ()???)  version of the \kmeans optimization problem~\eqref{eq:kmean_problem} in which centroids $\rvv_k$ are constrained to form a matrix $\rmV$ with a fast-operator structure, the indicator functions $\delta_{\mathcal{E}_q}$ imposing the sparsity of matrices $\rmS_q$.
+More details on the modeling choices are given in the experimental part. % in section~\ref{sec:uses:settings}.
 
 This problem can be solved using Algorithm~\ref{algo:qmeans},
-which proceeds in a similar way as Lloyd's algorithm by alternating an assignment step at line \ref{line:qmeans:assignment} and an update of the centroids at lines~\ref{line:qmeans:compute_means}--\ref{line:qmeans:U}. The assignment step can be computed efficiently thanks to the fast-structure in matrix $\rmV$. The update of the centroids relies on learning a fast-structure operator $\rmV$ that approximate of the true centroid matrix $\rmU$ weighted by the number of examples $n_k$ assigned to each cluster $k$.
+which proceeds in a similar way as Lloyd's algorithm by alternating an assignment step at line \ref{line:qmeans:assignment} and an update of the centroids at lines~\ref{line:qmeans:compute_means}--\ref{line:qmeans:U}. The assignment step can be computed efficiently thanks to the fast-structure of $\rmV$. The update of the centroids relies on learning a fast-structure operator $\rmV$ that approximate of the true centroid matrix $\rmU$ weighted by the number of examples $n_k$ assigned to each cluster $k$.
 
 
 \begin{algorithm*}[t]
-	\caption{\qkmeans algorithm and its time complexity.}
+	\caption{\qkmeans algorithm and its time complexity. Here $A \eqdef \min\left (\nclusters, \datadim\right )$ and $B \eqdef \max\left (\nclusters, \datadim\right )$}
 	\label{algo:qmeans}
 	\begin{algorithmic}[1]
 \REQUIRE $\rmX \in \R^{\nexamples \times \datadim}$, $\nclusters$, initialization $\left \lbrace \rmS_q^{(0)} : \rmS_q^{(0)} \in \mathcal{E}_q\right \rbrace_{q\in\intint{\nfactors}}$
-\COMMENT{$A \eqdef \min\left (\nclusters, \datadim\right )$}
+%\COMMENT{$A \eqdef \min\left (\nclusters, \datadim\right )$}
 %\STATE $\rmV^{(0)} \eqdef \prod_{q\in\intint{\nfactors}}{\rmS_q^{(0)}}$
 \STATE Set $\rmV^{(0)} : \rvx \mapsto \prod_{q\in\intint{\nfactors}}{\rmS_q^{(0)}} \rvx$
-\COMMENT{$B \eqdef \max\left (\nclusters, \datadim\right )$}
+%\COMMENT{$B \eqdef \max\left (\nclusters, \datadim\right )$}
 \FOR{$\tau=1, 2, \ldots$ until convergence}
 	\STATE $\rvt^{(\tau)} \eqdef \argmin_{\rvt \in \intint{\nclusters}^\nexamples} \sum_{n\in\intint{\nexamples}} {\left \|\rvx_n - \rvv^{(\tau -1)}_{t_n}\right \|^2}$
 	\COMMENT{$\mathcal{O}\left (\nexamples\left(A\log A+B\right ) + AB\right )$}
@@ -58,14 +62,14 @@ with $n_k \eqdef |\{n: t_n^{(\tau)}=k\}|$
 	\label{line:qmeans:A}
 	\STATE $\mathcal{E}_0 \eqdef \left \lbrace \rmD_{\sqrt{\rvn}} \right \rbrace$
 	\label{line:qmeans:E0}
-	\STATE $\left \lbrace \rmS_q^{(\tau)}\right \rbrace_{q=0}^\nfactors \eqdef \argmin_{\left \lbrace \rmS_q\right \rbrace_{q=0}^\nfactors} \left \|\rmA - \prod_{q=0}^\nfactors\rmS_q\right \|_F^2 + \sum_{q=0}^\nfactors \delta_{\mathcal{E}_q}(\rmS_q)$\\
-	\COMMENT{$\bigO{AB\left (\log^2 A+\log B\right )}$ (or $\bigO{AB\left (\log^3A+\log A \log B\right )}$)}
+	\STATE $\left \lbrace \rmS_q^{(\tau)}\right \rbrace_{q=0}^\nfactors \eqdef \argmin_{\left \lbrace \rmS_q\right \rbrace_{q=0}^\nfactors} \left \|\rmA - \prod_{q=0}^\nfactors\rmS_q\right \|_F^2 + \sum_{q=0}^\nfactors \delta_{\mathcal{E}_q}(\rmS_q)$
+	\COMMENT{$\bigO{AB\left (\log^2 A+\log B\right )}$} % (or $\bigO{AB\left (\log^3A+\log A \log B\right )}$)}
 	\label{line:qmeans:S}
 	\STATE Set $\rmV^{(\tau)} : \rvx \mapsto \prod_{q\in\intint{\nfactors}}{\rmS_q^{(\tau)}} \rvx$
 	\COMMENT{$\bigO{1}$}
 	\label{line:qmeans:U}
 	\ENDFOR
-	\ENSURE assignement vector $\rvt$ and sparse matrices $\left \lbrace \rmS_q : \rmS_q \in \mathcal{E}_q\right \rbrace_{q\in\intint{\nfactors}}$ such that $\prod_{q\in\intint{\nfactors}}\rmS_q \approx \rmU$ the $\nclusters$ means of the $\nexamples$ data points
+	\ENSURE assignement vector $\rvt$ and sparse matrices $\left \lbrace \rmS_q : \rmS_q \in \mathcal{E}_q\right \rbrace_{q\in\intint{\nfactors}}$ % such that $\prod_{q\in\intint{\nfactors}}\rmS_q \approx \rmU$ the $\nclusters$ means of the $\nexamples$ data points
 \end{algorithmic}
 \end{algorithm*}
 
@@ -85,10 +89,16 @@ regarding the cost of the assignment and the cost of the re-estimation procedure
 \subsection{Convergence of \qkmeans}
 Similarly to \kmeans, \qkmeans converges locally as stated in the following proposition.
 
-\begin{proposition}[Convergence of \qkmeans]
+\begin{proposition}
 \label{thm:convergence}
-The iterates $\left \lbrace\rmS^{(\tau)} \right \rbrace_{q\in\intint{\nfactors}}$ and $\rvt^{(\tau)}$ in Algorithm~\ref{algo:qmeans} are such that the values
+The iterates $\left \lbrace\rmS^{(\tau)} \right \rbrace_{q\in\intint{\nfactors}}$ and $\rvt^{(\tau)}$ in Algorithm~\ref{algo:qmeans} are such that, $\forall \tau\geq 1$
+\begin{equation*}
+g\left(\left\{\rmS_q^{(\tau+1)}\right\}_{q=1}^{\nfactors}, \rvt^{(\tau+1)}\right)
+\leq g\left(\left\{\rmS_q^{(\tau)}\right\}_{q=1}^{\nfactors}, \rvt^{(\tau)}\right),
+\end{equation*}
+which guarantees the convergence (CHECK THAT STATEMENT).
 
+\iffalse
 \begin{equation}
 \begin{split}
 \label{eq:qmean_problem_2}
@@ -97,18 +107,14 @@ The iterates $\left \lbrace\rmS^{(\tau)} \right \rbrace_{q\in\intint{\nfactors}}
     \text{ s.t. } \rmV = \prod_{q\in\intint{\nfactors}} & {\rmS_q^{(\tau)}}
 \end{split} %
 \end{equation}
-
-
-of the objective function are non-increasing.
+\fi
 \end{proposition}
 
 
 
 
 \begin{proof}
-To proove this convergence, we show that each of the assignment and centroid update steps in one iteration $\tau$ of the algorithm actually reduces the overall objective. 
-
-
+We show that each of the assignment and centroid update steps of the algorithm does not increase the overall objective. 
 
 \paragraph{Assignment step (Line \ref{line:qmeans:assignment})} For a fixed $\rmV^{(\tau-1)}$, the optimization problem at Line \ref{line:qmeans:assignment} is separable for each example indexed by $n \in \intint{\nexamples}$ and the new indicator vector $\rvt^{(\tau)}$ is thus defined as:
 %
@@ -117,20 +123,20 @@ To proove this convergence, we show that each of the assignment and centroid upd
  t^{(\tau)}_n = \argmin_{k \in \intint{\nclusters}} \norm{\rvx_n - \rvv_k^{(\tau-1)}}_2^2.
 \end{align}
 %
-This step minimizes the first term in~\eqref{eq:qmean_problem_2} w.r.t. $\rvt$ while the second term is constant so we have 
+This step minimizes the first term in~\eqref{eq:objective} w.r.t. $\rvt$ while the second term is constant so we have 
 \begin{align*}
 g(\rmS_1^{(\tau-1)}, \ldots,\rmS_\nfactors^{(\tau-1)}, \rvt^{(\tau)}) \leq g(\rmS_1^{(\tau-1)}, \ldots,\rmS_\nfactors^{(\tau-1)}, \rvt^{(\tau-1)}).
 \end{align*}
 
-\paragraph{Centroids update step (Lines \ref{line:qmeans:compute_means}--\ref{line:qmeans:U}).} We know consider a fixed assignment vector $\rvt$. We first note that for any cluster $k$ with true centroid $\rvu_k$ and approximated centroid $\rvv_k$, we have
+\paragraph{Centroids update step (Lines \ref{line:qmeans:compute_means}--\ref{line:qmeans:U}).} We know consider a fixed assignment vector $\rvt$. We first note that for any cluster $k$ with true centroid $\rvu_k$ and approximated centroid $\rvv_k$, we have, by simple calculations
 \begin{align}
     \label{eq:rewrite_assignement}
 	\sum_{n: t_n = k} \norm{\rvx_n -\rvv_k}^2
-	 & =\sum_{n: t_n = k} \norm{\rvx_n -\rvu_k+\rvu_k-\rvv_k}^2 \notag\\
-	& = \sum_{n: t_n = k}\left(\norm{\rvx_n-\rvu_k}^2+\norm{\rvu_k-\rvv_k}^2 \right. \notag\\
-	& \qquad \left. \vphantom{\norm{\rvx_n-\rvu_k}^2+\norm{\rvu_k-\rvv_k}^2} - 2\langle\rvx_n-\rvu_k,\rvu_k-\rvv_k\rangle \right)\notag\\
-    & = \sum_{n: t_n= k} \norm{\rvx_n-\rvu_k}^2+n_k\norm{\rvu_k-\rvv_k}^2 \notag\\
-    & \qquad - 2 \left\langle\underbrace{\sum_{n: t_n = k}\left (\rvx_n-\rvu_k\right )}_{=0},\rvu_k-\rvv_k\right\rangle\notag \\
+%	 & =\sum_{n: t_n = k} \norm{\rvx_n -\rvu_k+\rvu_k-\rvv_k}^2 \notag\\
+%	& = \sum_{n: t_n = k}\left(\norm{\rvx_n-\rvu_k}^2+\norm{\rvu_k-\rvv_k}^2 \right. \notag\\
+%	& \qquad \left. \vphantom{\norm{\rvx_n-\rvu_k}^2+\norm{\rvu_k-\rvv_k}^2} - 2\langle\rvx_n-\rvu_k,\rvu_k-\rvv_k\rangle \right)\notag\\
+%    & = \sum_{n: t_n= k} \norm{\rvx_n-\rvu_k}^2+n_k\norm{\rvu_k-\rvv_k}^2 \notag\\
+ %   & \qquad - 2 \left\langle\underbrace{\sum_{n: t_n = k}\left (\rvx_n-\rvu_k\right )}_{=0},\rvu_k-\rvv_k\right\rangle\notag \\
 	&= \sum_{n: t_n = k} \norm{\rvx_n-\rvu_k}^2 + \norm{\sqrt{n_k}\left (\rvu_k-\rvv_k\right )}^2
 \end{align}
 
@@ -153,7 +159,7 @@ For a fixed $\rvt$, the new sparsely-factorized centroids are solutions of the s
  \label{eq:qmeans_problem_t_fixed}
  \end{align}
 %
-where :
+where:
 %
 \begin{itemize}
  \item $\sqrt{\rvn} \in \R^{\nclusters}$ is the pair-wise square root of the vector indicating the number of observations $n_k \eqdef \left | \left \lbrace n: t_n = k\right \rbrace \right |$  in each cluster $k$;

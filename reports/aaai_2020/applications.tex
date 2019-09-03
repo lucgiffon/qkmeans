@@ -1,3 +1,6 @@
+%!TEX root=aaai2020_qmeans.tex
+
+
 \section{Experiments and applications}
 \label{sec:uses}
 
@@ -113,6 +116,8 @@ The stopping criterion of \kmeans and \qkmeans consists of a tolerance set to $1
 \label{fig:clustering:realdata}
 \end{figure*}
 
+\todo[inline]{Pour gagner de la place facilement: mettre les centroides en 6x5 et faire une ligne MNIST avec courbes et le 2 jeux de centroides, puis une autre ligne de figures avec les courbes Fashion-MNIST et les 2 jeux de centroides}
+
 \paragraph{Approximation quality.} One important question is the ability of the fast-structure model to fit arbitrary data.
 Indeed, no theoretical result about the expressivity of such models is currently available.
 In order to assess this approximation quality, the MNIST and Fashion-MNIST data have been clustered into $\nclusters=30$ clusters by \kmeans, \qkmeans and a variant of \qkmeans using the hierarchical version of \palm, with several sparsity levels.
@@ -218,7 +223,7 @@ Nyström QK-means + SVM 30 Clusters &  0.77  & 0.88  \\ \bottomrule
 \caption{Results on the classification task. Results are averaged over 5 runs. ``N/A'' denotes experiments that did not finish. For the \qkmeans results, only those obtained with sparsity level = 5 are displayed.}
 \end{table*}
 
-\todo[inline]{ajouter les stds dans les tableaux}
+\todo[inline]{ajouter les stds dans les tableaux et reformater les tableaux -- je ne sais pas encore comment... mais une fois fait, plus de problèmes.}
 
 \subsection{Nyström approximation}
 
