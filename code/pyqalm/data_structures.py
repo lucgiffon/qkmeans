@@ -34,6 +34,9 @@ class SparseFactors(LinearOperator):
             assert self._lst_factors[i].shape[1] \
                    == self._lst_factors[i + 1].shape[0]
 
+    def __len__(self):
+        return len(self._lst_factors)
+
     @property
     def n_factors(self):
         return len(self._lst_factors)
@@ -157,10 +160,10 @@ class SparseFactors(LinearOperator):
         else:
             return self._lst_factors_H
 
-    def compute_spectral_norm(self, method='eigs'):
+    def compute_spectral_norm(self, method='eigs', init_vector_eigs_v0=None):
         if method == 'svds':
             a = svds(A=self, k=1, return_singular_vectors=False)
-            return a[0]
+            return a[0], init_vector_eigs_v0  # TODO return singular vectors
         elif method == 'eigs':
             if self.shape[0] > self.shape[1]:
                 SS = SparseFactors(self.adjoint().get_list_of_factors()
@@ -169,13 +172,18 @@ class SparseFactors(LinearOperator):
                 SS = SparseFactors(self.get_list_of_factors()
                                    + self.adjoint().get_list_of_factors())
             try:
-                a = eigs(A=SS, k=1, return_eigenvectors=False)
+                if init_vector_eigs_v0 is None:
+                    a, init_vector_eigs_v0 = eigs(A=SS, k=1, return_eigenvectors=True)
+                else:
+                    a, init_vector_eigs_v0 = eigs(A=SS, k=1, return_eigenvectors=True, v0=init_vector_eigs_v0)
             except Exception as e:
                 warnings.warn(str(e))
-                # FIXME if ARGPACK fails, compute norm with regular function
-                return np.linalg.norm(self.compute_product(), ord=2)
+                return np.linalg.norm(self.compute_product(), ord=2), init_vector_eigs_v0
                 # return self.compute_spectral_norm(method='svds')
-            return np.sqrt(np.real(a[0]))
+            return np.sqrt(np.real(a[0])), init_vector_eigs_v0[:, 0]
+
+    def get_nb_param(self):
+        return sum(csrm.nnz for csrm in self._lst_factors)
 
     def get_L(self, n_factors):
         if n_factors == 0:

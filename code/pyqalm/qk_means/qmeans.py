@@ -11,7 +11,7 @@ import numpy as np
 from numpy.linalg import multi_dot
 from pyqalm.palm.qalm import hierarchical_palm4msa, palm4msa
 from pyqalm.qk_means.kmeans import kmeans
-from pyqalm.qk_means.utils import build_constraint_set_smart, compute_objective, get_distances
+from pyqalm.qk_means.utils import build_constraint_set_smart, compute_objective, get_distances, get_squared_froebenius_norm_line_wise
 from pyqalm.test.test_qalm import visual_evaluation_palm4msa
 from sklearn import datasets
 import matplotlib.pyplot as plt
@@ -30,6 +30,8 @@ def qmeans(X_data:np.ndarray,
            graphical_display=False):
 
     assert K_nb_cluster == initialization.shape[0]
+
+    X_data_norms = get_squared_froebenius_norm_line_wise(X_data)
 
     init_lambda = params_palm4msa["init_lambda"]
     nb_iter_palm = params_palm4msa["nb_iter"]
@@ -92,7 +94,7 @@ def qmeans(X_data:np.ndarray,
 
         # Assign all points to the nearest centroid
         # first get distance from all points to all centroids
-        distances = get_distances(X_data, U_centroids)
+        distances = get_distances(X_data, U_centroids, precomputed_data_points_norm=X_data_norms)
         # then, Determine class membership of each point
         # by picking the closest centroid
         indicator_vector = np.argmin(distances, axis=1)
@@ -176,7 +178,7 @@ def qmeans(X_data:np.ndarray,
         i_iter += 1
 
     U_centroids = _lambda * multi_dot(lst_factors[1:])
-    distances = get_distances(X_data, U_centroids)
+    distances = get_distances(X_data, U_centroids, precomputed_data_points_norm=X_data_norms)
     indicator_vector = np.argmin(distances, axis=1)
 
     return objective_function[:i_iter], U_centroids, indicator_vector
@@ -210,8 +212,8 @@ if __name__ == '__main__':
         "residual_on_right": residual_on_right}
 
     # try:
-    objective_values_q_hier, centroids_finaux_q_hier, indicator_hier = qmeans(X, nb_clusters, nb_iter_kmeans, nb_factors, hierarchical_palm_init, initialization=U_centroids_hat, graphical_display=True, hierarchical_inside=True)
-    objective_values_q_hier, centroids_finaux_q_hier, indicator = qmeans(X, nb_clusters, nb_iter_kmeans, nb_factors, hierarchical_palm_init, initialization=U_centroids_hat, graphical_display=True, hierarchical_inside=True)
+    objective_values_q_hier, centroids_finaux_q_hier, indicator_hier = qmeans(X, nb_clusters, nb_iter_kmeans, nb_factors, hierarchical_palm_init, initialization=U_centroids_hat, graphical_display=False, hierarchical_inside=True)
+    # objective_values_q_hier, centroids_finaux_q_hier, indicator = qmeans(X, nb_clusters, nb_iter_kmeans, nb_factors, hierarchical_palm_init, initialization=U_centroids_hat, graphical_display=True, hierarchical_inside=True)
     objective_values_q, centroids_finaux_q, indicator = qmeans(X, nb_clusters, nb_iter_kmeans, nb_factors, hierarchical_palm_init, initialization=U_centroids_hat, graphical_display=False)
     # except Exception as e:
     #     logger.info("There have been a problem in qmeans: {}".format(str(e)))

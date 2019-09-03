@@ -1,0 +1,29 @@
+all:
+  qmeans_little:
+  kmeans_little:
+
+base:
+  seed: {"--seed": "range(5)"}
+  nystrom: {"--nystrom": ["10000"]}
+  batch_assignation: {"--batch-assignation-time": ["10000"]}
+  1nn: ["--1-nn"]
+  initialisation: {--initialization: ["uniform_sampling"]}
+
+
+base_little:
+  base:
+  dataset: ["--mnist","--fashion-mnist", "--lfw"]
+  nb_clusters: {"--nb-cluster": ["30"]}
+
+palm:
+  sparsity_factor: {"--sparsity-factor": ["5"]}
+  hierarchical: ["--hierarchical"]
+
+qmeans_little:
+  qmeans: ["qmeans"]
+  palm:
+  base_little:
+
+kmeans_little:
+  kmeans: ["kmeans"]
+  base_little:

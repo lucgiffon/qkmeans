@@ -59,10 +59,10 @@ class TestSparseFactors(unittest.TestCase):
 
     def test_compute_spectral_norm(self):
         np.testing.assert_almost_equal(
-            self.S.compute_spectral_norm(method='eigs'),
+            self.S.compute_spectral_norm(method='eigs')[0],
             np.linalg.norm(self.P, ord=2))
         np.testing.assert_almost_equal(
-            self.S.compute_spectral_norm(method='svds'),
+            self.S.compute_spectral_norm(method='svds')[0],
             np.linalg.norm(self.P, ord=2))
 
     def test_io(self):
