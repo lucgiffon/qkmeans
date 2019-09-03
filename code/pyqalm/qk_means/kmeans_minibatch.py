@@ -79,7 +79,7 @@ def kmeans_minibatch(X_data,
 
         i_iter += 1
 
-    return objective_function[:i_iter], U_centroids, indicator_vector
+    return objective_function[:i_iter], U_centroids, full_indicator_vector
 
 if __name__ == "__main__":
     batch_size = 10000

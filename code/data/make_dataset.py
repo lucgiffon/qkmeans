@@ -162,7 +162,7 @@ def _download_all_data(output_dirpath):
         _download_single_dataset(output_dirpath, key)
 
 def _download_single_dataset(output_dirpath, dataname):
-    regex_million = re.compile(r"blobs_(\d)_million")
+    regex_million = re.compile(r"blobs_(\d+)_million")
     match = regex_million.match(dataname)
     if match:
         output_path_obs = project_dir / output_dirpath / (dataname + ".dat")
@@ -177,9 +177,10 @@ def _download_single_dataset(output_dirpath, dataname):
         total_nb_chunks = int(data_size // size_batch)
         logger.info("blobs_1_billion Data created in file: {}; labels stored in file: {}".format(output_path_obs, output_path_labels))
         logger.info("About to create 1 billion blobs dataset: {} chunks of {} examples dim {}. Total {} examples.".format(total_nb_chunks, size_batch, nb_features, data_size))
+        init_centers = np.random.uniform(-10.0, 10.0, (nb_centers, nb_features))
         for i in range(total_nb_chunks):
             logger.info("Chunk {}/{}".format(i+1, total_nb_chunks))
-            X, y = make_blobs(size_batch, n_features=nb_features, centers=nb_centers, cluster_std=12.)
+            X, y = make_blobs(size_batch, n_features=nb_features, centers=init_centers, cluster_std=12.)
             fp_obs[i * size_batch:(i + 1) * size_batch] = X
             fp_labels[i * size_batch:(i + 1) * size_batch] = y
 

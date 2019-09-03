@@ -5,21 +5,20 @@ all:
 base:
   seed: {"--seed": "range(5)"}
   nystrom: {"--nystrom": ["5000"]}
+  assignation: {"--assignation-time": ["5000"]}
+  batch_assignation: {"--batch-assignation-time": ["5000"]}
   1nn: ["--1-nn"]
   initialisation: {--initialization: ["uniform_sampling"]}
   iterations: {--nb-iteration: ["10"]}
 
 base_big:
   base:
-  nb_clusters: {"--nb-cluster": ["512"]}
-  dataset: {"--million-blobs": ["1", "2", "3"]}
-  minibatch: {"--minibatch": ["10000"]}
-  max_size: {"--max-eval-train-size": ["10000"]}
+  nb_clusters: {"--nb-cluster": ["128"]}
+  dataset: {"--blobs": ["30000-2000-1000"]}
 
 palm:
-  sparsity_factor: {"--sparsity-factor": ["2"]}
-  delta_threshold: {"--delta-threshold": ["1e-3", "1e-4", "1e-5"]}
-
+  sparsity_factor: {"--sparsity-factor": ["5"]}
+  hierarchical_init: ["", "--hierarchical-init"]
 
 qmeans_big:
   qmeans: ["qmeans"]

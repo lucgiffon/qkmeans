@@ -56,7 +56,8 @@ def qkmeans_minibatch(X_data: np.ndarray,
            initialization: np.ndarray,
            batch_size:int,
            hierarchical_inside=False,
-           delta_objective_error_threshold=1e-6):
+           delta_objective_error_threshold=1e-6,
+           hierarchical_init=False):
 
     assert K_nb_cluster == initialization.shape[0]
 
@@ -89,7 +90,7 @@ def qkmeans_minibatch(X_data: np.ndarray,
     # INIT RUN OF PALM #
     ####################
 
-    if hierarchical_inside:
+    if hierarchical_inside or hierarchical_init:
         _lambda_tmp, op_factors, _, objective_palm, array_objective_hierarchical= \
             hierarchical_palm4msa(
                 arr_X_target=np.eye(K_nb_cluster) @ X_centroids_hat,

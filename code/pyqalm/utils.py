@@ -216,7 +216,7 @@ class ParameterManager(dict):
         self["--delta-threshold"] = float(self["--delta-threshold"])
 
         self["--minibatch"] = int(self["--minibatch"]) if self["--minibatch"] is not None else None
-        self["--max-eval-train-size"] = int(self["--max-eval-train-size"])
+        self["--max-eval-train-size"] = int(self["--max-eval-train-size"]) if self["--max-eval-train-size"] is not None else None
 
         self.__init_nb_factors()
         self.__init_output_file()
