@@ -12,7 +12,7 @@ base:
 base_big:
   base:
   nb_clusters: {"--nb-cluster": ["512"]}
-  dataset: {"--million-blobs": ["1", "5", "10"]}
+  dataset: {"--million-blobs": ["5", "10"]}
   minibatch: {"--minibatch": ["10000"]}
   max_size: {"--max-eval-train-size": ["10000"]}
 
