@@ -69,7 +69,11 @@ The popularity of some linear operators from $\R^{M}$ to $\R^{M}$ (with $M<\inft
  like Fourier or Hadamard transforms comes from both their mathematical 
  properties and their ability to compute the mapping of some input $\rvx\in\R^M$ with efficiency, typically in $\mathcal{O}\left (M\log M\right )$ in lieu of  
   $\mathcal{O}\left (M^2\right)$ operations.
-The core feature of the related fast algorithms is that the matrix $\rmU\in\sR^{M\times M}$ of such linear operators can be written as the product $\rmU=\Pi_{q\in\intint{\nfactors}}\rmS_q$ of $\nfactors=\bigO\left (\log M\right )$ sparse matrices $\rmS_q$ and $\left \|\rmS_q\right \|_0=\mathcal{O}\left (M\right )$ non-zero coefficients per factor \cite{LeMagoarou2016Flexible,Morgenstern1975Linear}:
+The core feature of the related fast algorithms is that the matrix $\rmU\in\sR^{M\times M}$ of such 
+linear operators can be written as the product $\rmU=\Pi_{q\in\intint{\nfactors}}\rmS_q$ 
+of $\nfactors=\bigO{\left( \log M \right)}$ sparse 
+matrices $\rmS_q$ and $\left \|\rmS_q\right \|_0=\mathcal{O}\left( M \right)$ non-zero 
+coefficients per factor \cite{LeMagoarou2016Flexible,Morgenstern1975Linear}:
 for any vector $\rvx\in\sR^M$, $\rmU\rvx$ can thus be computed as $\mathcal{O}\left (\log M\right )$ products $\rmS_0 \left (\rmS_1 \left (\cdots \left (\rmS_{Q-1}\rvx\right )\right )\right )$ between a sparse matrix and a vector, the cost of each product being $\mathcal{O}\left (M\right )$, amounting to a $\mathcal{O}(M \log M)$ time complexity.
 
 \paragraph{Learning a computationally-efficient decomposition approximating an arbitrary operator.} When the linear operator $\rmU$ is an arbitrary matrix, one may approximate it with such a sparse-product structure by learning the factors $\left \lbrace\rmS_q\right \rbrace_{q\in\intint{Q}}$ in order to benefit from a fast algorithm.
