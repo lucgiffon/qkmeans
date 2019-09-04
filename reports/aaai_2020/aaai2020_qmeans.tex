@@ -21,7 +21,7 @@
 \usepackage[table,xcdraw]{xcolor}
 \usepackage[utf8]{inputenc} % allow utf-8 input
 \usepackage[T1]{fontenc}    % use 8-bit T1 fonts
-\usepackage[draft]{hyperref}       % hyperlinks
+\usepackage{hyperref}       % hyperlinks
 \usepackage{url}            % simple URL typesetting
 \usepackage{booktabs}       % professional-quality tables
 \usepackage{amsfonts}       % blackboard math symbols
@@ -145,22 +145,27 @@
 % \vspace{- -- No negative value may be used in proximity of a caption, figure, table, section, subsection, subsubsection, or reference
 % \vskip{- -- No negative value may be used to alter spacing above or below a caption, figure, table, section, subsection, subsubsection, or reference
 
-\setcounter{secnumdepth}{0} %May be changed to 1 or 2 if section numbers are desired.
+\setcounter{secnumdepth}{2} %May be changed to 1 or 2 if section numbers are desired.
 
 % The file aaai20.sty is the style file for AAAI Press 
 % proceedings, working notes, and technical reports.
 %
 \setlength\titlebox{2.5in} % If your paper contains an overfull \vbox too high warning at the beginning of the document, use this
 % command to correct it. You may not alter the value below 2.5 in
-\title{QuicK-means: Acceleration of K-means by learning a fast transform}
+\title{QuicK-means: Acceleration of K-means by Learning a Fast Transform}
+% Blind review
+\author{}
+\iffalse
 \author{%
-  Luc Giffon  \textsuperscript{\rm 1}\textsuperscript{\rm 2},
-Valentin Emiya \textsuperscript{\rm 1}\textsuperscript{\rm 2},
-Liva Ralaivola \textsuperscript{\rm 1}\textsuperscript{\rm 2}\textsuperscript{\rm 3},   Hachem Kadri\textsuperscript{\rm 1}\textsuperscript{\rm 2}, \\
+  Luc Giffon  \textsuperscript{\rm 1},
+Valentin Emiya \textsuperscript{\rm 1},
+Liva Ralaivola \textsuperscript{\rm 2},
+Hachem Kadri\textsuperscript{\rm 1} \\
 \textsuperscript{\rm 1} Aix Marseille Université, Université de Toulon, CNRS, LIS, Marseille, France \\
-\textsuperscript{\rm 2} firstname.name@lis-lab.fr \\
-\textsuperscript{\rm 3} Criteo, France
+%\textsuperscript{\rm 2} firstname.name@lis-lab.fr \\
+\textsuperscript{\rm 2} Criteo, France
 }
+\fi
 %Your title must be in mixed case, not sentence case. 
 % That means all verbs (including short verbs like be, is, using,and go), 
 % nouns, adverbs, adjectives should be capitalized, including both words in hyphenated terms, while

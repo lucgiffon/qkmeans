@@ -53,7 +53,7 @@ are used to show --- quantitatively and qualitatively --- the good quality of th
 
 
 \paragraph{Algorithm settings.} 
-The \qkmeans algorithm is used with $Q\eqdef\log_2\left (A\right )$ sparse factors, where  $A=\min\left (\nclusters, \datadim\right )$. 
+\qkmeans is used with $Q\eqdef\log_2\left (A\right )$ sparse factors, where  $A\eqdef\min\left (\nclusters, \datadim\right )$. 
 All factors $\rmS_q$ are with shape $A \times A$ except, depending on the shape of $\rmA$, the leftmost one ($\nclusters\times A$) or the rightmost one ($A\times\datadim$). 
 The sparsity constraint of each factor $\rmS_q$ is set in $\mathcal{E}_q$ and is governed by a global parameter denoted as \textit{sparsity level}, which indicates the desired number of non-zero coefficients in each row and in each column of $\rmS_q$. 
 Since the projection onto this set of structured-sparsity constraints may be computationally expensive, this projection is relaxed in the implementation of \palm and only guarantees that the number of non-zero coefficients in each row and each column is at least the sparsity level, as in~\cite{LeMagoarou2016Flexible}.
@@ -169,10 +169,7 @@ and this advantage is even stronger with the clustering obtained by our \qkmeans
 
 \begin{table*}[!htb]
 \begin{adjustbox}{center, max width=0.9\textwidth}
-
 \begin{subtable}{.5\textwidth}
-\label{table:results_blobs}
-
 \begin{tabular}{@{}lc}
 \toprule
                                     & \thead{Accuracy \\ \texttt{Blobs}} \\ \midrule
@@ -193,7 +190,7 @@ Nyström QK-means + SVM 256 Clusters & 1.0      \\
 Nyström QK-means + SVM 512 Clusters & 1.0      \\ \bottomrule
 \end{tabular}
 \caption{\texttt{Blobs} dataset}
-
+\label{table:results_blobs}
 \end{subtable}%
 \begin{subtable}{.5\textwidth}
 % \centering
@@ -220,10 +217,11 @@ Nyström QK-means + SVM 30 Clusters &  0.77  & 0.88  \\ \bottomrule
 \label{table:results_mnist_fmnist}
 \end{subtable}
 \end{adjustbox}
-\caption{Results on the classification task. Results are averaged over 5 runs. ``N/A'' denotes experiments that did not finish. For the \qkmeans results, only those obtained with sparsity level = 5 are displayed.}
+\caption{Classification task: results averaged over 5 runs. For \qkmeans, only results with sparsity level~5 are displayed. ``N/A'' denotes experiments that did not finish. }
 \end{table*}
 
 \todo[inline]{ajouter les stds dans les tableaux et reformater les tableaux -- je ne sais pas encore comment... mais une fois fait, plus de problèmes.}
+\todo[inline]{Dans le caption de Table 2, préciser pour quoi  certaines expériences n'ont pas terminé (out of xxx time limit).}
 
 \subsection{Nyström approximation}
 
@@ -268,7 +266,7 @@ Depending on the $\rmH$ matrix chosen, it is possible to improve the time comple
 
 We propose to use our \qkmeans algorithm in order to learn directly the $\rmU$ matrix in the Nyström approximation so that the matrix-vector multiplication $\rmU \rvx$ is cheap to compute, but the structure of $\rmU$ is not constrained by some pre-defined transform matrix. We propose to take the objective $\rmU$ matrix as the \kmeans matrix of $\rmX$ since it has been shown to achieve good reconstruction accuracy in the Nyström method \cite{kumar2012sampling}.
 
-As shown in the next sub-section, our algorithm allow to obtain an efficient Nyström approximation, while not reducing too much the quality of the \kmeans landmark points which are encoded as a factorization of sparse matrix. 
+As shown in the next sub-section, our algorithm allows to obtain an efficient Nyström approximation, while not reducing too much the quality of the \kmeans landmark points which are encoded as a factorization of sparse matrix. 
 
 \subsubsection{Results}
 
@@ -279,17 +277,16 @@ The bottom part displays the average time for computing one line of the approxim
 The top part shows the approximation error of the Nyström approximation based on different sampling schemes w.r.t. the real kernel matrix. This error is computed by the Froebenius norm of the difference between the matrices and then normalized:
 
 \begin{equation}
- error = \frac{||\rmK - \tilde\rmK||_F}{||\rmK||_F}
+ error = \frac{||\rmK - \tilde\rmK||_F}{||\rmK||_F}.
 \end{equation}
 
-. The \qkmeans approach gives better reconstruction error than the Nyström method based on uniform sampling although it is slightly worse than the one obtained with the regular \kmeans centroids. We see that that the difference in approximation error between \kmeans and \qkmeans is almost negligible when compared to the approximation error obtained with the uniform sampling scheme.
+The \qkmeans approach gives better reconstruction error than the Nyström method based on uniform sampling although it is slightly worse than the one obtained with the regular \kmeans centroids. We see that that the difference in approximation error between \kmeans and \qkmeans is almost negligible when compared to the approximation error obtained with the uniform sampling scheme.
 
 From a more practical point of view, we show in Table~\ref{table:results_blobs} and Table~\ref{table:results_mnist_fmnist} that the Nyström approximation based on \qkmeans can then be used in a linear SVM and achieve as good performance as the one based on the \kmeans approach.
 
 
 
 \begin{table*}[!htb]
-\label{tab:nystrom}
 % \centering
 \resizebox{\textwidth}{!}{\begin{tabular}{@{}ccccc|ccc}
 \toprule
@@ -304,7 +301,7 @@ From a more practical point of view, we show in Table~\ref{table:results_blobs} 
 \end{tabular}}
 \caption{
 Nystr\"om approximation results: reconstruction error and running times for landmark selection methods based on either \kmeans, \qkmeans or uniform sampling. The \qkmeans results are obtained with sparse factors with at least 2 values in each line and each column. The uniform sampling based Nyström approximation running times are not displayed because they are the same as for the Nyström approximation based on \kmeans centroids. Every experiment results are averaged over 5 runs. The standard deviation for the reconstruction error are not displayed because they are lower than $0.005$. Best results are bold while second best are underlined.}
-
+\label{tab:nystrom}
 \end{table*}
 \todo[inline]{add uniform sampling results to this table}
 

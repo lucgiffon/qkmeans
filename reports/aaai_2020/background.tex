@@ -22,14 +22,15 @@ of the cluster $k$ it belongs to ---center $\rvu_k$ is the
 The optimization problem of \kmeans is
 \begin{equation}
 \label{eq:kmean_problem}
-    \argmin_{\rmU, \rvt} \sum_{k\in\intint{\nclusters}} \sum_{n: t_n = k} \|\rvx_{n} -\rvu_{k}\|^2,
+    \argmin_{\rmU, \rvt} \sum_{k\in\intint{\nclusters}} \sum_{\substack{n\\t_n = k}} \|\rvx_{n} -\rvu_{k}\|^2,
 \end{equation}
 where $\rmU=\{\rvu_1,\ldots,\rvu_K\}$ is the set of centers and $\rvt \in  \intint{\nclusters}^{\nexamples}$ is the assignment vector that puts $\rvx_n$ in cluster $k$
 if $t_n=k$.
 
 
-\paragraph{Lloyd's algorithm.} The most popular procedure to (approximately) 
-solve the \kmeans problem is Lloyd's algorithm, which alternates between
+\paragraph{Lloyd's algorithm (a.k.a. \kmeans algorithm).} The most popular procedure to (approximately) 
+solve the \kmeans problem is Lloyd's algorithm, which is referred to as the \kmeans algorithm in the litterature as well as in this paper.
+It alternates between
 i) an assignment step that decides the current cluster to which each point $\rvx_n$
 belongs and ii) a reestimation step which refines the cluster centers.
 %In little more detail, the algorithm starts with 
@@ -47,7 +48,7 @@ After an initialization of the set $\rmU^{(0)}$ of $\nclusters$
 \intertext{and the reestimation of the cluster centers is done as}
 %\begin{align}
 \label{eq:center_update}
-\rvu^{(\tau)}_k &\leftarrow \hat{\rvx}_k(\rvt^{(\tau)}) \eqdef \frac{1}{n_k^{(\tau)}} \sum_{n: t^{(\tau)}_n= k} {\rvx_{n}},\quad \forall k\in\intint{K} 
+\rvu^{(\tau)}_k &\leftarrow \hat{\rvx}_k(\rvt^{(\tau)}) \eqdef \frac{1}{n_k^{(\tau)}} \sum_{\substack{n\\t^{(\tau)}_n= k}} {\rvx_{n}},\quad \forall k\in\intint{K} 
 \end{align}
 where $n_k^{(\tau)}\eqdef |\{n: t^{(\tau)}_n=k\}|$ is the number of points in cluster $k$
 at time $\tau$ and $\hat{\rvx}_k(\rvt)$ is the mean vector of the elements of cluster $k$ according to assignment $\rvt$. 

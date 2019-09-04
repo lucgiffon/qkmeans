@@ -21,12 +21,19 @@ Building upon the \kmeans optimization problem~\eqref{eq:kmean_problem} and fast
 writes:
 %
 \begin{align}
-\label{eq:qmean_problem}
- \argmin_{\left\{\rmS_q\right\}_{q=1}^{\nfactors}, \rvt} & g\left(\left\{\rmS_q\right\}_{q=1}^{\nfactors}, \rvt\right)\\
- \intertext{with}
-  g\left(\left\{\rmS_q\right\}_{q=1}^{\nfactors}, \rvt\right)&:=  \sum_{k\in\intint{\nclusters}}\sum_{n: t_n = k} \left\|\rvx_n -\rvv_k\right\|^2 + \sum_{q\in\intint{\nfactors}} \delta_{\mathcal{E}_q}(\rmS_q)\label{eq:objective}
+%\label{eq:qmean_problem}
+ \argmin_{\left\{\rmS_q\right\}_{q=1}^{\nfactors}, \rvt} g\left(\left\{\rmS_q\right\}_{q=1}^{\nfactors}, \rvt\right)
+ \eqdef & \sum_{k\in\intint{\nclusters}} \sum_{\substack{n\\t_n = k}} \left\|\rvx_n -\rvv_k\right\|^2 \nonumber \\
+ & + \sum_{q\in\intint{\nfactors}} \delta_{\mathcal{E}_q}(\rmS_q)
+ \label{eq:objective}
 \end{align}
-and where the matrix of centroids is parameterized as
+%\begin{align}
+%\label{eq:qmean_problem}
+% \argmin_{\left\{\rmS_q\right\}_{q=1}^{\nfactors}, \rvt} & g\left(\left\{\rmS_q\right\}_{q=1}^{\nfactors}, \rvt\right)\\
+% \intertext{with}
+%  g\left(\left\{\rmS_q\right\}_{q=1}^{\nfactors}, \rvt\right)&:=  \sum_{k\in\intint{\nclusters}}\sum_{\substack{n\\t_n = k}} \left\|\rvx_n -\rvv_k\right\|^2 + \sum_{q\in\intint{\nfactors}} \delta_{\mathcal{E}_q}(\rmS_q)\label{eq:objective}
+%\end{align}
+where the matrix of centroids is parameterized as
 \begin{equation}
 	\label{eq:centroids}
 	\rmV = \prod_{q\in\intint{\nfactors}}\rmS_q
@@ -125,19 +132,23 @@ We show that each of the assignment and centroid update steps of the algorithm d
 %
 This step minimizes the first term in~\eqref{eq:objective} w.r.t. $\rvt$ while the second term is constant so we have 
 \begin{align*}
-g(\rmS_1^{(\tau-1)}, \ldots,\rmS_\nfactors^{(\tau-1)}, \rvt^{(\tau)}) \leq g(\rmS_1^{(\tau-1)}, \ldots,\rmS_\nfactors^{(\tau-1)}, \rvt^{(\tau-1)}).
+g\left (\left\{\rmS_q^{(\tau-1)}\right\}_{q=1}^{\nfactors}, \rvt^{(\tau)}\right ) \leq g\left (\left\{\rmS_q^{(\tau-1)}\right\}_{q=1}^{\nfactors}, \rvt^{(\tau-1)}\right ).
 \end{align*}
+%\begin{align*}
+%g(\rmS_1^{(\tau-1)}, \ldots,\rmS_\nfactors^{(\tau-1)}, \rvt^{(\tau)}) \leq g(\rmS_1^{(\tau-1)}, \ldots,\rmS_\nfactors^{(\tau-1)}, \rvt^{(\tau-1)}).
+%\end{align*}
 
 \paragraph{Centroids update step (Lines \ref{line:qmeans:compute_means}--\ref{line:qmeans:U}).} We know consider a fixed assignment vector $\rvt$. We first note that for any cluster $k$ with true centroid $\rvu_k$ and approximated centroid $\rvv_k$, we have, by simple calculations
 \begin{align}
     \label{eq:rewrite_assignement}
-	\sum_{n: t_n = k} \norm{\rvx_n -\rvv_k}^2
-%	 & =\sum_{n: t_n = k} \norm{\rvx_n -\rvu_k+\rvu_k-\rvv_k}^2 \notag\\
-%	& = \sum_{n: t_n = k}\left(\norm{\rvx_n-\rvu_k}^2+\norm{\rvu_k-\rvv_k}^2 \right. \notag\\
+	\sum_{\substack{n\\t_n = k}} \norm{\rvx_n -\rvv_k}^2
+%	 & =\sum_{\substack{n\\t_n = k}} \norm{\rvx_n -\rvu_k+\rvu_k-\rvv_k}^2 \notag\\
+%	& = \sum_{\substack{n\\t_n = k}}\left(\norm{\rvx_n-\rvu_k}^2+\norm{\rvu_k-\rvv_k}^2 \right. \notag\\
 %	& \qquad \left. \vphantom{\norm{\rvx_n-\rvu_k}^2+\norm{\rvu_k-\rvv_k}^2} - 2\langle\rvx_n-\rvu_k,\rvu_k-\rvv_k\rangle \right)\notag\\
-%    & = \sum_{n: t_n= k} \norm{\rvx_n-\rvu_k}^2+n_k\norm{\rvu_k-\rvv_k}^2 \notag\\
- %   & \qquad - 2 \left\langle\underbrace{\sum_{n: t_n = k}\left (\rvx_n-\rvu_k\right )}_{=0},\rvu_k-\rvv_k\right\rangle\notag \\
-	&= \sum_{n: t_n = k} \norm{\rvx_n-\rvu_k}^2 + \norm{\sqrt{n_k}\left (\rvu_k-\rvv_k\right )}^2
+%    & = \sum_{\substack{n\\t_n = k}} \norm{\rvx_n-\rvu_k}^2+n_k\norm{\rvu_k-\rvv_k}^2 \notag\\
+ %   & \qquad - 2 \left\langle\underbrace{\sum_{\substack{n\\t_n = k}}\left (\rvx_n-\rvu_k\right )}_{=0},\rvu_k-\rvv_k\right\rangle\notag \\
+%	&= \sum_{\substack{n\\t_n = k}} \norm{\rvx_n-\rvu_k}^2 + \norm{\sqrt{n_k}\left (\rvu_k-\rvv_k\right )}^2
+	&= \sum_{\substack{n\\t_n = k}} \norm{\rvx_n-\rvu_k}^2 + n_k \norm{\rvu_k-\rvv_k}^2
 \end{align}
 
 \todo[inline]{Ajouter le déroulement de l'equation centroids update step dans les supplementary materials}
@@ -147,7 +158,7 @@ For a fixed $\rvt$, the new sparsely-factorized centroids are solutions of the s
 %\begin{align}
 %\begin{split}
 %\argmin_{\rmS_1, \ldots,\rmS_Q} & g(\rmS_1, \ldots,\rmS_Q, \rvt) \\
-%= \argmin_{\rmS_1, \ldots,\rmS_Q} & \sum_{k\in\intint{\nclusters}}  \sum_{n: t_n = k} \norm{\rvx_n - \rvv_k}^2_2 + \sum_{q\in\intint{\nfactors}} \delta_q(\rmS_q) \\
+%= \argmin_{\rmS_1, \ldots,\rmS_Q} & \sum_{k\in\intint{\nclusters}}  \sum_{\substack{n\\t_n = k}} \norm{\rvx_n - \rvv_k}^2_2 + \sum_{q\in\intint{\nfactors}} \delta_q(\rmS_q) \\
 %& \text{ s. t. } \rmV = \prod_{q\in\intint{\nfactors}}{\rmS_q} \nonumber \\
 % \end{split}
 %\end{align}
@@ -168,7 +179,7 @@ where:
  \item $\rmD_{\sqrt{\rvn}} \in \R^{K \times K}$ refers to a diagonal matrix with vector $\sqrt{\rvn}$ on the diagonal;
  \item $\rmU\in \R^{K \times d}$ refers to the unconstrained centroid matrix obtained from the data matrix $\rmX$ and the indicator vector $\rvt$: $\rvu_k \eqdef \frac{1}{n_k}\sum_{n:t_n = k} {\rvx_n}$ (see Line~\ref{line:qmeans:compute_means});
  \item $\rmD_{\sqrt{\rvn}} (\rmU - \rmV)$ is the matrix with $\sqrt{n_k}\left (\rvu_k-\rvv_k\right )$ as $k$-th row;
- \item $c_k \eqdef \sum_{n: t_n = k}\norm{\rvx_n - \rvu_k}$ is constant w.r.t. $ \rmS_1, \ldots,\rmS_Q$;
+ \item $c_k \eqdef \sum_{\substack{n\\t_n = k}}\norm{\rvx_n - \rvu_k}$ is constant w.r.t. $ \rmS_1, \ldots,\rmS_Q$;
  \item $\rmA \eqdef \rmD_{\sqrt{\rvn}} \rmU$ is the unconstrained centroid matrix reweighted by the size of each cluster (see Line~\ref{line:qmeans:A}).
 \end{itemize}
 

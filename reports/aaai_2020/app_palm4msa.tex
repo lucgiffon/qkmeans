@@ -98,7 +98,7 @@ In particular, the running times of fast operators of the form $\prod_{q\in\inti
 as shown in Figure~\ref{fig:time_csr}, they are significantly faster than dense operators -- implemented as a \texttt{numpy.ndarray} matrix --, especially when the data size is larger than $10^3$.
 \begin{figure}[tbh]
 \centering
-\includegraphics[width=.5\textwidth]{RunningTime4VaryingSparsity.png}
+\includegraphics[width=.47\textwidth]{RunningTime4VaryingSparsity.png}
 \caption{Running times, averaged over 30 runs, when applying dense or fast $\datadim \times \datadim$ operators to a set of 100 random vectors. The number of factors in fast operators equals $\log_2\left (\datadim\right )$ and the sparsity level denotes the number of non-zero coefficients per row and per column in each factor.}
 \label{fig:time_csr}
 \end{figure}
