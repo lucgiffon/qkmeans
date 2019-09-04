@@ -119,13 +119,13 @@ as shown in Figure~\ref{fig:time_csr}, they are significantly faster than dense 
 \end{subfigure}
 \begin{subfigure}[t]{.49\textwidth}
 \includegraphics[width=\textwidth]{mnist30_hqkmeans_centroids.png}
-\caption{Hierarchical-\palm \qkmeans centroids.}
-\label{fig:mnist:hqkmeans:centroids}
+\caption{Hierarchical-\palm \qkmeans centers.}
+\label{fig:mnist:hqkmeans:centers}
 \end{subfigure}
 \begin{subfigure}[t]{.49\textwidth}
 \includegraphics[width=\textwidth]{fashmnist30_hqkmeans_centroids.png}
-\caption{Hierarchical-\palm \qkmeans centroids.}
-\label{fig:fmnist:hqkmeans:centroids}
+\caption{Hierarchical-\palm \qkmeans centers.}
+\label{fig:fmnist:hqkmeans:centers}
 \end{subfigure}
 \caption{Clustering results on MNIST (left) and Fashion-MNIST (right) for $\nclusters=30$ clusters and comparison with hierarchical version.}
 \end{figure*}
@@ -161,6 +161,6 @@ as shown in Figure~\ref{fig:time_csr}, they are significantly faster than dense 
 \caption{\texttt{Fashion-MNIST}: Nyström inference time.}
 \label{fig:fashmnist:nystrom_time}
 \end{subfigure}
-\caption{Nystr\"om approximation results: accuracy (left) and running times (right). The uniform sampling based Nyström approximation running times are not displayed because they are the same as for the Nyström approximation based on \kmeans centroids. Every experiment results are averaged over 5 runs. The vertical black lines are the standard deviation w.r.t. the runs.}
+\caption{Nystr\"om approximation results: accuracy (left) and running times (right). The uniform sampling based Nyström approximation running times are not displayed because they are the same as for the Nyström approximation based on \kmeans centers. Every experiment results are averaged over 5 runs. The vertical black lines are the standard deviation w.r.t. the runs.}
 \label{fig:nystrom}
 \end{figure*}

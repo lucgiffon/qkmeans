@@ -15,9 +15,9 @@ To  assist  the  reading,  we  list  the notations used in the paper in Table~\r
 
 \subsection{\kmeans}
 \label{sec:kmeans}
-The \kmeans problem is that of partitioning a set $\rmX=\{\rvx_1,\ldots,\rvx_N\}$ of $N$  vectors $\rvx_n\in\R^{\datadim}$ into a predefined number $\nclusters$ of clusters
-with the aim of minimizing the distance between each $\rvx_n$ to the center $\rvu_k\in\R^{D}$
-of the cluster $k$ it belongs to ---center $\rvu_k$ is the
+The \kmeans problem aims to partition a set $\rmX=\{\rvx_1,\ldots,\rvx_N\}$ of $N$  vectors $\rvx_n\in\R^{\datadim}$ into a predefined number $\nclusters$ of clusters
+by minimizing the distance between each $\rvx_n$ to the center $\rvu_k\in\R^{D}$
+of the cluster $k$ it belongs to ---the optimal center $\rvu_k$ is the
  mean vector of the points assigned to cluster $k$.
 The optimization problem of \kmeans is
 \begin{equation}
@@ -29,7 +29,7 @@ if $t_n=k$.
 
 
 \paragraph{Lloyd's algorithm (a.k.a. \kmeans algorithm).} The most popular procedure to (approximately) 
-solve the \kmeans problem is Lloyd's algorithm, which is referred to as the \kmeans algorithm in the litterature as well as in this paper.
+solve the \kmeans problem is Lloyd's algorithm, which is often referred to as the \kmeans algorithm in the litterature as well as in this paper.
 It alternates between
 i) an assignment step that decides the current cluster to which each point $\rvx_n$
 belongs and ii) a reestimation step which refines the cluster centers.
@@ -53,14 +53,15 @@ After an initialization of the set $\rmU^{(0)}$ of $\nclusters$
 where $n_k^{(\tau)}\eqdef |\{n: t^{(\tau)}_n=k\}|$ is the number of points in cluster $k$
 at time $\tau$ and $\hat{\rvx}_k(\rvt)$ is the mean vector of the elements of cluster $k$ according to assignment $\rvt$. 
 
-\paragraph{Complexity of Lloyd's algorithm.} The assignment step \eqref{eq:assignment_problem_kmeans} costs $\mathcal{O}(\nexamples\datadim\nclusters)$ operations while the update of the centers~\eqref{eq:center_update} costs $\mathcal{O}\left (\nexamples\datadim\right )$ operations. Hence, the bottleneck of the overall time complexity $\mathcal{O}(\nexamples\datadim\nclusters)$ stems from the assignment step. Once the clusters have been defined, assigning $\nexamples'$ new points to these clusters is performed via \eqref{eq:assignment_problem_kmeans} at the cost of $\mathcal{O}\left (\nexamples'\datadim\nclusters \right )$ operations.
+\paragraph{Complexity of Lloyd's algorithm.} The assignment step~\eqref{eq:assignment_problem_kmeans} costs $\mathcal{O}(\nexamples\datadim\nclusters)$ operations while the update of the centers~\eqref{eq:center_update} costs $\mathcal{O}\left (\nexamples\datadim\right )$ operations. Hence, the bottleneck of the overall time complexity $\mathcal{O}(\nexamples\datadim\nclusters)$ stems from the assignment step. Once the clusters have been defined, assigning $\nexamples'$ new points to these clusters is performed via \eqref{eq:assignment_problem_kmeans} at the cost of $\mathcal{O}\left (\nexamples'\datadim\nclusters \right )$ operations.
 
-SAY SOMEWHERE: From now on, with some abuse of notation, we will use the term
-\kmeans algorithm to refert to Lloyd's algorithm. 
+%SAY SOMEWHERE: From now on, with some abuse of notation, we will use the term
+%\kmeans algorithm to refert to Lloyd's algorithm. 
+% Done (beginning of the Lloyd's algorithm paragraph)
 
-Our main contribution rests on the idea that \eqref{eq:assignment_problem_kmeans} may be computed more efficiently by approximating $\rmU$ as a {\em fast operator}.
+Our main contribution rests on the idea that \eqref{eq:assignment_problem_kmeans} may be computed more efficiently by learning an approximation of $\rmU$ equiped with a fast-transform structure.
 
-WATCH: operator vs transform... 
+\todo[inline]{WATCH: operator vs transform... }
 
 \subsection{Fast Transforms as Products of Sparse Matrices}
 \label{sec:palm4msa}

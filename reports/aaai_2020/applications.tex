@@ -33,7 +33,7 @@ While more efficient implementations may be beneficial for larger deployment, ou
 
 \paragraph{Datasets.}
 We present results on real-world and toy datasets summarized in supplementary material (Table \ref{table:data}) \addLG{Comment faire référence au supplementary material}. On the one hand, the real world datasets \texttt{MNIST}~\cite{lecun-mnisthandwrittendigit-2010} and \texttt{Fashion-Mnist}~\cite{Pedregosa2011Scikit} %and \texttt{Labeled Faces in the Wild}~\cite{Huang07e.:labeled} (\texttt{LFW}) 
-are used to show --- quantitatively and qualitatively --- the good quality of the obtained centroids when using our method \qkmeans. On the other hand, we use the \texttt{blobs} synthetic dataset from \texttt{sklearn.dataset} to show the speed up offered by our method \qkmeans when the number of clusters and the dimensionality of the data are sufficiently large.
+are used to show --- quantitatively and qualitatively --- the good quality of the obtained centers when using our method \qkmeans. On the other hand, we use the \texttt{blobs} synthetic dataset from \texttt{sklearn.dataset} to show the speed up offered by our method \qkmeans when the number of clusters and the dimensionality of the data are sufficiently large.
 %The code of our method \qkmeans is available on request and will be available online soon. \addLG{je serais d'avis de ne pas dire ça mais soit de dire qu'il est déjà disponible, soit de ne rien dire. Sachant qu'on ne peut pas dire qu'il est déjà disponible en ligne avant le processus de reviewing}
 
 
@@ -60,7 +60,9 @@ Since the projection onto this set of structured-sparsity constraints may be com
 The actual number of non-zero coefficients in the sparse factors is measured at the end of the optimization process and reported in the results.
 The sparse factors are updated using the \palm rather than its hierarchical version, since we observed that this was a better choice in terms of computational cost, with satisfying approximation results (See Figure~\ref{fig:mnist:objfun}~and~\ref{fig:fmnist:objfun}).
 Additional details about \palm are given in Appendix~\ref{sec:app:palm4msa}.
-The stopping criterion of \kmeans and \qkmeans consists of a tolerance set to $10^{-6}$ on the relative variation of the objective function and a maximum number of iterations set to 10 for the \texttt{Blobs}dataset and to 20 for others. The same principle governs the stopping criterion of \palm with a tolerance set to $10^{-6}$ and a maximum number of iterations set to 300. Each experiment have been replicated using different seed values for random initialisation. Competing techniques share the same seed values, hence share the same initialisation of centroids.
+The stopping criterion of \kmeans and \qkmeans consists of a tolerance set to $10^{-6}$ on the relative variation of the objective function and a maximum number of iterations set to 10 for the \texttt{Blobs} dataset and to 20 for others. 
+The same principle governs the stopping criterion of \palm with a tolerance set to $10^{-6}$ and a maximum number of iterations set to 300. Each experiment have been replicated using different seed values for random initialisation. 
+Competing techniques share the same seed values, hence share the same initialisation of centers.
 
 %\subsection{Sparse factors multiplication}
 %
@@ -84,39 +86,39 @@ The stopping criterion of \kmeans and \qkmeans consists of a tolerance set to $1
 \end{subfigure}
 \begin{subfigure}[t]{.49\textwidth}
 \includegraphics[width=\textwidth]{mnist30_kmeans_centroids.png}
-\caption{\kmeans centroids.}
-\label{fig:mnist:kmeans:centroids}
+\caption{\kmeans centers.}
+\label{fig:mnist:kmeans:centers}
 \end{subfigure}
 \begin{subfigure}[t]{.49\textwidth}
 \includegraphics[width=\textwidth]{fashmnist30_kmeans_centroids.png}
-\caption{\kmeans centroids.}
-\label{fig:fmnist:kmeans:centroids}
+\caption{\kmeans centers.}
+\label{fig:fmnist:kmeans:centers}
 \end{subfigure}
 \begin{subfigure}[t]{.49\textwidth}
 \includegraphics[width=\textwidth]{mnist30_qkmeans_centroids.png}
-\caption{\qkmeans centroids.}
-\label{fig:mnist:qkmeans:centroids}
+\caption{\qkmeans centers.}
+\label{fig:mnist:qkmeans:centers}
 \end{subfigure}
 \begin{subfigure}[t]{.49\textwidth}
 \includegraphics[width=\textwidth]{fashmnist30_qkmeans_centroids.png}
-\caption{\qkmeans centroids.}
-\label{fig:fmnist:qkmeans:centroids}
+\caption{\qkmeans centers.}
+\label{fig:fmnist:qkmeans:centers}
 \end{subfigure}
 % \begin{subfigure}[t]{.49\textwidth}
 % \includegraphics[width=\textwidth]{mnist30_hqkmeans_centroids.png}
-% \caption{Hierarchical-\palm \qkmeans centroids.}
-% \label{fig:mnist:hqkmeans:centroids}
+% \caption{Hierarchical-\palm \qkmeans centers.}
+% \label{fig:mnist:hqkmeans:centers}
 % \end{subfigure}
 % \begin{subfigure}[t]{.49\textwidth}
 % \includegraphics[width=\textwidth]{fashmnist30_hqkmeans_centroids.png}
-% \caption{Hierarchical-\palm \qkmeans centroids.}
-% \label{fig:fmnist:hqkmeans:centroids}
+% \caption{Hierarchical-\palm \qkmeans centers.}
+% \label{fig:fmnist:hqkmeans:centers}
 % \end{subfigure}
 \caption{Clustering results on MNIST (left) and Fashion-MNIST (right) for $\nclusters=30$ clusters.}
 \label{fig:clustering:realdata}
 \end{figure*}
 
-\todo[inline]{Pour gagner de la place facilement: mettre les centroides en 6x5 et faire une ligne MNIST avec courbes et le 2 jeux de centroides, puis une autre ligne de figures avec les courbes Fashion-MNIST et les 2 jeux de centroides}
+\todo[inline]{Pour gagner de la place facilement: mettre les centeres en 6x5 et faire une ligne MNIST avec courbes et le 2 jeux de centeres, puis une autre ligne de figures avec les courbes Fashion-MNIST et les 2 jeux de centeres}
 
 \paragraph{Approximation quality.} One important question is the ability of the fast-structure model to fit arbitrary data.
 Indeed, no theoretical result about the expressivity of such models is currently available.
@@ -127,13 +129,13 @@ In particular, the use of the fast-structure model does not seem to increase the
 At the end of the iterations, the value of objective function for \qkmeans is slightly above that of \kmeans.
 As expected, the sparser the model, the more degradation in the objective function.
 However, even very sparse models do not degrade the results significantly. These Figures also demonstrate the convergence property of the \qkmeans algorithm when using the standard, proved convergent, \textit{Palm4MSA} algorithm: in this case, the objective function is always non-increasing whereas the \qkmeans version with \textit{Hiearchical Palm4MSA}, not guaranteed to converge, suffers a small bump in its objective function (see Figure~\ref{fig:fmnist:objfun} iteration~6).
-The approximation quality can be assessed visually, in a more subjective and interpretable way, in Figures~\ref{fig:mnist:kmeans:centroids} to~\ref{fig:fmnist:hqkmeans:centroids} where the obtained centroids are displayed as images.
+The approximation quality can be assessed visually, in a more subjective and interpretable way, in Figures~\ref{fig:mnist:kmeans:centers} to~\ref{fig:fmnist:hqkmeans:centers} where the obtained centers are displayed as images.
 Although some degradation may be observed in some images, one can note that each image obtained with \qkmeans clearly represents a single visual item without noticeable interference with other items.
 
 \paragraph{Clustering assignation times.}
 Higher dimensions are required to assess the computational benefits of the proposed approach, as shown here.
 The assignation times of the clustering procedure were measured on the \texttt{Blobs} dataset.
-The centroid matrices are with shape $\nclusters \times \datadim$ with $\datadim=2000$  and $\nclusters\in\left \lbrace 128, 256, 512\right \rbrace$.
+The center matrices are with shape $\nclusters \times \datadim$ with $\datadim=2000$  and $\nclusters\in\left \lbrace 128, 256, 512\right \rbrace$.
 Results reported in Figure~\ref{fig:clustering:blobs:assignation_time} show that in this setting and with the current implementation, the computational advantage of \qkmeans is observed in high dimension, for $\nclusters=256$ and $\nclusters=512$ clusters. It is worth noticing that when $K$ increases, the running times are not affected that much for \qkmeans while it significantly grows for \kmeans. These trends are directly related to the number of model parameters that are reported in the figure.
 
 
@@ -150,10 +152,11 @@ Results reported in Figure~\ref{fig:clustering:blobs:assignation_time} show that
 \subsection{Nearest-neighbor search in a large dataset}
 The Nearest-neighbor search is a fundamental task that suffers from computational limitations when the dataset is large.
 Fast strategies have been proposed, e.g., using kd trees or ball trees.
-One may also use a clustering strategy to perform an approximate nearest-neighbor search: the query is first compared to $\nclusters$ centroids computed beforehand by clustering the whole dataset, and the nearest neighbor search is then performed among a lower number of data points, within the related cluster.
+One may also use a clustering strategy to perform an approximate nearest-neighbor search: the query is first compared to $\nclusters$ centers computed beforehand by clustering the whole dataset, and the nearest neighbor search is then performed among a lower number of data points, within the related cluster.
 We compare this strategy using \kmeans and \qkmeans against the \texttt{scikit-learn} implementation~\cite{Pedregosa2011Scikit} of the nearest-neighbor search (brute force search, kd tree, ball tree).
 Inference time results on the \texttt{Blobs} dataset are reported in Figure~\ref{fig:nn:blobs} and accuracy results are displayed in Table~\ref{table:results_blobs}. 
 % As shown in Figure~\ref{fig:nn:blobs:accuracy}, the accuracy of the approximate nearest neighbor search is above $0.99$ \todo{Accuracy $>0.99$ to be checked} for all the tested variants of \qkmeans, which is an solid evidence about the reliability of the approach.
+The results for the Brute Force Search, KD Tree and Ball Tree are not available in Table~\ref{table:results_blobs} and in Figure~\ref{fig:nn:blobs} because they were longer than 10 times the \kmeans search version.
 The running times reported in Figure~\ref{fig:nn:blobs} show a dramatic advantage of using a clustering-based approximate search 
 %\todo{to be completed by reporting the actual acceleration ratio obtained by \qkmeans over the three sklearn options.} 
 and this advantage is even stronger with the clustering obtained by our \qkmeans method. This speed-up comes at a cost though, we can see a drop in classification performance in Table~\ref{table:results_blobs}. 
@@ -162,7 +165,7 @@ and this advantage is even stronger with the clustering obtained by our \qkmeans
 \centering
 \includegraphics[width=.45\textwidth]{blobs_1nn_inference_time.png}
 \label{fig:nn:blobs:times}
-\caption{Running time of nearest neighbor search on blobs data. Results are averaged over 5 runs (vertical lines: standard deviation) and the average number of parameters actually learned is reported above each bar. The results for the Brute Force Search, KD Tree and Ball Tree are not displayed because they were longer than 10 times the K-means search version.}
+\caption{Running time of nearest neighbor search on blobs data. Results are averaged over 5 runs (vertical lines: standard deviation) and the average number of parameters actually learned is reported above each bar.}
 \label{fig:nn:blobs}
 \end{figure}
 
@@ -217,11 +220,10 @@ Nyström QK-means + SVM 30 Clusters &  0.77  & 0.88  \\ \bottomrule
 \label{table:results_mnist_fmnist}
 \end{subtable}
 \end{adjustbox}
-\caption{Classification task: results averaged over 5 runs. For \qkmeans, only results with sparsity level~5 are displayed. ``N/A'' denotes experiments that did not finish. }
+\caption{Classification task: results averaged over 5 runs. For \qkmeans, only results with sparsity level~5 are displayed.}
 \end{table*}
 
 \todo[inline]{ajouter les stds dans les tableaux et reformater les tableaux -- je ne sais pas encore comment... mais une fois fait, plus de problèmes.}
-\todo[inline]{Dans le caption de Table 2, préciser pour quoi  certaines expériences n'ont pas terminé (out of xxx time limit).}
 
 \subsection{Nyström approximation}
 
@@ -280,7 +282,7 @@ The top part shows the approximation error of the Nyström approximation based o
  error = \frac{||\rmK - \tilde\rmK||_F}{||\rmK||_F}.
 \end{equation}
 
-The \qkmeans approach gives better reconstruction error than the Nyström method based on uniform sampling although it is slightly worse than the one obtained with the regular \kmeans centroids. We see that that the difference in approximation error between \kmeans and \qkmeans is almost negligible when compared to the approximation error obtained with the uniform sampling scheme.
+The \qkmeans approach gives better reconstruction error than the Nyström method based on uniform sampling although it is slightly worse than the one obtained with the regular \kmeans centers. We see that that the difference in approximation error between \kmeans and \qkmeans is almost negligible when compared to the approximation error obtained with the uniform sampling scheme.
 
 From a more practical point of view, we show in Table~\ref{table:results_blobs} and Table~\ref{table:results_mnist_fmnist} that the Nyström approximation based on \qkmeans can then be used in a linear SVM and achieve as good performance as the one based on the \kmeans approach.
 
@@ -300,7 +302,7 @@ From a more practical point of view, we show in Table~\ref{table:results_blobs} 
 \bottomrule
 \end{tabular}}
 \caption{
-Nystr\"om approximation results: reconstruction error and running times for landmark selection methods based on either \kmeans, \qkmeans or uniform sampling. The \qkmeans results are obtained with sparse factors with at least 2 values in each line and each column. The uniform sampling based Nyström approximation running times are not displayed because they are the same as for the Nyström approximation based on \kmeans centroids. Every experiment results are averaged over 5 runs. The standard deviation for the reconstruction error are not displayed because they are lower than $0.005$. Best results are bold while second best are underlined.}
+Nystr\"om approximation results: reconstruction error and running times for landmark selection methods based on either \kmeans, \qkmeans or uniform sampling. The \qkmeans results are obtained with sparse factors with at least 2 values in each line and each column. The uniform sampling based Nyström approximation running times are not displayed because they are the same as for the Nyström approximation based on \kmeans centers. Every experiment results are averaged over 5 runs. The standard deviation for the reconstruction error are not displayed because they are lower than $0.005$. Best results are bold while second best are underlined.}
 \label{tab:nystrom}
 \end{table*}
 \todo[inline]{add uniform sampling results to this table}

@@ -1,17 +1,17 @@
 %!TEX root=aaai2020_qmeans.tex
 
-\section{QuicK-means}
+\section{\texttt{QuicK-means}}
 \label{sec:contribution}
 
 We here introduce our main contribution, \texttt{QuicK-means} (abbreviated by \qkmeans), 
 show its convergence property and analyze its computational complexity.
 
-WATCH: CENTROIDS vs CENTERS... We have specified that we would consider
-centers from the get-go...
+\todo[inline]{WATCH: CENTROIDS vs CENTERS... We have specified that we would consider
+centers from the get-go...}
 
 \subsection{\qkmeans: Encoding Centroids as Products of Sparse Matrices}
 
-\texttt{QuicK-means} is a variant of the \kmeans algorithm in which the matrix of centroids $\rmU$
+\texttt{QuicK-means} is a variant of the \kmeans algorithm in which the matrix of centers $\rmU$
 is approximated as a product $\rmV=\prod_{\in\intint{\nfactors}}\rmS_q$ of sparse matrices $\rmS_q$.
 Doing so will allow us to cope with the computational bulk imposed by the product $\rmU\rvx$
 ---obtained by a simple rewriting of~\eqref{eq:assignment_problem_kmeans}--- that shows up in the cluster assignment 
@@ -33,18 +33,18 @@ writes:
 % \intertext{with}
 %  g\left(\left\{\rmS_q\right\}_{q=1}^{\nfactors}, \rvt\right)&:=  \sum_{k\in\intint{\nclusters}}\sum_{\substack{n\\t_n = k}} \left\|\rvx_n -\rvv_k\right\|^2 + \sum_{q\in\intint{\nfactors}} \delta_{\mathcal{E}_q}(\rmS_q)\label{eq:objective}
 %\end{align}
-where the matrix of centroids is parameterized as
+where the matrix of centers is parameterized as
 \begin{equation}
-	\label{eq:centroids}
+	\label{eq:centers}
 	\rmV = \prod_{q\in\intint{\nfactors}}\rmS_q
 \end{equation}
 
 %
-This is a (???) regularized ()???)  version of the \kmeans optimization problem~\eqref{eq:kmean_problem} in which centroids $\rvv_k$ are constrained to form a matrix $\rmV$ with a fast-operator structure, the indicator functions $\delta_{\mathcal{E}_q}$ imposing the sparsity of matrices $\rmS_q$.
+This is a \todo{(???)} regularized \todo{()???)}  version of the \kmeans optimization problem~\eqref{eq:kmean_problem} in which centers $\rvv_k$ are constrained to form a matrix $\rmV$ with a fast-operator structure, the indicator functions $\delta_{\mathcal{E}_q}$ imposing the sparsity of matrices $\rmS_q$.
 More details on the modeling choices are given in the experimental part. % in section~\ref{sec:uses:settings}.
 
 This problem can be solved using Algorithm~\ref{algo:qmeans},
-which proceeds in a similar way as Lloyd's algorithm by alternating an assignment step at line \ref{line:qmeans:assignment} and an update of the centroids at lines~\ref{line:qmeans:compute_means}--\ref{line:qmeans:U}. The assignment step can be computed efficiently thanks to the fast-structure of $\rmV$. The update of the centroids relies on learning a fast-structure operator $\rmV$ that approximate of the true centroid matrix $\rmU$ weighted by the number of examples $n_k$ assigned to each cluster $k$.
+which proceeds in a similar way as Lloyd's algorithm by alternating an assignment step at line \ref{line:qmeans:assignment} and an update of the centers at lines~\ref{line:qmeans:compute_means}--\ref{line:qmeans:U}. The assignment step can be computed efficiently thanks to the fast-structure of $\rmV$. The update of the centers relies on learning a fast-structure operator $\rmV$ that approximate of the true center matrix $\rmU$ weighted by the number of examples $n_k$ assigned to each cluster $k$.
 
 
 \begin{algorithm*}[t]
@@ -83,7 +83,7 @@ with $n_k \eqdef |\{n: t_n^{(\tau)}=k\}|$
 \iffalse
 \begin{remark}[Assignment/Re-estimation trade-off.]
 A strategy to tackle this problem would be to first run the vanilla K-means algorithm,
- obtain the matrix of centroids $U$ and then encode $U$ as a product of sparse matrices
+ obtain the matrix of centers $U$ and then encode $U$ as a product of sparse matrices
  using Hierarchical Palm4MSA. This would however prevent us from taking advantage of 
  the expected low complexity product that plays a role in the assignement step of 
  the procedure.
@@ -121,7 +121,7 @@ which guarantees the convergence (CHECK THAT STATEMENT).
 
 
 \begin{proof}
-We show that each of the assignment and centroid update steps of the algorithm does not increase the overall objective. 
+We show that each of the assignment and center update steps of the algorithm does not increase the overall objective. 
 
 \paragraph{Assignment step (Line \ref{line:qmeans:assignment})} For a fixed $\rmV^{(\tau-1)}$, the optimization problem at Line \ref{line:qmeans:assignment} is separable for each example indexed by $n \in \intint{\nexamples}$ and the new indicator vector $\rvt^{(\tau)}$ is thus defined as:
 %
@@ -138,7 +138,7 @@ g\left (\left\{\rmS_q^{(\tau-1)}\right\}_{q=1}^{\nfactors}, \rvt^{(\tau)}\right 
 %g(\rmS_1^{(\tau-1)}, \ldots,\rmS_\nfactors^{(\tau-1)}, \rvt^{(\tau)}) \leq g(\rmS_1^{(\tau-1)}, \ldots,\rmS_\nfactors^{(\tau-1)}, \rvt^{(\tau-1)}).
 %\end{align*}
 
-\paragraph{Centroids update step (Lines \ref{line:qmeans:compute_means}--\ref{line:qmeans:U}).} We know consider a fixed assignment vector $\rvt$. We first note that for any cluster $k$ with true centroid $\rvu_k$ and approximated centroid $\rvv_k$, we have, by simple calculations
+\paragraph{Centers update step (Lines \ref{line:qmeans:compute_means}--\ref{line:qmeans:U}).} We know consider a fixed assignment vector $\rvt$. We first note that for any cluster $k$ with true center $\rvu_k$ and approximated center $\rvv_k$, we have, by simple calculations
 \begin{align}
     \label{eq:rewrite_assignement}
 	\sum_{\substack{n\\t_n = k}} \norm{\rvx_n -\rvv_k}^2
@@ -151,9 +151,9 @@ g\left (\left\{\rmS_q^{(\tau-1)}\right\}_{q=1}^{\nfactors}, \rvt^{(\tau)}\right 
 	&= \sum_{\substack{n\\t_n = k}} \norm{\rvx_n-\rvu_k}^2 + n_k \norm{\rvu_k-\rvv_k}^2
 \end{align}
 
-\todo[inline]{Ajouter le déroulement de l'equation centroids update step dans les supplementary materials}
+\todo[inline]{Ajouter le déroulement de l'equation centers update step dans les supplementary materials}
 
-For a fixed $\rvt$, the new sparsely-factorized centroids are solutions of the subproblem $\argmin_{\rmS_1, \ldots,\rmS_Q} g(\rmS_1, \ldots,\rmS_Q, \rvt)$ which can be rewritten thanks to~\eqref{eq:rewrite_assignement}:
+For a fixed $\rvt$, the new sparsely-factorized centers are solutions of the subproblem $\argmin_{\rmS_1, \ldots,\rmS_Q} g(\rmS_1, \ldots,\rmS_Q, \rvt)$ which can be rewritten thanks to~\eqref{eq:rewrite_assignement}:
 %
 %\begin{align}
 %\begin{split}
@@ -177,10 +177,10 @@ where:
 \begin{itemize}
  \item $\sqrt{\rvn} \in \R^{\nclusters}$ is the pair-wise square root of the vector indicating the number of observations $n_k \eqdef \left | \left \lbrace n: t_n = k\right \rbrace \right |$  in each cluster $k$;
  \item $\rmD_{\sqrt{\rvn}} \in \R^{K \times K}$ refers to a diagonal matrix with vector $\sqrt{\rvn}$ on the diagonal;
- \item $\rmU\in \R^{K \times d}$ refers to the unconstrained centroid matrix obtained from the data matrix $\rmX$ and the indicator vector $\rvt$: $\rvu_k \eqdef \frac{1}{n_k}\sum_{n:t_n = k} {\rvx_n}$ (see Line~\ref{line:qmeans:compute_means});
- \item $\rmD_{\sqrt{\rvn}} (\rmU - \rmV)$ is the matrix with $\sqrt{n_k}\left (\rvu_k-\rvv_k\right )$ as $k$-th row;
+ \item $\rmU\in \R^{K \times d}$ refers to the unconstrained center matrix obtained from the data matrix $\rmX$ and the indicator vector $\rvt$: $\rvu_k \eqdef \frac{1}{n_k}\sum_{n:t_n = k} {\rvx_n}$ (see Line~\ref{line:qmeans:compute_means});
+ \item $\rmD_{\sqrt{\rvn}} (\rmU - \rmV)$ is the matrix with $\sqrt{n_k}\left (\rvu_k-\rvv_k\right )$ as row~$k$;
  \item $c_k \eqdef \sum_{\substack{n\\t_n = k}}\norm{\rvx_n - \rvu_k}$ is constant w.r.t. $ \rmS_1, \ldots,\rmS_Q$;
- \item $\rmA \eqdef \rmD_{\sqrt{\rvn}} \rmU$ is the unconstrained centroid matrix reweighted by the size of each cluster (see Line~\ref{line:qmeans:A}).
+ \item $\rmA \eqdef \rmD_{\sqrt{\rvn}} \rmU$ is the unconstrained center matrix reweighted by the size of each cluster (see Line~\ref{line:qmeans:A}).
 \end{itemize}
 
 We note that the problem~\eqref{eq:qmeans_problem_t_fixed} has exactly the form of~\eqref{eq:palm4msa} hence the \palm algorithm or its hierarchical variant is applied to obtain an approximation of $\rmA$ in a local minimum, as in Line~\ref{line:qmeans:S}. The first factor $\rmS_0$ is forced to equal $\rmD_{\sqrt{\rvn}}$ by setting $\mathcal{E}_0$ to a singleton at Line~\ref{line:qmeans:E0}. Using the previous estimates $\left \lbrace \rmS_q^{(\tau-1)}\right \rbrace_{q\in\intint{\nfactors}}$ to initialize this local minimization, we thus obtain that $g(\rmS_1^{(\tau)}, \ldots,\rmS_\nfactors^{(\tau)}, \rvt^{(\tau)}) \leq g(\rmS_1^{(\tau-1)}, \ldots,\rmS_\nfactors^{(\tau-1)}, \rvt^{(\tau)})$.
@@ -198,9 +198,7 @@ g\left (\rmS_1^{(\tau)}, \ldots,\rmS_\nfactors^{(\tau)}, \rvt^{(\tau)}\right ) &
 & \leq g\left (\rmS_1^{(\tau-1)}, \ldots,\rmS_\nfactors^{(\tau-1)}, \rvt^{(\tau-1)}\right ) \\
 & \leq \ldots \leq g\left (\rmS_1^{(0)}, \ldots,\rmS_\nfactors^{(0)}, \rvt^{(0)}\right )
 \end{align*}
-
-~\\
-; which is a sufficient condition to assert the Algorithm~\ref{algo:qmeans} is a \textit{convergent} alternating algorithm.
+which is a sufficient condition to assert the Algorithm~\ref{algo:qmeans} is a \textit{convergent} alternating algorithm.
 
 \end{proof}
 
