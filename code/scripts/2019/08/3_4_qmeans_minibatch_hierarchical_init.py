@@ -58,7 +58,10 @@ import daiquiri
 import sys
 import time
 import numpy as np
+from sklearn.kernel_approximation import Nystroem
+from sklearn.metrics.pairwise import rbf_kernel
 from pyqalm.data_structures import SparseFactors
+from pyqalm.kernel.kernel import special_rbf_kernel, nystrom_transformation, prepare_nystrom
 from pyqalm.palm.qalm_fast import hierarchical_palm4msa, palm4msa
 from pyqalm.qk_means.kmeans_minibatch import kmeans_minibatch
 from pyqalm.qk_means.qmeans_minibatch import qkmeans_minibatch
@@ -362,37 +365,6 @@ def make_1nn_evaluation(x_train, y_train, x_test, y_test, U_centroids, indicator
             signal.alarm(0)  # stop alarm for next evaluation
 
 
-def special_rbf_kernel(X, Y, gamma, norm_X, norm_Y):
-    """
-    Rbf kernel expressed under the form f(x)f(u)f(xy^T)
-
-    Can handle X and Y as Sparse Factors.
-
-    :param X: n x d matrix
-    :param Y: n x d matrix
-    :return:
-    """
-    assert len(X.shape) == len(Y.shape) == 2
-
-    if norm_X is None:
-        norm_X = get_squared_froebenius_norm_line_wise(X)
-    if norm_Y is None:
-        norm_Y = get_squared_froebenius_norm_line_wise(Y)
-
-    def f(norm_mat):
-        return np.exp(-gamma * norm_mat)
-
-    def g(scal):
-        return np.exp(2 * gamma * scal)
-
-    if isinstance(X, SparseFactors) and isinstance(Y, SparseFactors):
-        # xyt = SparseFactors(X.get_list_of_factors() + Y.transpose().get_list_of_factors()).compute_product(return_array=True)
-        S = SparseFactors(lst_factors=X.get_list_of_factors() + Y.get_list_of_factors_H(), lst_factors_H=X.get_list_of_factors_H() + Y.get_list_of_factors())
-        xyt = S.compute_product(return_array=True)
-    else:
-        xyt = X @ Y.transpose()
-
-    return f(norm_X).reshape(-1, 1) * g(xyt) * f(norm_Y).reshape(1, -1)
 
 def make_nystrom_evaluation(x_train, y_train, x_test, y_test, U_centroids):
     """
@@ -406,17 +378,6 @@ def make_nystrom_evaluation(x_train, y_train, x_test, y_test, U_centroids):
 
     :return:
     """
-    def prepare_nystrom(landmarks, landmarks_norm):
-        basis_kernel_W = special_rbf_kernel(landmarks, landmarks, gamma, landmarks_norm, landmarks_norm)
-        U, S, V = np.linalg.svd(basis_kernel_W)
-        S = np.maximum(S, 1e-12)
-        normalization_ = np.dot(U / np.sqrt(S), V)
-
-        return normalization_
-
-    def nystrom_transformation(x_input, landmarks, p_metric, landmarks_norm, x_input_norm):
-        nystrom_embedding = special_rbf_kernel(landmarks, x_input, gamma, landmarks_norm, x_input_norm).T @ p_metric
-        return nystrom_embedding
 
     n_sample = paraman["--nystrom"]
     if n_sample > x_train.shape[0]:
@@ -445,7 +406,7 @@ def make_nystrom_evaluation(x_train, y_train, x_test, y_test, U_centroids):
     # nystrom build time is Nystrom preparation time for later use.
     ## START
     nystrom_build_start_time = time.process_time()
-    metric = prepare_nystrom(U_centroids, centroids_norm)
+    metric = prepare_nystrom(U_centroids, centroids_norm, gamma=gamma)
     nystrom_build_stop_time = time.process_time()
     log_memory_usage("Memory after SVD computation in make_nystrom_evaluation")
     # STOP
@@ -455,7 +416,7 @@ def make_nystrom_evaluation(x_train, y_train, x_test, y_test, U_centroids):
     # Nystrom inference time is the time for Nystrom transformation for all the samples.
     ## START
     nystrom_inference_time_start = time.process_time()
-    nystrom_embedding = nystrom_transformation(sample, U_centroids, metric, centroids_norm, samples_norm)
+    nystrom_embedding = nystrom_transformation(sample, U_centroids, metric, centroids_norm, samples_norm, gamma=gamma)
     nystrom_approx_kernel_value = nystrom_embedding @ nystrom_embedding.T
     nystrom_inference_time_stop = time.process_time()
     log_memory_usage("Memory after kernel matrix approximation in make_nystrom_evaluation")
@@ -474,10 +435,10 @@ def make_nystrom_evaluation(x_train, y_train, x_test, y_test, U_centroids):
     uniform_sample_norm = None
     log_memory_usage("Memory after uniform sample selection in make_nystrom_evaluation")
 
-    metric_uniform = prepare_nystrom(uniform_sample, uniform_sample_norm)
+    metric_uniform = prepare_nystrom(uniform_sample, uniform_sample_norm, gamma=gamma)
     log_memory_usage("Memory after SVD computation in uniform part of make_nystrom_evaluation")
 
-    nystrom_embedding_uniform = nystrom_transformation(sample, uniform_sample, metric_uniform, uniform_sample_norm, samples_norm)
+    nystrom_embedding_uniform = nystrom_transformation(sample, uniform_sample, metric_uniform, uniform_sample_norm, samples_norm, gamma=gamma)
     nystrom_approx_kernel_value_uniform = nystrom_embedding_uniform @ nystrom_embedding_uniform.T
 
     #################################################################
@@ -487,9 +448,19 @@ def make_nystrom_evaluation(x_train, y_train, x_test, y_test, U_centroids):
     ###############
     logger.info("Compute real kernel matrix")
 
-    real_kernel = special_rbf_kernel(sample, sample, gamma, samples_norm, samples_norm)
+    real_kernel_special = special_rbf_kernel(sample, sample, gamma, norm_X=samples_norm, norm_Y=samples_norm)
+    real_kernel = rbf_kernel(sample, sample, gamma)
     real_kernel_norm = np.linalg.norm(real_kernel)
     log_memory_usage("Memory after real kernel computation in make_nystrom_evaluation")
+
+    #################################
+    # Sklearn based Nystrom uniform #
+    #################################
+
+    sklearn_nystrom = Nystroem(gamma=gamma, n_components=uniform_sample.shape[0])
+    sklearn_nystrom = sklearn_nystrom.fit(sample)
+    sklearn_transfo = sklearn_nystrom.transform(uniform_sample)
+    kernel_sklearn_nys = sklearn_transfo  @ sklearn_transfo.T
 
     ################################################################
 
@@ -505,8 +476,8 @@ def make_nystrom_evaluation(x_train, y_train, x_test, y_test, U_centroids):
         logger.info("Start classification")
 
         time_classification_start = time.process_time()
-        x_train_nystrom_embedding = nystrom_transformation(x_train, U_centroids, metric, centroids_norm, None)
-        x_test_nystrom_embedding = nystrom_transformation(x_test, U_centroids, metric, centroids_norm, None)
+        x_train_nystrom_embedding = nystrom_transformation(x_train, U_centroids, metric, centroids_norm, None, gamma=gamma)
+        x_test_nystrom_embedding = nystrom_transformation(x_test, U_centroids, metric, centroids_norm, None, gamma=gamma)
 
         linear_svc_clf = LinearSVC()
         linear_svc_clf.fit(x_train_nystrom_embedding, y_train)
