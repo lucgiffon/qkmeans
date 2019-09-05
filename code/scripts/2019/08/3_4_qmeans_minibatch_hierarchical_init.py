@@ -458,8 +458,8 @@ def make_nystrom_evaluation(x_train, y_train, x_test, y_test, U_centroids):
     #################################
 
     sklearn_nystrom = Nystroem(gamma=gamma, n_components=uniform_sample.shape[0])
-    sklearn_nystrom = sklearn_nystrom.fit(sample)
-    sklearn_transfo = sklearn_nystrom.transform(uniform_sample)
+    sklearn_nystrom = sklearn_nystrom.fit(uniform_sample)
+    sklearn_transfo = sklearn_nystrom.transform(sample)
     kernel_sklearn_nys = sklearn_transfo  @ sklearn_transfo.T
 
     ################################################################

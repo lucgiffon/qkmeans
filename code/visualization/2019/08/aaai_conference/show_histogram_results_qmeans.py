@@ -44,13 +44,13 @@ def get_df(path):
 if __name__ == "__main__":
     create_input_dir = lambda x: "/home/luc/PycharmProjects/qalm_qmeans/results/" + x
     # suf_path = "2019/07/qmeans_analysis_blobs_log2_clusters_bis"
-    suf_path_blobs_caltech = "2019/08/3_4_qmeans_no_hierarchical_blobs_caltech"
+    suf_path_blobs_caltech = "2019/08/3_4_qmeans_caltech_one_node"
     input_dir_blobs_caltech = create_input_dir(suf_path_blobs_caltech)
     # suf_path_blobs_caltech_extra = "2019/08/1_2_qmeans_objective_function_new_interface_qmeans_blobs_caltech_only_fail"
     # input_dir_blobs_caltech_extra =  create_input_dir(suf_path_blobs_caltech_extra)
 
-    # suf_path_mnist_fmnist = "2019/08/1_2_qmeans_objective_function_new_interface_qmeans_mnist_fmnist"
-    # input_dir_mnist_fmnist =  create_input_dir(suf_path_mnist_fmnist)
+    suf_path_mnist_fmnist = "2019/08/3_4_qmeans_no_hierarchical_mnist_fmnist_redo"
+    input_dir_mnist_fmnist =  create_input_dir(suf_path_mnist_fmnist)
 
 
     output_dir = "/home/luc/PycharmProjects/qalm_qmeans/reports/figures/"+ "2019/08/aaai_conference" + "/histogrammes"
@@ -60,10 +60,10 @@ if __name__ == "__main__":
 
     df_results_blobs_caltech = get_df(input_dir_blobs_caltech)
     # df_results_blobs_caltech_extra = get_df(input_dir_blobs_caltech_extra)
-    # df_results_mnist_fmnist = get_df(input_dir_mnist_fmnist)
+    df_results_mnist_fmnist = get_df(input_dir_mnist_fmnist)
 
     # df_results = pd.concat([df_results_blobs_caltech, df_results_blobs_caltech_extra, df_results_mnist_fmnist])
-    df_results = pd.concat([df_results_blobs_caltech])
+    df_results = pd.concat([df_results_blobs_caltech, df_results_mnist_fmnist])
     df_results_failure = df_results[df_results["failure"]]
     df_results = df_results[np.logical_not(df_results["failure"])]
     df_results = df_results[df_results["--nb-cluster"].astype(int) != 1024]
@@ -72,9 +72,9 @@ if __name__ == "__main__":
     df_results_kmeans = df_results[df_results["kmeans"]]
 
     datasets = {
-        # "Fashion Mnist": "--fashion-mnist",
-        # "Mnist": "--mnist",
-        "Blobs": "--blobs",
+        "Fashion Mnist": "--fashion-mnist",
+        "Mnist": "--mnist",
+        # "Blobs": "--blobs",
         "Caltech": "--caltech256"
     }
 
