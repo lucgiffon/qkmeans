@@ -11,7 +11,7 @@
 The simulations have been conducted in Python, including for the \palm algorithm.
 Running times are measured on computer grid with 3.8GHz-CPUs (2.5GHz in Figure~\ref{fig:time_csr}).
 Fast operators $\rmV$ based on sparse matrices $\rmS_q$ are implemented with \texttt{csr\_matrix} objects from the \texttt{scipy.linalg} package. 
-While more efficient implementations may be beneficial for larger deployment, our implementation is sufficient as a proof of concept for assessing the performance of the proposed approach as illustrated by running times benchmarking in the Section~\ref{seq:sparse_factor_benchmarking} of supplementary material. \addLG{Je ne sais pas trop comment faire des références au supplementary material}
+While more efficient implementations may be beneficial for larger deployment, our implementation is sufficient as a proof of concept for assessing the performance of the proposed approach as illustrated by running times benchmarking in the Section~\ref{seq:sparse_factor_benchmarking} of supplementary material.
 % In particular, the running times of fast operators of the form $\prod_{q\in\intint{\nfactors}}{\rmS_q}$ have been measured when applying to random vectors, for several sparsity levels: 
 % as shown in Figure~\ref{fig:time_csr}, they are significantly faster than dense operators -- implemented as a \texttt{numpy.ndarray} matrix --, especially when the data size is larger than $10^3$.
 
@@ -32,7 +32,7 @@ While more efficient implementations may be beneficial for larger deployment, ou
 
 
 \paragraph{Datasets.}
-We present results on real-world and toy datasets summarized in supplementary material (Table \ref{table:data}) \addLG{Comment faire référence au supplementary material}. On the one hand, the real world datasets \texttt{MNIST}~\cite{lecun-mnisthandwrittendigit-2010} and \texttt{Fashion-Mnist}~\cite{Pedregosa2011Scikit} %and \texttt{Labeled Faces in the Wild}~\cite{Huang07e.:labeled} (\texttt{LFW}) 
+We present results on real-world and toy datasets summarized in supplementary material (Section~\ref{supp:datasets}). On the one hand, the real world datasets \texttt{MNIST}~\cite{lecun-mnisthandwrittendigit-2010} and \texttt{Fashion-Mnist}~\cite{Pedregosa2011Scikit} %and \texttt{Labeled Faces in the Wild}~\cite{Huang07e.:labeled} (\texttt{LFW}) 
 are used to show --- quantitatively and qualitatively --- the good quality of the obtained centers when using our method \qkmeans. On the other hand, we use the \texttt{blobs} synthetic dataset from \texttt{sklearn.dataset} to show the speed up offered by our method \qkmeans when the number of clusters and the dimensionality of the data are sufficiently large.
 %The code of our method \qkmeans is available on request and will be available online soon. \addLG{je serais d'avis de ne pas dire ça mais soit de dire qu'il est déjà disponible, soit de ne rien dire. Sachant qu'on ne peut pas dire qu'il est déjà disponible en ligne avant le processus de reviewing}
 
@@ -134,7 +134,7 @@ Results reported in Figure~\ref{fig:clustering:blobs:assignation_time} show that
 % \label{fig:clustering:blobs:assignation_time}
 % \end{figure}
 
-\todo[inline]{supplementary material montrant l'impact de la sparsity factor}
+
 
 \subsection{Nearest-neighbor search in a large dataset}
 The Nearest-neighbor search is a fundamental task that suffers from computational limitations when the dataset is large.
@@ -220,9 +220,6 @@ Results of numerical experiments for landmark selection methods based on either 
 \label{tab:nystrom}
 \end{table*}
 
-\todo[inline]{ajouter 1NN brute results a ce tableau}
-\todo[inline]{verifier que l'on commente le fait que les résultats de vitesse avec mnist sont mauvais}
-
 \subsection{Nyström approximation}
 
 In this sub-section, we show how we can take advantage of the fast-operator obtained as output of our \qkmeans algorithm in order to speed-up the computation in the Nyström approximation. 
@@ -270,7 +267,7 @@ As shown in the next sub-section, our algorithm allows to obtain an efficient Ny
 
 \subsubsection{Results}
 
-The Table~\ref{tab:nystrom} summarizes the results achieved in the Nyström approximation setting. More results may be found in supplementary material \addLG{ajouter references au supplementary material. Comment faire? sachant que ce sera dans un document séparé}. 
+The Table~\ref{tab:nystrom} summarizes the results achieved in the Nyström approximation setting. An histogram representation and an evaluation for other sparsity factors are available in the supplementary material~Section~\ref{supp:nystrom}.
 
 The bottom part displays the average time for computing one line of the approximated matrix in Equation~\ref{eq:nystrom}. For $K=512$, when it is big enough, we clearly see the speed-up offered using the \qkmeans method on the \texttt{Blobs} dataset. On the \texttt{Mnist} and \texttt{Fashion-MNIST} dataset, this speed-up is sensible but not as clear because the standard deviation is much larger. 
 

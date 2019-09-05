@@ -74,6 +74,7 @@ In such conditions, the complexity of each line is:
 Hence, the overal time complexity of \palm is in $\bigO{AB\left (\log^2 A+\log B\right )}$, due to Lines~\ref{line:palm:D} and~\ref{line:palm:update:S}.
 
 \section{Datasets}
+\label{supp:datasets}
 
 Table~\ref{table:data} provides some statistics about the used datasets.
 
@@ -106,6 +107,9 @@ as shown in Figure~\ref{fig:time_csr}, they are significantly faster than dense 
 \section{Hierarchical-Palm4MSA}
 \todo[inline]{Faire une référence à ce résultat hierarchical dans le texte}
 
+
+\section{Nyström approximation}
+\label{supp:nystrom}
 \begin{figure*}[h]
 \begin{subfigure}[b]{.49\textwidth}
 \includegraphics[width=\textwidth]{mnist30_objective_with_hierarchical.png}
@@ -164,3 +168,18 @@ as shown in Figure~\ref{fig:time_csr}, they are significantly faster than dense 
 \caption{Nystr\"om approximation results: accuracy (left) and running times (right). The uniform sampling based Nyström approximation running times are not displayed because they are the same as for the Nyström approximation based on \kmeans centers. Every experiment results are averaged over 5 runs. The vertical black lines are the standard deviation w.r.t. the runs.}
 \label{fig:nystrom}
 \end{figure*}
+
+
+\todo[inline]{Faire un supplementary material montrant les expériences préliminaires de gain potentiel de temps lors de l'entrainement pour le jeu de données énorme}
+
+\todo[inline]{Ajouter le déroulement de l'equation (equation 8 environ) centers update step dans les supplementary materials}
+
+
+\todo[inline]{supplementary material montrant l'impact de la sparsity factor}
+
+
+
+
+
+
+

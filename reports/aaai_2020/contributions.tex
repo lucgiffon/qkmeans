@@ -50,7 +50,7 @@ where $\rmV = \prod_{q\in\intint{\nfactors}}\rmS_q$.
 %\end{align}
 
 %
-This is a \todo{(???)} regularized \todo{()???)}  version of the \kmeans optimization problem~\eqref{eq:kmean_problem} in which centers $\rvv_k$ are constrained to form a matrix $\rmV$ with a fast-operator structure, the indicator functions $\delta_{\mathcal{E}_q}$ imposing the sparsity of matrices $\rmS_q$.
+This is a constrained version of the \kmeans optimization problem~\eqref{eq:kmean_problem} in which centers $\rvv_k$ are constrained to form a matrix $\rmV$ with a fast-operator structure, the indicator functions $\delta_{\mathcal{E}_q}$ imposing the sparsity of matrices $\rmS_q$.
 More details on the modeling choices are given in the experimental part. % in section~\ref{sec:uses:settings}.
 
 This problem can be solved using Algorithm~\ref{algo:qmeans},
@@ -162,7 +162,7 @@ g\left (\left\{\rmS_q^{(\tau-1)}\right\}_{q=1}^{\nfactors}, \rvt^{(\tau)}\right 
 	&= \sum_{\substack{n\\t_n = k}} \norm{\rvx_n-\rvu_k}^2 + n_k \norm{\rvu_k-\rvv_k}^2
 \end{align}
 
-\todo[inline]{Ajouter le déroulement de l'equation centers update step dans les supplementary materials}
+
 
 For a fixed $\rvt$, the new sparsely-factorized centers are solutions of the subproblem $\argmin_{\rmS_1, \ldots,\rmS_Q} g(\rmS_1, \ldots,\rmS_Q, \rvt)$ which can be rewritten thanks to~\eqref{eq:rewrite_assignement}:
 %
@@ -241,5 +241,5 @@ The computation of the centers of each cluster at line~\ref{line:qmeans:compute_
 The update of the fast transform, in lines~\ref{line:qmeans:A} to~\ref{line:qmeans:U} is a computational overload compared to \kmeans. 
 
 Its time complexity is dominated by the update of the sparse factors at line~\ref{line:qmeans:S}, in $\bigO{AB \log^2 A}$. 
-Note that this cost is dominated by the cost of the assignement step as soon as the number of examples $\nexamples$ is greater than $\log^3 A$. \todo[inline]{Faire un supplementary material montrant les expériences préliminaires de gain potentiel de temps lors de l'entrainement}
+Note that this cost is dominated by the cost of the assignement step as soon as the number of examples $\nexamples$ is greater than $\log^3 A$. 
 
