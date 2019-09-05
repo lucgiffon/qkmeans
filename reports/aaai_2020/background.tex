@@ -22,17 +22,17 @@ of the cluster $k$ it belongs to ---the optimal center $\rvu_k$ is the
 The optimization problem of \kmeans is
 \begin{equation}
 \label{eq:kmean_problem}
-    \argmin_{\rmU, \rvt} \sum_{k\in\intint{\nclusters}} \sum_{\substack{n\\t_n = k}} \|\rvx_{n} -\rvu_{k}\|^2,
+    \argmin_{\rmU, \rvt} \sum_{k\in\intint{\nclusters}} \sum_{n:t_n = k} \|\rvx_{n} -\rvu_{k}\|^2,
 \end{equation}
 where $\rmU=\{\rvu_1,\ldots,\rvu_K\}$ is the set of centers and $\rvt \in  \intint{\nclusters}^{\nexamples}$ is the assignment vector that puts $\rvx_n$ in cluster $k$
 if $t_n=k$.
 
 
-\paragraph{Lloyd's algorithm (a.k.a. \kmeans algorithm).} The most popular procedure to (approximately) 
-solve the \kmeans problem is Lloyd's algorithm, which is often referred to as the \kmeans algorithm in the litterature as well as in this paper.
+\paragraph{Lloyd's algorithm (a.k.a. \kmeans algorithm)} The most popular procedure to (approximately) 
+solve the \kmeans problem is Lloyd's algorithm, often referred to as the \kmeans algorithm ---as well as in here.
 It alternates between
 i) an assignment step that decides the current cluster to which each point $\rvx_n$
-belongs and ii) a reestimation step which refines the cluster centers.
+belongs and ii) a reestimation step which adjusts the cluster centers.
 %In little more detail, the algorithm starts with 
 After an initialization of the set $\rmU^{(0)}$ of $\nclusters$
  cluster centers, the algorithm proceeds as follows: at iteration $\tau$,
@@ -48,18 +48,22 @@ After an initialization of the set $\rmU^{(0)}$ of $\nclusters$
 \intertext{and the reestimation of the cluster centers is done as}
 %\begin{align}
 \label{eq:center_update}
-\rvu^{(\tau)}_k &\leftarrow \hat{\rvx}_k(\rvt^{(\tau)}) \eqdef \frac{1}{n_k^{(\tau)}} \sum_{\substack{n\\t^{(\tau)}_n= k}} {\rvx_{n}},\quad \forall k\in\intint{K} 
+\rvu^{(\tau)}_k &\leftarrow \hat{\rvx}_k(\rvt^{(\tau)}) \eqdef \frac{1}{n_k^{(\tau)}} \sum_{n:t^{(\tau)}_n= k} {\rvx_{n}},\quad \forall k\in\intint{K} 
 \end{align}
-where $n_k^{(\tau)}\eqdef |\{n: t^{(\tau)}_n=k\}|$ is the number of points in cluster $k$
+where $n_k^{(\tau)}$ %$\eqdef |\{n: t^{(\tau)}_n=k\}|$
+ is the number of points in cluster $k$
 at time $\tau$ and $\hat{\rvx}_k(\rvt)$ is the mean vector of the elements of cluster $k$ according to assignment $\rvt$. 
 
-\paragraph{Complexity of Lloyd's algorithm.} The assignment step~\eqref{eq:assignment_problem_kmeans} costs $\mathcal{O}(\nexamples\datadim\nclusters)$ operations while the update of the centers~\eqref{eq:center_update} costs $\mathcal{O}\left (\nexamples\datadim\right )$ operations. Hence, the bottleneck of the overall time complexity $\mathcal{O}(\nexamples\datadim\nclusters)$ stems from the assignment step. Once the clusters have been defined, assigning $\nexamples'$ new points to these clusters is performed via \eqref{eq:assignment_problem_kmeans} at the cost of $\mathcal{O}\left (\nexamples'\datadim\nclusters \right )$ operations.
+\paragraph{Complexity of Lloyd's algorithm.} The cost of the assignment step~\eqref{eq:assignment_problem_kmeans} is $\mathcal{O}(\nexamples\datadim\nclusters)$ while that of the centers update~\eqref{eq:center_update} is $\mathcal{O}\left (\nexamples\datadim\right )$. Hence, the bottleneck of the total time complexity $\mathcal{O}(\nexamples\datadim\nclusters)$ stems from the assignment step. %Once the clusters have been defined, assigning $\nexamples'$ new points to these clusters is performed via \eqref{eq:assignment_problem_kmeans} at the cost of $\mathcal{O}\left (\nexamples'\datadim\nclusters \right )$ operations.
 
 %SAY SOMEWHERE: From now on, with some abuse of notation, we will use the term
 %\kmeans algorithm to refert to Lloyd's algorithm. 
 % Done (beginning of the Lloyd's algorithm paragraph)
 
-Our main contribution rests on the idea that \eqref{eq:assignment_problem_kmeans} may be computed more efficiently by learning an approximation of $\rmU$ equiped with a fast-transform structure.
+\paragraph{Contribution.} Our main contribution rests on the idea that \eqref{eq:assignment_problem_kmeans} may be computed more efficiently if the matrix $\rmU$ of centers is approximated by a fast-transform matrix, which is
+learned thanks to a dedicated procedure that we now discuss.
+
+% by learning an approximation of $\rmU$ equiped with a fast-transform structure.
 
 \todo[inline]{WATCH: operator vs transform... : partially done...}
 
@@ -73,13 +77,13 @@ The popularity of some linear operators from $\R^{M}$ to $\R^{M}$ (with $M<\inft
   $\mathcal{O}\left (M^2\right)$ operations.
 The core feature of the related fast algorithms is that the matrix $\rmU\in\sR^{M\times M}$ of such 
 linear operators can be written as the product $\rmU=\Pi_{q\in\intint{\nfactors}}\rmS_q$ 
-of $\nfactors=\bigO{\left( \log M \right)}$ sparse 
-matrices $\rmS_q$ and $\left \|\rmS_q\right \|_0=\mathcal{O}\left( M \right)$ non-zero 
+of $\nfactors=\bigO{\log M}$ sparse 
+matrices $\rmS_q$ with $\left \|\rmS_q\right \|_0=\mathcal{O}\left( M \right)$ non-zero 
 coefficients per factor \cite{LeMagoarou2016Flexible,Morgenstern1975Linear}:
-for any vector $\rvx\in\sR^M$, $\rmU\rvx$ can thus be computed as $\mathcal{O}\left (\log M\right )$ products $\rmS_0 \left (\rmS_1 \left (\cdots \left (\rmS_{Q-1}\rvx\right )\right )\right )$ between a sparse matrix and a vector, the cost of each product being $\mathcal{O}\left (M\right )$, amounting to a $\mathcal{O}(M \log M)$ time complexity.
+for any vector $\rvx\in\sR^M$, $\rmU\rvx$ can thus be computed as $\mathcal{O}\left (\log M\right )$ products $\rmS_0 \left (\rmS_1 \left (\cdots \left (\rmS_{Q-1}\rvx\right )\right )\right )$ between a sparse matrix and a vector, the cost of each product being $\bigO{M}$, amounting to a $\mathcal{O}(M \log M)$ time complexity.
 
 \paragraph{Approximating any matrix by learning a fast transform.} When the linear operator $\rmU$ is an arbitrary matrix, one may approximate it with such a sparse-product structure by learning the factors $\left \lbrace\rmS_q\right \rbrace_{q\in\intint{Q}}$ in order to benefit from a fast algorithm.
-A recent contribution~\cite{LeMagoarou2016Flexible} has proposed algorithmic strategies to learn such a factorization. Based on the proximal alternating linearized minimization (\texttt{PALM}) algorithm~\cite{bolte2014proximal}, the \texttt{PALM} for Multi-layer Sparse Approximation (\palm) algorithm aims at approximating a matrix $\rmU\in\sR^{\nclusters\times\datadim}$ as a product of sparse matrices by solving
+\citet{LeMagoarou2016Flexible} proposed algorithmic strategies to learn such a factorization. Based on the proximal alternating linearized minimization (\texttt{PALM}) algorithm~\cite{bolte2014proximal}, the \texttt{PALM} for Multi-layer Sparse Approximation (\palm) algorithm aims at approximating a matrix $\rmU\in\sR^{\nclusters\times\datadim}$ as a product of sparse matrices by solving
 \begin{align}
 \label{eq:palm4msa}
 \min_{\left \lbrace\rmS_q\right \rbrace_{q\in\intint{Q}}} \left \|\rmU -  \prod_{q\in\intint{\nfactors}}{\rmS_q}\right \|_F^2 + \sum_{q\in\intint{\nfactors}} \delta_{\mathcal{E}_q}(\rmS_q)
