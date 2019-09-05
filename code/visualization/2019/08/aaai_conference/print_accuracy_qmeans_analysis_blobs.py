@@ -156,10 +156,12 @@ if __name__ == "__main__":
 
                     print("QK-means")
                     for i_val, _ in enumerate(mean_task_values):
+                        nb_param = df_sparsy_val[df_sparsy_val["--nb-cluster"] == nb_cluster_values[i_val]]["nb_param_centroids"].mean()
+
                         mean_val = mean_task_values[i_val]
                         clust_nb = nb_cluster_values[i_val]
                         std_val = std_task_values[i_val]
-                        print("Cluster nb: {} - {}: {} +/- {}".format(clust_nb, str_task, mean_val, std_val))
+                        print("Cluster nb: {} - {}: {} +/- {} | nbparam: {}".format(clust_nb, str_task, mean_val, std_val, nb_param))
 
                 # Kmeans
                 ########
@@ -170,7 +172,9 @@ if __name__ == "__main__":
                 offset_from_qmeans = 1  # offset from qmeans = 1 because directly after
 
                 for i_val, _ in enumerate(mean_task_values_kmeans):
+                    nb_param = df_dataset_kmeans[df_dataset_kmeans["--nb-cluster"] == nb_cluster_values[i_val]]["nb_param_centroids"].mean()
+
                     mean_val = mean_task_values_kmeans[i_val]
                     clust_nb = nb_cluster_values[i_val]
                     std_val = std_task_values_kmeans[i_val]
-                    print("Cluster nb: {} - {}: {} +/- {}".format(clust_nb, str_task, mean_val, std_val))
+                    print("Cluster nb: {} - {}: {} +/- {} | nb param: {}".format(clust_nb, str_task, mean_val, std_val, nb_param))
