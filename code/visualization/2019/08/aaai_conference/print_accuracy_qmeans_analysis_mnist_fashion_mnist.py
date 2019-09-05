@@ -16,7 +16,6 @@ def get_df(path):
                      "--nb-iteration",
                      "--nb-iteration-palm",
                      "--plants",
-                     "--verbose",
                      "--output-file",
                      "--output-file_centroidprinter",
                      "--output-file_objprinter",
@@ -28,17 +27,16 @@ def get_df(path):
 
 if __name__ == "__main__":
     # suf_path = "2019/07/qmeans_analysis_blobs_log2_clusters_bis"
-    suf_path = "2019/07/qmeans_analysis_nystrom_mnist_fmnist"
-    input_dir = "/home/luc/PycharmProjects/qalm_qmeans/results/" + suf_path
+    create_input_dir = lambda x: "/home/luc/PycharmProjects/qalm_qmeans/results/" + x
+    suf_path_mnist = "2019/08/aaai/mnist"
+    input_dir_mnist =  create_input_dir(suf_path_mnist)
     output_dir = "/home/luc/PycharmProjects/qalm_qmeans/reports/figures/" + "2019/07/tech_report" + "/histogrammes"
     output_dir = pathlib.Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    suf_path_1024 = "2019/07/qmeans_analysis_blobs_log2_clusters_bis_higherdim_1024"
-    input_dir_1024 = "/home/luc/PycharmProjects/qalm_qmeans/results/" + suf_path_1024
 
 
-    df_results_no_1024 = get_df(input_dir)
+    df_results_no_1024 = get_df(input_dir_mnist)
     # df_results_1024 = get_df(input_dir_1024)
     # df_results = pd.concat([df_results_no_1024, df_results_1024])
     df_results = df_results_no_1024
@@ -58,7 +56,7 @@ if __name__ == "__main__":
     df_results_kmeans = df_results_kmeans[np.logical_not(kmeans_palm_indexes)]
 
     datasets = {
-        "Fashion Mnist": "--fashion-mnist",
+        # "Fashion Mnist": "--fashion-mnist",
         "Mnist": "--mnist",
         # "Blobs": "--blobs",
         # "LFW": "--lfw"
@@ -110,7 +108,7 @@ if __name__ == "__main__":
     nb_sample_assignation_mean_time = set(df_results["--assignation-time"].dropna().values.astype(int)).pop()
     nb_sample_nystrom = set(df_results["--nystrom"].dropna().values.astype(int)).pop()
     hierarchical_values = set(df_results["--hierarchical"].values)
-    hierarchical_values = [False]
+    hierarchical_values = [True]
 
     other_1nn_methods = ["brute", "ball_tree", "kd_tree"]
     other_1nn_methods_names = {
@@ -134,8 +132,8 @@ if __name__ == "__main__":
         nb_factors = [min(int(np.log2(nb_cluster)), int(np.log2(dataset_dim[dataset_name]))) for nb_cluster in nb_cluster_values]
         for hierarchical_value in hierarchical_values:
             print("Hierarchical: {}".format(hierarchical_value))
-            df_hierarchical = df_dataset_qmeans[df_dataset_qmeans["--hierarchical"] == hierarchical_value]
-            df_hierarchical_kmeans_palm = df_dataset_kmeans_palm[df_dataset_kmeans_palm["--hierarchical"] == hierarchical_value]
+            df_hierarchical = df_dataset_qmeans[df_dataset_qmeans["--hierarchical-init"] == hierarchical_value]
+            df_hierarchical_kmeans_palm = df_dataset_kmeans_palm[df_dataset_kmeans_palm["--hierarchical-init"] == hierarchical_value]
 
             # assignations_times_means_for_sparsity = []
             # assignations_times_std_for_sparsity = []

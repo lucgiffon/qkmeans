@@ -170,58 +170,140 @@ and this advantage is even stronger with the clustering obtained by our \qkmeans
 \end{figure}
 
 
-\begin{table*}[!htb]
-\begin{adjustbox}{center, max width=0.9\textwidth}
-\begin{subtable}{.5\textwidth}
-\begin{tabular}{@{}lc}
-\toprule
-                                    & \thead{Accuracy \\ \texttt{Blobs}} \\ \midrule
-1NN Brute force search              & N/A   \\
-1NN KD Tree                         & N/A   \\
-1NN Ball Tree                       & N/A   \\ \midrule \midrule
-1NN K-means 128 Clusters            & 0.96      \\
-1NN K-means 256 Clusters            & 0.97      \\
-1NN K-means 512 Clusters            & 0.99      \\ \midrule
-1NN QK-means 128 Clusters           & 0.74     \\
-1NN QK-means 256 Clusters           & 0.66      \\
-1NN QK-means 512 Clusters           & 0.66      \\ \midrule \midrule
-Nyström K-means + SVM 128 Clusters  & 0.98      \\
-Nyström K-means + SVM 256 Clusters  & 1.0      \\
-Nyström K-means + SVM 512 Clusters  & 1.0      \\ \midrule
-Nyström QK-means + SVM 128 Clusters & 0.95      \\
-Nyström QK-means + SVM 256 Clusters & 1.0      \\
-Nyström QK-means + SVM 512 Clusters & 1.0      \\ \bottomrule
-\end{tabular}
-\caption{\texttt{Blobs} dataset}
-\label{table:results_blobs}
-\end{subtable}%
-\begin{subtable}{.5\textwidth}
+% \begin{table*}[!htb]
 % \centering
-\begin{tabular}{@{}lcc}
-\toprule
-                                    & \thead{Accuracy \\ \texttt{Fashion-MNIST}} & \thead{Accuracy \\ \texttt{MNIST}} \\ \midrule
-1NN Brute force search              &  0.85   &  0.97 \\
-1NN KD Tree                         & 0.85  &  0.97  \\
-1NN Ball Tree                       & 0.85  &  0.97  \\ \midrule \midrule
-1NN K-means 10 Clusters            & 0.84  &  0.96  \\
-1NN K-means 16 Clusters            & 0.84  &  0.96  \\
-1NN K-means 30 Clusters            & 0.84  &  0.96  \\ \midrule
-1NN QK-means 10 Clusters           & 0.84  &  0.96  \\
-1NN QK-means 16 Clusters           & 0.84  &  0.96  \\
-1NN QK-means 30 Clusters           & 0.84  &  0.96  \\ \midrule \midrule
-Nyström K-means + SVM 10 Clusters  &  0.71  & 0.74  \\
-Nyström K-means + SVM 16 Clusters  &  0.75  & 0.83  \\
-Nyström K-means + SVM 30 Clusters  &  0.78  & 0.88  \\ \midrule
-Nyström QK-means + SVM 10 Clusters &  0.71  & 0.74  \\
-Nyström QK-means + SVM 16 Clusters &  0.74  & 0.82  \\
-Nyström QK-means + SVM 30 Clusters &  0.77  & 0.88  \\ \bottomrule
-\end{tabular}
-\caption{\texttt{MNIST} and \texttt{Fashion-MNIST} datasets}
-\label{table:results_mnist_fmnist}
-\end{subtable}
-\end{adjustbox}
-\caption{Classification task: results averaged over 5 runs. For \qkmeans, only results with sparsity level~5 are displayed.}
+% \begin{tabular}{l|c|c}
+% 
+% \toprule
+% \begin{tabular}{@{}l}
+% \\
+% \thead{~}\\ 
+% \midrule
+% 1NN Brute force search            \\
+% 1NN KD Tree                       \\
+% 1NN Ball Tree                     \\
+% \midrule \midrule
+%                                   \\
+% 1NN K-means                       \\
+%                                   \\
+% \midrule
+%                                   \\
+% Nyström K-means + SVM             \\
+%                                   \\
+%                                   
+% \midrule \midrule
+%                                   \\
+% 1NN QK-means                      \\
+%                                   \\
+% \midrule
+%                                   \\
+% Nyström QK-means + SVM            \\
+%                                   \\
+% \end{tabular} 
+% 
+% &
+% 
+% \begin{tabular}{ccccc}
+%                                        & \multicolumn{2}{c}{\texttt{Blobs}}           & \multicolumn{2}{c}{\texttt{Caltech}} \\
+%                                      K & \thead{Accuracy  } & \thead{Inference time} & \thead{Accuracy} & \thead{Accuracy} \\ 
+% \midrule
+%  & N/A & N/A   \\
+%  & N/A & N/A   \\
+%  & N/A & N/A   \\ 
+% \midrule \midrule
+%  128            & 0.96 & \multirow{3}{*}{0.00}     \\
+%  256            & 0.97 &                                                          \\
+%  512            & 0.99 &                                                          \\ 
+% \midrule
+%  128            & 0.98 & 0.98     \\
+%  256          & 1.0   & 1.0       \\
+%  512           & 1.0 & 1.0        \\ 
+%  \midrule \midrule
+% 
+%  128           & 0.74 & 0.74      \\
+%  256           & 0.66 & 0.66      \\
+%  512           & 0.66 & 0.66      \\ 
+% 
+%  
+%  \midrule
+%  128           & 0.95 & 0.95      \\
+%  256           & 1.0 & 1.0        \\
+%  512           & 1.0 & 1.0        \\ 
+% \end{tabular}
+% 
+% &
+% 
+% \begin{tabular}{ccc}
+%                                  & \multicolumn{2}{c}{\texttt{MNIST}} \\
+%                               K  & \thead{Accuracy} & \thead{Inference time}  \\ 
+% \midrule
+%                &  0.97  \\
+%                &  0.97  \\
+%                &  0.97  \\ 
+% \midrule \midrule
+% 10            &  0.96  \\
+% 16            &  0.96  \\
+% 30            &  0.96  \\ 
+% \midrule 
+% 10           & 0.74  \\
+% 16           & 0.83  \\
+% 30           & 0.88  \\ 
+% \midrule \midrule
+% 10           &  0.96  \\
+% 16           &  0.96  \\
+% 30           &  0.96  \\ 
+% \midrule
+% 10           & 0.74  \\
+% 16           & 0.82  \\
+% 30           & 0.88  \\
+% \end{tabular} \\
+% \bottomrule
+% 
+% \end{tabular}
+% \caption{Classification task: results averaged over 5 runs. For \qkmeans, only results with sparsity level~5 are displayed.}
+% \end{table*}
+
+\begin{table*}[!htb]
+% \centering
+\resizebox{\textwidth}{!}{\begin{tabular}{@{}ccccc|ccc|ccc}
+\toprule                                                                                                                                                                             
+                                                &                               & \thead{\texttt{Blobs} \\ K=128}       & \thead{\texttt{Blobs} \\ K=256}   & \thead{\texttt{Blobs} \\ K=512}     & \thead{\texttt{Caltech} \\ K=128}       & \thead{\texttt{Caltech} \\ K=256}   & \thead{\texttt{Caltech} \\ K=512}     & \thead{\texttt{MNIST} \\ K=10}   & \thead{\texttt{MNIST} \\ K=16} & \thead{\texttt{MNIST} \\ K=30} \\ 
+                                                
+\midrule
+
+\multirow{3}{*}{\shortstack{Nyström \\ approximation \\ error}}   & \kmeans               & \boldsymbol{$0.032$}                  & \boldsymbol{$0.030$}                   & \boldsymbol{$0.027$}           & \boldsymbol{$remp$}                  & \boldsymbol{$remp$}                   & \boldsymbol{$remp$}           & \boldsymbol{$0.087$}          & \boldsymbol{$0.069$}        & \boldsymbol{$0.049$}   \\
+                                                        & \qkmeans              & \boldsymbol{$0.032$}                  &  \underline{$0.031$}                  & \underline{$0.029$}             & \boldsymbol{$remp$}                  &  \underline{$remp$}                  & \underline{$remp$}             & \underline{$0.091$}           & \underline{$0.083$}         & \underline{$0.061$}   \\
+                                                        & Uniform sampling      & $0.035$                               & $0.032$                               & $0.030$                         & $remp$                               & $remp$                               & $remp$                        & $0.184$              & $0.147$            & $0.105$   \\
+
+                                                        
+\midrule \midrule                                                                                                                                                                                                                                                                 
+
+
+\multirow{2}{*}{\shortstack{Inference \\ time (ms)}}    & \kmeans               & \boldsymbol{$0.11$}                   & \boldsymbol{$0.17$}                  & $0.32$                            & \boldsymbol{$remp$}                  & \boldsymbol{$remp$}                    & $remp$                       & \boldsymbol{$0.06$}           & \boldsymbol{$0.06$}   & $0.07$   \\
+                                                        & \qkmeans              & $0.13$                                & $0.18$                             & \boldsymbol{$0.22$}                 & $remp$                               &$remp$                               & \boldsymbol{$remp$}            & $0.08$                        & $0.07$                 & \boldsymbol{$0.06$}   \\
+
+                                                        
+\midrule \midrule                                                                                                                                                                                                                                                                                                
+
+
+\multirow{2}{*}{\shortstack{1NN \\ Accuracy}}           & \kmeans               & \boldsymbol{$0.96$}                   & \boldsymbol{$0.97$}                & \boldsymbol{$0.99$}                 & \boldsymbol{$remp$}                  & \boldsymbol{$remp$}                    & $remp$                       & \boldsymbol{$0.96$}           & \boldsymbol{$0.96$}   & \boldsymbol{$0.96$}   \\
+                                                        & \qkmeans              & $0.61$                                & $0.49$                             & $0.37$                              & $remp$                               & $remp$                               & \boldsymbol{$remp$}            & \boldsymbol{$0.96$}           & \boldsymbol{$0.96$}                 & $0.95$   \\
+
+                                                        
+\midrule \midrule                                                                                                                                                                                                                                                                                                
+                                                                                                                                                                                                                                                                             
+                                                                                                                                                                                                                                                                             
+\multirow{2}{*}{\shortstack{Nyström + SVM \\ Accuracy}} & \kmeans               & \boldsymbol{$0.98$}                   & \boldsymbol{$1.0$}                  & \boldsymbol{$1.0$}                     & \boldsymbol{$remp$}                  & \boldsymbol{$remp$}                    & $remp$                       & \boldsymbol{$0.74$}           & \boldsymbol{$0.83$}   & \boldsymbol{$0.88$}   \\
+                                                        & \qkmeans              & $0.95$                                & \boldsymbol{$1.0$}                 & \boldsymbol{$1.0$}                     & $remp$                               & $remp$                               & \boldsymbol{$remp$}            & $0.73$                       & $0.79$                 & $0.86$   \\
+                                                                                                                                                                                                  
+                                                        
+\bottomrule
+\end{tabular}}
+\caption{
+Results of numerical experiments for landmark selection methods based on either \kmeans, \qkmeans or uniform sampling: Nyström approximation error for a sample set of size $5000$; Matrix vector multiplication time averaged over $5000$ observations; 1-nearest neighbor classification accuracy on the test set; SVM classification on top of Nyström transformation on the test set. The \qkmeans results are obtained with sparse factors with at least 2 values in each line and each column. The uniform sampling based Nyström approximation running times are not displayed because they are the same as for the Nyström approximation based on \kmeans centers. Every experiment results are averaged over 5 runs. Best results are bold while second best are underlined (when there are three).}
+\label{tab:nystrom}
 \end{table*}
+\todo[inline]{add uniform sampling results to this table}
 
 \todo[inline]{ajouter les stds dans les tableaux et reformater les tableaux -- je ne sais pas encore comment... mais une fois fait, plus de problèmes.}
 
@@ -288,24 +370,7 @@ From a more practical point of view, we show in Table~\ref{table:results_blobs} 
 
 
 
-\begin{table*}[!htb]
-% \centering
-\resizebox{\textwidth}{!}{\begin{tabular}{@{}ccccc|ccc}
-\toprule
-                                                &                       & \thead{\texttt{Blobs K=128}} & \thead{\texttt{Blobs K=256}} & \thead{\texttt{Blobs K=512}} & \thead{\texttt{MNIST K=10}} & \thead{\texttt{MNIST K=16}} & \thead{\texttt{MNIST K=30}} \\ \midrule
-\multirow{3}{*}{\shortstack{Reconstruction \\ error}}   & \kmeans               & \boldsymbol{$0.032$}   & \boldsymbol{$0.030$}   & \boldsymbol{$0.027$}   & \boldsymbol{$0.087$}   & \boldsymbol{$0.069$}   & \boldsymbol{$0.049$}   \\
-                                                        & \qkmeans              & \boldsymbol{$0.032$}   &  \underline{$0.031$}  & \underline{$0.029$}   & \underline{$0.091$}   & \underline{$0.083$}   & \underline{$0.061$}   \\
-                                                        & Uniform sampling      & $0.035$   & $0.032$   & $0.030$  & $0.184(\pm0.02)$   & $0.147(\pm0.01)$   & $0.105(\pm0.01)$   \\
-\midrule \midrule
-\multirow{2}{*}{\shortstack{Inference \\ time (ms)}}         & \kmeans               & \boldsymbol{$0.11(\pm0.01)$}   & \boldsymbol{$0.17(\pm0.02)$}   & $0.32(\pm0.01)$   & \boldsymbol{$0.06(\pm0.02)$}   & \boldsymbol{$0.06(\pm0.02)$}   & $0.07(\pm0.02)$   \\
-                                                        & \qkmeans              & $0.13(\pm0.01)$   & $0.18(\pm0.01)$   & \boldsymbol{$0.22(\pm0.04)$}   & $0.08(\pm0.01)$   & $0.07(\pm0.02)$   & \boldsymbol{$0.06(\pm0.02)$}   \\
-\bottomrule
-\end{tabular}}
-\caption{
-Nystr\"om approximation results: reconstruction error and running times for landmark selection methods based on either \kmeans, \qkmeans or uniform sampling. The \qkmeans results are obtained with sparse factors with at least 2 values in each line and each column. The uniform sampling based Nyström approximation running times are not displayed because they are the same as for the Nyström approximation based on \kmeans centers. Every experiment results are averaged over 5 runs. The standard deviation for the reconstruction error are not displayed because they are lower than $0.005$. Best results are bold while second best are underlined.}
-\label{tab:nystrom}
-\end{table*}
-\todo[inline]{add uniform sampling results to this table}
+
 
 
 %{RBF networks}

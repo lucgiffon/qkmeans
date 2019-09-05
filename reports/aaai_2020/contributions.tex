@@ -230,5 +230,5 @@ The computation of the centers of each cluster, given in line~\ref{line:qmeans:c
 
 The update of the fast transform, in lines~\ref{line:qmeans:A} to~\ref{line:qmeans:U} is a computational overload compared to \kmeans. 
 Its time complexity is dominated by the update of the sparse factors at line~\ref{line:qmeans:S}, in $\bigO{AB \log^2 A}$ if \palm is called and in $\bigO{AB \log^3 A}$ if its hierarchical version is called. 
-Note that this cost is dominated by the cost of the assignement step as soon as the number of examples $\nexamples$ is greater than $\log^3 A$.
+Note that this cost is dominated by the cost of the assignement step as soon as the number of examples $\nexamples$ is greater than $\log^3 A$. \todo[inline]{Faire un supplementary material montrant les expériences préliminaires de gain potentiel de temps lors de l'entrainement}
 
