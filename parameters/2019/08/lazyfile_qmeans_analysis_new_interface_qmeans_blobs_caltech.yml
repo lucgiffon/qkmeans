@@ -13,13 +13,13 @@ base:
 
 base_big:
   base:
-  nb_clusters: {"--nb-cluster": ["128", "256", "512", "1024"]}
+  nb_clusters: {"--nb-cluster": ["128", "256", "512"]}
   dataset: {"--blobs": ["30000-2000-5000"],
             "--caltech": ["28"]}
 
 palm:
-  sparsity_factor: {"--sparsity-factor": "[2, 3, 5]"}
-  hierarchical: [""]
+  sparsity_factor: {"--sparsity-factor": ["2", "3", "5"]}
+  hierarchical: ["", "--hierarchical-init"]
 
 qmeans_big:
   qmeans: ["qmeans"]

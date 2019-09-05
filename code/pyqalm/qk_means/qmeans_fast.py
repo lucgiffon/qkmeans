@@ -53,7 +53,8 @@ def qmeans(X_data: np.ndarray,
            params_palm4msa: dict,
            initialization: np.ndarray,
            hierarchical_inside=False,
-           delta_objective_error_threshold=1e-6):
+           delta_objective_error_threshold=1e-6,
+           hierarchical_init=False):
 
     assert K_nb_cluster == initialization.shape[0]
 
@@ -76,7 +77,7 @@ def qmeans(X_data: np.ndarray,
 
     eye_norm = np.sqrt(K_nb_cluster)
 
-    if hierarchical_inside:
+    if hierarchical_inside or hierarchical_init:
         _lambda_tmp, op_factors, U_centroids, objective_palm, array_objective_hierarchical= \
             hierarchical_palm4msa(
                 arr_X_target=np.eye(K_nb_cluster) @ X_centroids_hat,

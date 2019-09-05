@@ -47,7 +47,7 @@ caltech256_28: data/external/caltech256_28.npz
 data/external/caltech256_28.npz:
 	$(PYTHON_INTERPRETER) code/data/make_dataset.py caltech256_28 data/external
 
-million: blobs_1_million blobs_2_million blobs_3_million
+million: blobs_1_million blobs_10_million blobs_5_million blobs_2_million blobs_3_million
 
 blobs_1_million: data/external/blobs_1_million.dat
 data/external/blobs_1_million.dat:
@@ -60,6 +60,14 @@ data/external/blobs_2_million.dat:
 blobs_3_million: data/external/blobs_3_million.dat
 data/external/blobs_3_million.dat:
 	$(PYTHON_INTERPRETER) code/data/make_dataset.py blobs_3_million data/external
+
+blobs_5_million: data/external/blobs_5_million.dat
+data/external/blobs_5_million.dat:
+	$(PYTHON_INTERPRETER) code/data/make_dataset.py blobs_5_million data/external
+
+blobs_10_million: data/external/blobs_10_million.dat
+data/external/blobs_10_million.dat:
+	$(PYTHON_INTERPRETER) code/data/make_dataset.py blobs_10_million data/external
 
 
 

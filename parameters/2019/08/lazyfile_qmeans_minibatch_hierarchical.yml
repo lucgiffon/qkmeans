@@ -1,6 +1,5 @@
 all:
   qmeans_big:
-  kmeans_big:
 
 base:
   seed: {"--seed": "range(5)"}
@@ -12,20 +11,16 @@ base:
 base_big:
   base:
   nb_clusters: {"--nb-cluster": ["512"]}
-  dataset: {"--million-blobs": ["1", "2", "3"]}
+  dataset: {"--million-blobs": ["1", "5", "10"]}
   minibatch: {"--minibatch": ["10000"]}
   max_size: {"--max-eval-train-size": ["10000"]}
 
 palm:
   sparsity_factor: {"--sparsity-factor": ["2"]}
   delta_threshold: {"--delta-threshold": ["1e-1", "1e-2", "1e-3", "1e-4", "1e-5"]}
-
+  hierarchical_init: ["--hierarchical-init"]
 
 qmeans_big:
   qmeans: ["qmeans"]
   palm:
-  base_big:
-
-kmeans_big:
-  kmeans: ["kmeans"]
   base_big:

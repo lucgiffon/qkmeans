@@ -10,7 +10,7 @@ from pyqalm.utils import logger
 from visualization.utils import get_dct_result_files_by_root, display_cmd_lines_from_root_name_list
 
 
-src_results_dir = pathlib.Path("/home/luc/PycharmProjects/qalm_qmeans/results/2019/08/1_2_qmeans_objective_function_new_interface_qmeans_blobs_caltech")
+src_results_dir = pathlib.Path("/home/luc/PycharmProjects/qalm_qmeans/results/2019/08/3_4_qmeans_minibatch_no_bug_data_123")
 # src_results_dir = pathlib.Path("/home/luc/PycharmProjects/qalm_qmeans/results/2019-05/qmeans_analysis_bigdataset_3_20_ghz_cpu_mem_gt_90")
 if __name__ == "__main__":
 

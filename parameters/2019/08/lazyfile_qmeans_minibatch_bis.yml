@@ -5,20 +5,21 @@ all:
 base:
   seed: {"--seed": "range(5)"}
   nystrom: {"--nystrom": ["5000"]}
-  assignation: {"--assignation-time": ["5000"]}
-  batch_assignation: {"--batch-assignation-time": ["5000"]}
   1nn: ["--1-nn"]
   initialisation: {--initialization: ["uniform_sampling"]}
   iterations: {--nb-iteration: ["10"]}
 
 base_big:
   base:
-  nb_clusters: {"--nb-cluster": ["10", "16", "32"]}
-  dataset: ["--mnist", "--fashion-mnist"]
+  nb_clusters: {"--nb-cluster": ["512"]}
+  dataset: {"--million-blobs": ["5", "10"]}
+  minibatch: {"--minibatch": ["10000"]}
+  max_size: {"--max-eval-train-size": ["10000"]}
 
 palm:
-  sparsity_factor: {"--sparsity-factor": ["2", "3", "5"]}
-  hierarchical: ["", "--hierarchical-init"]
+  sparsity_factor: {"--sparsity-factor": ["2"]}
+  delta_threshold: {"--delta-threshold": ["1e-1", "1e-2", "1e-3", "1e-4", "1e-5"]}
+  hierarchical_init: [""]
 
 qmeans_big:
   qmeans: ["qmeans"]

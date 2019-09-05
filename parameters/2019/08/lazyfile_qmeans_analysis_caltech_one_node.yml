@@ -13,8 +13,8 @@ base:
 
 base_big:
   base:
-  nb_clusters: {"--nb-cluster": ["10", "16", "32"]}
-  dataset: ["--mnist", "--fashion-mnist"]
+  nb_clusters: {"--nb-cluster": ["128", "256", "512"]}
+  dataset: {"--caltech": ["28"]}
 
 palm:
   sparsity_factor: {"--sparsity-factor": ["2", "3", "5"]}
