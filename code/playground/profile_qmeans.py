@@ -40,23 +40,26 @@ def main(small_dim):
 
     sparsity_factor = 2
     nb_iter_palm = 300
+    delta_objective_error_threshold = 1e-6
 
     lst_constraints, lst_constraints_vals = build_constraint_set_smart(
         U_centroids_hat.shape[0], U_centroids_hat.shape[1], nb_factors,
-        sparsity_factor=sparsity_factor, residual_on_right=residual_on_right)
+        sparsity_factor=sparsity_factor, residual_on_right=residual_on_right,
+        fast_unstable_proj=True)
     logger.info("constraints: {}".format(pformat(lst_constraints_vals)))
 
     hierarchical_palm_init = {
         "init_lambda": 1.,
         "nb_iter": nb_iter_palm,
         "lst_constraint_sets": lst_constraints,
-        "residual_on_right": residual_on_right
+        "residual_on_right": residual_on_right,
+        "delta_objective_error_threshold": 1e-6,
+        "track_objective": False,
     }
 
     # try:
-    graphical_display = False
     # logger.info('Running QuicK-means with H-Palm')
-    # objective_function_hier, op_centroids_hier, indicator_hier = \
+    # objective_function_with_hier_palm, op_centroids_hier, indicator_hier = \
     #     qmeans(X, nb_clusters, nb_iter_kmeans,
     #            nb_factors, hierarchical_palm_init,
     #            initialization=U_centroids_hat,
@@ -65,11 +68,14 @@ def main(small_dim):
     # # return_objective_function=True)
 
     logger.info('Running QuicK-means with Palm')
-    objective_function_palm, op_centroids_palm, indicator_palm = \
-        qmeans(X, nb_clusters, nb_iter_kmeans, nb_factors,
-               hierarchical_palm_init,
+    objective_function_palm, op_centroids_palm, indicator_palm, _ = \
+        qmeans(X_data=X,
+               K_nb_cluster=nb_clusters,
+               nb_iter=nb_iter_kmeans,
+               nb_factors=nb_factors,
+               params_palm4msa=hierarchical_palm_init,
                initialization=U_centroids_hat,
-               graphical_display=graphical_display)
+               delta_objective_error_threshold=delta_objective_error_threshold)
     # return_objective_function=True)
     # except Exception as e:
     #     logger.info("There have been a problem in qmeans: {}".format(str(e)))
@@ -87,19 +93,19 @@ if __name__ == '__main__':
     import logging
     import line_profiler
     from pyqalm.utils import logger
-    from pyqalm.qk_means.utils import assess_clusters_integrity, \
+    from pyqalm.qk_means.utils import update_clusters_with_integrity_check, \
         assign_points_to_clusters, get_distances
     from pyqalm.data_structures import SparseFactors
-    from pyqalm.palm.qalm_fast import palm4msa_fast4, hierarchical_palm4msa, \
-        compute_objective_function
-    from pyqalm.palm.projection_operators import prox_splincol
+    from pyqalm.palm.qalm_fast import palm4msa_fast4, hierarchical_palm4msa
+    from pyqalm.palm.utils import compute_objective_function
+    from pyqalm.palm.projection_operators import prox_splincol, _projection_max_by_col
 
     logger.setLevel(logging.ERROR)
 
     lp = line_profiler.LineProfiler()
     # Add functions to be profiled
     lp.add_function(kmeans)
-    lp.add_function(assess_clusters_integrity)
+    lp.add_function(update_clusters_with_integrity_check)
     lp.add_function(assign_points_to_clusters)
     lp.add_function(qmeans)
     lp.add_function(compute_objective_function)
@@ -112,6 +118,7 @@ if __name__ == '__main__':
     lp.add_function(qmeans)
     lp.add_function(get_distances)
     lp.add_function(prox_splincol)
+    lp.add_function(_projection_max_by_col)
     # Set function to run
     lp_wrapper = lp(main)
 

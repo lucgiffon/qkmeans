@@ -20,6 +20,7 @@ from pyqalm.palm.projection_operators import prox_splincol
 from pyqalm import project_dir
 from sklearn.datasets import fetch_lfw_people
 from sklearn.model_selection import train_test_split
+import keras
 
 
 daiquiri.setup(level=logging.DEBUG)
@@ -72,8 +73,8 @@ def get_side_prod(lst_factors, id_shape=(0,0)):
     return side_prod
 
 
-def get_lambda_proxsplincol(nb_keep_values):
-    return lambda mat: prox_splincol(mat, nb_keep_values)
+def get_lambda_proxsplincol(nb_keep_values, fast_unstable=False):
+    return lambda mat: prox_splincol(mat, nb_keep_values, fast_unstable=fast_unstable)
 
 
 def constant_proj(mat):
@@ -149,22 +150,17 @@ class ObjectiveFunctionPrinter:
             self.__ext_file = output_file.suffix
             self.__base_file = (output_file.parent / output_file.stem).as_posix()
         elif output_file is not None:
-            self.__ext_file = ".csv"
+            self.__ext_file = ".npz"
             self.__base_file = self.__output_file.as_posix()
 
-    def add(self, name, cols, arr):
+    def add(self, name, label_dims, arr):
         """
         arr must be either 1d or 2d arr
         :param name:
         :param arr:
         :return:
         """
-        if len(arr.shape) > 2:
-            raise ValueError("Trying to add a {}-D array to ObjectiveFunctionPrinter. Maximum dim accepted is 2.".format(len(arr.shape)))
-
-        assert (len(arr.shape) == 1 and len(cols) == 1) or len(cols) == len(arr[0])
-
-        self.objectives[name] = (cols, arr)
+        self.objectives[name] = (label_dims, arr)
 
     def print(self):
         def print_2d_row(row):
@@ -173,26 +169,29 @@ class ObjectiveFunctionPrinter:
         def print_1d_row(row):
             return str(row)
 
-        for name, (cols, arr) in self.objectives.items():
-            cols_str = ",".join(cols)
-            head = name + "\n" + "\n" + cols_str
-            print(head)
+        np.savez(self.__output_file, **self.objectives)
 
-            if self.__output_file is not None:
-                path_arr = Path(self.__base_file + "_" + name + self.__ext_file)
-                with open(path_arr, "w+") as out_f:
-                    out_f.write(head + "\n")
-
-            if len(arr.shape) == 1:
-                print_row_fct = print_1d_row
-            else:
-                print_row_fct = print_2d_row
-            for row in arr:
-                str_row = print_row_fct(row)
-                print(str_row)
-                if self.__output_file is not None:
-                    with open(path_arr, "a") as out_f:
-                        out_f.write(str_row + "\n")
+        #
+        # for name, (cols, arr) in self.objectives.items():
+        #     cols_str = ",".join(cols)
+        #     head = name + "\n" + "\n" + cols_str
+        #     print(head)
+        #
+        #     if self.__output_file is not None:
+        #         path_arr = Path(self.__base_file + "_" + name + self.__ext_file)
+        #         with open(path_arr, "w+") as out_f:
+        #             out_f.write(head + "\n")
+        #
+        #     if len(arr.shape) == 1:
+        #         print_row_fct = print_1d_row
+        #     else:
+        #         print_row_fct = print_2d_row
+        #     for row in arr:
+        #         str_row = print_row_fct(row)
+        #         print(str_row)
+        #         if self.__output_file is not None:
+        #             with open(path_arr, "a") as out_f:
+        #                 out_f.write(str_row + "\n")
 
 
 def get_random():
@@ -213,6 +212,11 @@ class ParameterManager(dict):
         self["--batch-assignation-time"] = int(self["--batch-assignation-time"]) if self["--batch-assignation-time"] is not None else None
         self["--assignation-time"] = int(self["--assignation-time"]) if self["--assignation-time"] is not None else None
         self["--nystrom"] = int(self["--nystrom"]) if self["--nystrom"] is not None else None
+
+        self["--delta-threshold"] = float(self["--delta-threshold"])
+
+        self["--minibatch"] = int(self["--minibatch"]) if self["--minibatch"] is not None else None
+        self["--max-eval-train-size"] = int(self["--max-eval-train-size"])
 
         self.__init_nb_factors()
         self.__init_output_file()
@@ -244,7 +248,7 @@ class ParameterManager(dict):
             raise ValueError("Output file name should be given without any extension (no `.` in the string)")
         if out_file is not None:
             self["--output-file_resprinter"] = Path(out_file + "_results.csv")
-            self["--output-file_objprinter"] = Path(out_file + "_objective.csv")
+            self["--output-file_objprinter"] = Path(out_file + "_objective.npz")
             self["--output-file_centroidprinter"] = Path(out_file + "_centroids.npy")
 
     def __init_seed(self):
@@ -269,6 +273,9 @@ class ParameterManager(dict):
             blob_features = self["blobs_dim"]
             blob_centers = self["blobs_clusters"]
             return blobs_dataset(blob_size, blob_features, blob_centers)
+        elif self["--caltech256"] is not None:
+            caltech_size = int(self["--caltech256"])
+            return caltech_dataset(caltech_size)
         elif self["--census"]:
             return census_dataset()
         elif self["--kddcup"]:
@@ -286,6 +293,8 @@ class ParameterManager(dict):
             return blobs_dataset(blob_size, blob_features, blob_centers)
         elif self["--lfw"]:
             return lfw_dataset(self["--seed"])
+        elif self["--million-blobs"] is not None:
+            return million_blobs_dataset(int(self["--million-blobs"]))
         else:
             raise NotImplementedError("Unknown dataset.")
 
@@ -330,6 +339,15 @@ def compute_euristic_gamma(dataset_full, slice_size=1000):
         results.append(1/slice_size_tmp**2 * np.sum(d_mat))
     return 1. / np.mean(results)
 
+def caltech_dataset(caltech_size):
+    data_dir = project_dir / "data/external" / "caltech256_{}.npz".format(caltech_size)
+    loaded_npz = np.load(data_dir)
+    return {
+        "x_train": loaded_npz["x_train"],
+        "y_train": loaded_npz["y_train"],
+        "x_test": loaded_npz["x_test"],
+        "y_test": loaded_npz["y_test"],
+    }
 
 def blobs_dataset(blob_size, blob_features, blob_centers):
     X, y = datasets.make_blobs(n_samples=blob_size, n_features=blob_features, centers=blob_centers, cluster_std=12)
@@ -393,6 +411,22 @@ def lfw_dataset(seed=None):
         "y_test": y_test
     }
 
+def million_blobs_dataset(nb_million):
+    data_dir_obs = project_dir / "data/external" / "blobs_{}_million.dat".format(nb_million)
+    data_dir_labels = project_dir / "data/external" / "blobs_{}_million.lab".format(nb_million)
+    X = np.memmap(data_dir_obs, mode="r", dtype="float32", shape=(int(1e6) * nb_million, 2000))
+    y = np.memmap(data_dir_labels, mode="r", shape=(int(1e6) * nb_million,))
+    test_size = 1000
+    X_train, X_test = X[:-test_size], X[-test_size:]
+    y_train, y_test = y[:-test_size], y[-test_size:]
+    return {
+        "x_train": X_train,
+        "y_train": y_train,
+        "x_test": X_test,
+        "y_test": y_test
+    }
+
+
 
 def create_directory(_dir, parents=True, exist_ok=True):
     """
@@ -429,3 +463,72 @@ def download_data(url, directory, name=None):
         logger.debug("File {} already exists and doesn't need to be donwloaded".format(s_file_path))
 
     return s_file_path
+
+
+class DataGenerator(keras.utils.Sequence):
+    'Generates data for Keras'
+    def __init__(self, examples, labels=None, batch_size=32, shuffle=True, to_categorical=False, return_indexes=False):
+        'Initialization'
+        self.batch_size = batch_size
+        self.labels = labels
+        self.examples = examples
+        self.dim = examples.shape[1:]
+        if self.labels is not None:
+            self.n_classes = len(set(labels))
+        self.shuffle = shuffle
+        self.to_categorical = to_categorical
+        if (self.to_categorical and not self.labels):
+            raise AssertionError("Can't use 'to_categorical' if no labels are provided")
+        self.return_indexes = return_indexes
+        self.on_epoch_end()
+
+    def __len__(self):
+        'Denotes the number of batches per epoch'
+        return int(np.floor(len(self.examples) / self.batch_size))
+
+    def __getitem__(self, index):
+        'Generate one batch of data'
+        # Generate indexes of the batch
+        indexes = self.indexes[index*self.batch_size:(index+1)*self.batch_size]
+
+        if self.return_indexes:
+            return indexes
+        else:
+            # Generate data
+            return self.__data_generation(indexes)
+
+    def on_epoch_end(self):
+        'Updates indexes after each epoch'
+        self.indexes = np.arange(len(self.examples))
+        if self.shuffle == True:
+            np.random.shuffle(self.indexes)
+
+    def __data_generation(self, indexes):
+        'Generates data containing batch_size samples' # X : (n_samples, *dim, n_channels)
+        # Initialization
+        X = np.empty((self.batch_size, *self.dim)).squeeze()
+        y = np.empty((self.batch_size), dtype=int)
+
+
+        # Generate data
+        for i, idx in enumerate(indexes):
+            # Store sample
+            X[i,] = self.examples[idx]
+            if self.labels is not None:
+                # Store class
+                y[i] = self.labels[idx]
+
+
+        if self.to_categorical:
+            return X, keras.utils.to_categorical(y, num_classes=self.n_classes)
+        elif self.labels is not None:
+            return X, y
+        else:
+            return X
+
+if __name__ == "__main__":
+    iris = datasets.load_iris()
+    x, y = iris.data, iris.target
+    for d in DataGenerator(x):
+        print(d)
+    # for d in DataGenerator()

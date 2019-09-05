@@ -47,7 +47,7 @@ class TestProjectionOperators(unittest.TestCase):
 
 
     def test_splincol(self):
-        nb_keep_values = 1
+        nb_keep_values = self.matrix.shape[0]
         projected_matrix = prox_splincol(self.matrix, nb_keep_values)
         assert all(len(lin[lin != 0]) >= 1 for lin in projected_matrix)
         assert all(len(col[col != 0]) >= 1 for col in projected_matrix.T)
