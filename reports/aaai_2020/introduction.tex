@@ -19,18 +19,18 @@ Fast transforms have recently received increased attention in machine learning a
 These works focused on fixed fast transforms such as well-known Fourier and Hadamard transforms.
 A question is whether one can go beyond and learn fast transforms that fit the data. 
 %
-Recently, \citet{LeMagoarou2016Flexible} introduced a sparse matrix approximation scheme aimed  at  reducing the  complexity  of  applying  linear  operators  in  high  dimension by   approximately   factorizing   the   corresponding   matrix   into few   sparse   factors. 
-One interesting observation is that the aforementioned fixed fast transforms can be factorized into few sparse matrices.
+Recently, \citet{LeMagoarou2016Flexible} introduced an approach aimed  at  reducing the  complexity  of  applying  linear  operators  in  high  dimension by   approximately   factorizing   the   corresponding   matrix   into few   sparse   factors. 
+Indeed, the aforementioned fixed fast transforms can be factorized into few sparse matrices.
 %
-In this paper, we take this idea further and investigate computationally less costly variants of \kmeans by learning fast transforms from data.
+In this paper, we take this idea further and investigate computationally-efficient variants of \kmeans by learning fast transforms from data.
 %
-Specifically, we make the following contributions:
+After introducing the background elements in Section~\ref{sec:background}, we make the following contributions:
 \begin{itemize}
-	\item we introduce \qkmeans, a fast extension of \kmeans that rests on learning a fast transform that approximate the matrix of centers;
-	\item we show that each update step in one iteration of our algorithm  reduces the overall objective, which is enough to guarantee the convergence of \qkmeans;
-	\item we provide a complexity analysis of \qkmeans, showing that the computational gain has a direct impact in assigning a point to a cluster, which is not only tangible at prediction time, but also at training time;
-	\item we provide an empirical evaluation of \qkmeans  performance which demonstrates its effectiveness on different datasets in the contexts of clustering, nearest neighbor search and kernel Nystr\"om approximation.
+	\item in Section~\ref{sec:qkmeans:algo}, we introduce \qkmeans, a fast extension of \kmeans that rests on learning a fast transform that approximate the matrix of centers;
+	\item in Section~\ref{sec:qkmeans:convergence}, we show that each update step in one iteration of our algorithm  reduces the overall objective, which establishes the convergence of \qkmeans;
+	\item in Section~\ref{sec:qkmeans:complexity}, we provide a complexity analysis of \qkmeans, showing that the computational gain has a direct impact in assigning a point to a cluster, which is not only tangible at prediction time, but also at training time;
+	\item in Section~\ref{sec:uses}, an empirical evaluation of \qkmeans  performance demonstrates its effectiveness on different datasets in the contexts of clustering, nearest neighbor search and kernel Nystr\"om approximation.
 \end{itemize}
-\todo[inline]{Annoncer le plan}
+%\todo[inline]{Annoncer le plan}
 
 

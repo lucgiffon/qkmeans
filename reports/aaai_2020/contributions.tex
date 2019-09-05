@@ -6,10 +6,11 @@
 We here introduce our main contribution, \texttt{QuicK-means} (abbreviated by \qkmeans), 
 show its convergence property and analyze its computational complexity.
 
-\todo[inline]{WATCH: CENTROIDS vs CENTERS... We have specified that we would consider
-centers from the get-go...}
+% \todo[inline]{WATCH: CENTROIDS vs CENTERS... We have specified that we would consider
+% centers from the get-go...}
 
 \subsection{\qkmeans: Encoding Centroids as Products of Sparse Matrices}
+\label{sec:qkmeans:algo}
 
 \texttt{QuicK-means} is a variant of the \kmeans algorithm in which the matrix of centers $\rmU$
 is approximated as a product $\rmV=\prod_{\in\intint{\nfactors}}\rmS_q$ of sparse matrices $\rmS_q$.
@@ -33,11 +34,20 @@ writes:
 % \intertext{with}
 %  g\left(\left\{\rmS_q\right\}_{q=1}^{\nfactors}, \rvt\right)&:=  \sum_{k\in\intint{\nclusters}}\sum_{\substack{n\\t_n = k}} \left\|\rvx_n -\rvv_k\right\|^2 + \sum_{q\in\intint{\nfactors}} \delta_{\mathcal{E}_q}(\rmS_q)\label{eq:objective}
 %\end{align}
-where the matrix of centers is parameterized as
-\begin{equation}
-	\label{eq:centers}
-	\rmV = \prod_{q\in\intint{\nfactors}}\rmS_q
-\end{equation}
+where $\rmV = \prod_{q\in\intint{\nfactors}}\rmS_q$.
+%\begin{equation}
+%	\label{eq:centers}
+%	\rmV = \prod_{q\in\intint{\nfactors}}\rmS_q
+%\end{equation}
+%\begin{align}
+%\label{eq:qmean_problem}
+% \argmin_{\left\{\rmS_q\right\}_{q=1}^{\nfactors}, \rvt} g\left(\left\{\rmS_q\right\}_{q=1}^{\nfactors}, \rvt\right)
+%\end{align}
+%where
+%\begin{align}\small
+%g\left(\left\{\rmS_q\right\}_{q=1}^{\nfactors}, \rvt\right) \eqdef & \sum_{k\in\intint{\nclusters}} \sum_{\substack{n\\t_n = k}} \left\|\rvx_n -\rvv_k\right\|^2 + \sum_{q\in\intint{\nfactors}} \delta_{\mathcal{E}_q}(\rmS_q)
+% \label{eq:objective}
+%\end{align}
 
 %
 This is a \todo{(???)} regularized \todo{()???)}  version of the \kmeans optimization problem~\eqref{eq:kmean_problem} in which centers $\rvv_k$ are constrained to form a matrix $\rmV$ with a fast-operator structure, the indicator functions $\delta_{\mathcal{E}_q}$ imposing the sparsity of matrices $\rmS_q$.
@@ -94,6 +104,7 @@ regarding the cost of the assignment and the cost of the re-estimation procedure
 \fi
 
 \subsection{Convergence of \qkmeans}
+\label{sec:qkmeans:convergence}
 Similarly to \kmeans, \qkmeans converges locally as stated in the following proposition.
 
 \begin{proposition}
@@ -121,7 +132,7 @@ which guarantees the convergence (CHECK THAT STATEMENT).
 
 
 \begin{proof}
-We show that each of the assignment and center update steps of the algorithm does not increase the overall objective. 
+We show that each step of the algorithm does not increase the overall objective function. 
 
 \paragraph{Assignment step (Line \ref{line:qmeans:assignment})} For a fixed $\rmV^{(\tau-1)}$, the optimization problem at Line \ref{line:qmeans:assignment} is separable for each example indexed by $n \in \intint{\nexamples}$ and the new indicator vector $\rvt^{(\tau)}$ is thus defined as:
 %
@@ -183,8 +194,7 @@ where:
  \item $\rmA \eqdef \rmD_{\sqrt{\rvn}} \rmU$ is the unconstrained center matrix reweighted by the size of each cluster (see Line~\ref{line:qmeans:A}).
 \end{itemize}
 
-We note that the problem~\eqref{eq:qmeans_problem_t_fixed} has exactly the form of~\eqref{eq:palm4msa} hence the \palm algorithm or its hierarchical variant is applied to obtain an approximation of $\rmA$ in a local minimum, as in Line~\ref{line:qmeans:S}. The first factor $\rmS_0$ is forced to equal $\rmD_{\sqrt{\rvn}}$ by setting $\mathcal{E}_0$ to a singleton at Line~\ref{line:qmeans:E0}. Using the previous estimates $\left \lbrace \rmS_q^{(\tau-1)}\right \rbrace_{q\in\intint{\nfactors}}$ to initialize this local minimization, we thus obtain that $g(\rmS_1^{(\tau)}, \ldots,\rmS_\nfactors^{(\tau)}, \rvt^{(\tau)}) \leq g(\rmS_1^{(\tau-1)}, \ldots,\rmS_\nfactors^{(\tau-1)}, \rvt^{(\tau)})$.
-
+We note that the problem~\eqref{eq:qmeans_problem_t_fixed} has exactly the form of~\eqref{eq:palm4msa} hence the \palm algorithm is applied to obtain an approximation of $\rmA$ in a local minimum, as in Line~\ref{line:qmeans:S}. The first factor $\rmS_0$ is forced to equal $\rmD_{\sqrt{\rvn}}$ by setting $\mathcal{E}_0$ to a singleton at Line~\ref{line:qmeans:E0}. Using the previous estimates $\left \lbrace \rmS_q^{(\tau-1)}\right \rbrace_{q\in\intint{\nfactors}}$ to initialize this local minimization, we thus obtain that $g(\rmS_1^{(\tau)}, \ldots,\rmS_\nfactors^{(\tau)}, \rvt^{(\tau)}) \leq g(\rmS_1^{(\tau-1)}, \ldots,\rmS_\nfactors^{(\tau-1)}, \rvt^{(\tau)})$.
 We finally have, for any $\tau$:
 \begin{align*}
 %g\left (\left \lbrace \rmS_q^{(\tau)}\right \rbrace_{q\in\intint{\nfactors}}, \rvt^{(\tau)}\right ) & \leq
@@ -204,9 +214,9 @@ which is a sufficient condition to assert the Algorithm~\ref{algo:qmeans} is a \
 
 
 \subsection{Complexity analysis}
+\label{sec:qkmeans:complexity}
 
 Since the space complexity of the proposed \qkmeans algorithm is comparable to that of \kmeans, we only detail its time complexity. We set $A=\min\left (\nclusters, \datadim\right )$ and $B=\max\left (\nclusters, \datadim\right )$, and assume that the number of factors satisfies $\nfactors=\bigO{\log A}$.
-
 The analysis is proposed under the following assumptions: the product between two dense matrices of shapes ${N_1\times N_2}$ and ${N_2\times N_3}$ can be done $\mathcal{O}\left (N_1 N_2 N_3 \right )$ operations; 
 the product between a sparse matrix with $\bigO{S}$ non-zero entries and a dense vector can be done in $\bigO{S}$ operations; 
 the product between two sparse matrices of shapes ${N_1\times N_2}$ and ${N_2\times N_3}$, both having $\bigO{S}$ non-zero values can be done in $\bigO{S \min\left (N_1, N_3\right )}$ and the number of non-zero entries in the resulting matrix is $\bigO{S^2}$.
@@ -216,19 +226,20 @@ the product between two sparse matrices of shapes ${N_1\times N_2}$ and ${N_2\ti
 We recall here that the \kmeans algorithm complexity is dominated by its cluster assignation step which requires $\bigO{\nexamples\nclusters\datadim}=\bigO{\nexamples A B}$ operations (see Eq.~\eqref{eq:assignment_problem_kmeans}).
 
 \paragraph{Complexity of algorithm \palm.} The procedure consists in an alternate optimization of each sparse factor. 
-At each iteration, the whole set of $\nfactors$ factors is updated with at a cost in $\bigO{AB\left (\log^2 A+\log B\right )}$, as detailed in Appendix~\ref{sec:app:palm4msa}. 
+At each iteration, the whole set of $\nfactors$ factors is updated with at a cost in $\bigO{AB\left (\log^2 A+\log B\right )}$, as detailed in the supplemental material (Section ~\ref{sec:app:palm4msa}). 
 The bottleneck is the computation of the gradient, which benefits from fast computations with sparse matrices.
-The hierarchical version of \palm proposed in~\cite{LeMagoarou2016Flexible} consists in running $\palm$ $2Q$ times so that its time complexity is in $\bigO{AB\left (\log^3 A + \log A \log B\right )}$.
+%The hierarchical version of \palm proposed in~\cite{LeMagoarou2016Flexible} consists in running $\palm$ $2Q$ times so that its time complexity is in $\bigO{AB\left (\log^3 A + \log A \log B\right )}$.
 
 
-\paragraph{Complexity of the \qkmeans algorithm.} The overall complexity of \qkmeans is in $\bigO{\nexamples\left(A\log A+B\right ) + AB \log^2 A}$ when used with \palm and in $\bigO{\nexamples\left(A\log A+B\right ) + AB \log^3 A}$ when used with the hierarchical version of \palm. The time complexities of the main steps are given in Algorithm~\ref{algo:qmeans}. 
+\paragraph{Complexity of the \qkmeans algorithm.} The overall complexity of \qkmeans is in $\bigO{\nexamples\left(A\log A+B\right ) + AB \log^2 A}$. The time complexities of the main steps are given in Algorithm~\ref{algo:qmeans}. 
 
 The assignation step (line~\ref{line:qmeans:assignment} and Eq.~\eqref{eq:assignment_problem_kmeans}) benefits from the fast computation of $\rmV \rmX$ in~$\bigO{\nexamples\left(A\log A+B\right )}$ while the computation of the norms of the cluster centers is in $\bigO{AB}$.
 One can see that the computational bottleneck of \kmeans is here reduced, which shows the advantage of using \qkmeans when $\nexamples$, $\nclusters$ and $\datadim$ are large.
 
-The computation of the centers of each cluster, given in line~\ref{line:qmeans:compute_means}, is the same as in \kmeans and takes $\bigO{\nexamples\datadim}$ operations.
+The computation of the centers of each cluster at line~\ref{line:qmeans:compute_means} is the same as in \kmeans and takes $\bigO{\nexamples\datadim}$ operations.
 
 The update of the fast transform, in lines~\ref{line:qmeans:A} to~\ref{line:qmeans:U} is a computational overload compared to \kmeans. 
-Its time complexity is dominated by the update of the sparse factors at line~\ref{line:qmeans:S}, in $\bigO{AB \log^2 A}$ if \palm is called and in $\bigO{AB \log^3 A}$ if its hierarchical version is called. 
+
+Its time complexity is dominated by the update of the sparse factors at line~\ref{line:qmeans:S}, in $\bigO{AB \log^2 A}$. 
 Note that this cost is dominated by the cost of the assignement step as soon as the number of examples $\nexamples$ is greater than $\log^3 A$. \todo[inline]{Faire un supplementary material montrant les expériences préliminaires de gain potentiel de temps lors de l'entrainement}
 

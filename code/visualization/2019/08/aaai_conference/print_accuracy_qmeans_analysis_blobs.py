@@ -40,7 +40,8 @@ if __name__ == "__main__":
     # df_results = pd.concat([df_results_no_1024, df_results_1024])
     df_results = df_results_no_1024
     df_results["nystrom_inference_time"] = df_results["nystrom_inference_time"] * 1e3
-
+    df_results["batch_assignation_mean_time"] = df_results["batch_assignation_mean_time"] * 1e3
+    df_results["assignation_mean_time"] = df_results["assignation_mean_time"] * 1e3
     df_results_kmeans = df_results[df_results["kmeans"]]
 
     df_results = pd.concat([df_results, df_results_kmeans])
@@ -76,27 +77,25 @@ if __name__ == "__main__":
 
 
     tasks = [
-          "1nn_kmean_accuracy",
-          "nystrom_svm_accuracy",
-        "nystrom_sampled_error_reconstruction",
-        "nystrom_inference_time",
-        "nystrom_sampled_error_reconstruction_uniform"
+          # "1nn_kmean_accuracy",
+          # "nystrom_svm_accuracy",
+        # "nystrom_sampled_error_reconstruction",
+        # "nystrom_inference_time",
+        # "nystrom_sampled_error_reconstruction_uniform",
+        "batch_assignation_mean_time",
+        # "assignation_mean_time",
+        "1nn_kmean_inference_time",
+
     ]
 
 
     x_indices = np.arange(len(nb_cluster_values))
 
-
-    y_axis_scale_by_task = {
-        "1nn_kmean_accuracy": "linear",
-        "nystrom_svm_accuracy": "linear",
-        "nystrom_sampled_error_reconstruction_uniform": "log",
-        "nystrom_sampled_error_reconstruction": "log",
-        "nystrom_inference_time": "linear",
-
-    }
-
     y_axis_label_by_task = {
+        "assignation_mean_time": "time (ms)",
+        "1nn_kmean_inference_time": "time (s)",
+        "batch_assignation_mean_time": "time (ms)",
+
         "1nn_kmean_accuracy": "accuracy",
         "nystrom_svm_accuracy": "accuracy",
         "nystrom_sampled_error_reconstruction_uniform": "log(norm of difference)",

@@ -46,6 +46,7 @@
 \usepackage{caption} 
 \usepackage{array}
 \usepackage{multirow}
+\usepackage{appendix}
 
 \captionsetup[table]{skip=8pt}
 
@@ -197,9 +198,12 @@ We precisely show that resorting to a factorization step at each iteration does 
 
 \bibliography{qmeans}
 \bibliographystyle{aaai} %
-\pagebreak
-\pagebreak
+
+\cleardoublepage
+\onecolumn 
 \appendix
+\renewcommand\appendixpagename{Supplemental material}
+\appendixpage
 \input{app_palm4msa.tex}
 
 

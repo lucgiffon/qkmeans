@@ -37,28 +37,13 @@ are used to show --- quantitatively and qualitatively --- the good quality of th
 %The code of our method \qkmeans is available on request and will be available online soon. \addLG{je serais d'avis de ne pas dire ça mais soit de dire qu'il est déjà disponible, soit de ne rien dire. Sachant qu'on ne peut pas dire qu'il est déjà disponible en ligne avant le processus de reviewing}
 
 
-% \begin{table*}[!h]
-% \centering
-% \begin{tabular}{|c|c|c|c|c|c|}
-% \hline
-% \textbf{Dataset} & \textbf{Data dim.} $\datadim$        & \textbf{\# classes} & \textbf{Training set size} $\nexamples$ & \textbf{Test set size} $\nexamples'$ \\ \hline
-% MNIST                   & 784   & 10        & 60 000    & 10 000               \\ \hline
-% Fashion-MNIST           & 784   & 10        & 60 000    & 10 000               \\ \hline
-% % LFW                     & 1850  & 2529      & 8866      & N/A               \\ \hline
-% Blobs (clusters std: 12)   & 2000  & 1000      & 29000      & 1000               \\ \hline
-% \end{tabular}
-% \caption{Datasets statistics}
-% \label{table:data}
-% \end{table*}
-
-
 \paragraph{Algorithm settings.} 
 \qkmeans is used with $Q\eqdef\log_2\left (A\right )$ sparse factors, where  $A\eqdef\min\left (\nclusters, \datadim\right )$. 
 All factors $\rmS_q$ are with shape $A \times A$ except, depending on the shape of $\rmA$, the leftmost one ($\nclusters\times A$) or the rightmost one ($A\times\datadim$). 
 The sparsity constraint of each factor $\rmS_q$ is set in $\mathcal{E}_q$ and is governed by a global parameter denoted as \textit{sparsity level}, which indicates the desired number of non-zero coefficients in each row and in each column of $\rmS_q$. 
 Since the projection onto this set of structured-sparsity constraints may be computationally expensive, this projection is relaxed in the implementation of \palm and only guarantees that the number of non-zero coefficients in each row and each column is at least the sparsity level, as in~\cite{LeMagoarou2016Flexible}.
 The actual number of non-zero coefficients in the sparse factors is measured at the end of the optimization process and reported in the results.
-The sparse factors are updated using the \palm rather than its hierarchical version, since we observed that this was a better choice in terms of computational cost, with satisfying approximation results (See Figure~\ref{fig:mnist:objfun}~and~\ref{fig:fmnist:objfun}).
+%The sparse factors are updated using the \palm rather than its hierarchical version, since we observed that this was a better choice in terms of computational cost, with satisfying approximation results (See Figure~\ref{fig:mnist:objfun}~and~\ref{fig:fmnist:objfun}).
 Additional details about \palm are given in Appendix~\ref{sec:app:palm4msa}.
 The stopping criterion of \kmeans and \qkmeans consists of a tolerance set to $10^{-6}$ on the relative variation of the objective function and a maximum number of iterations set to 10 for the \texttt{Blobs} dataset and to 20 for others. 
 The same principle governs the stopping criterion of \palm with a tolerance set to $10^{-6}$ and a maximum number of iterations set to 300. Each experiment have been replicated using different seed values for random initialisation. 
@@ -122,7 +107,7 @@ Competing techniques share the same seed values, hence share the same initialisa
 
 \paragraph{Approximation quality.} One important question is the ability of the fast-structure model to fit arbitrary data.
 Indeed, no theoretical result about the expressivity of such models is currently available.
-In order to assess this approximation quality, the MNIST and Fashion-MNIST data have been clustered into $\nclusters=30$ clusters by \kmeans, \qkmeans and a variant of \qkmeans using the hierarchical version of \palm, with several sparsity levels.
+In order to assess this approximation quality, the MNIST and Fashion-MNIST data have been clustered into $\nclusters=30$ clusters by \kmeans and \qkmeans with several sparsity levels.
 Results are reported in Figure~\ref{fig:clustering:realdata}.
 In Figures~\ref{fig:mnist:objfun} and~\ref{fig:fmnist:objfun}, one can observe that the objective function of \qkmeans is decreasing in a similar way as \kmeans over iterations.
 In particular, the use of the fast-structure model does not seem to increase the number of iteration necessary before convergence.
@@ -142,12 +127,14 @@ Results reported in Figure~\ref{fig:clustering:blobs:assignation_time} show that
 %\todo[inline]{Montrer ensuite les temps d'assignation en mode batch 5000 sur blobs, cf. Figure~\ref{fig:clustering:blobs:assignation_time}. Objectif: montrer qu'à partir d'une certaine dimension, \qkmeans est plus rapide.}
 %on-line\footnote{Anonymous URL.}.
 
-\begin{figure}[tbh]
-\centering
-\includegraphics[width=.45\textwidth]{blobs_assignation_time.png}
-\caption{Clustering Blobs data: running times of the assignation step, averaged over 5 runs. The vertical black lines are the standard deviation w.r.t. the runs and the average number of parameters actually learned  in the models are reported above those lines.\addVE{to be completed}.}
-\label{fig:clustering:blobs:assignation_time}
-\end{figure}
+% \begin{figure}[tbh]
+% \centering
+% \includegraphics[width=.45\textwidth]{blobs_assignation_time.png}
+% \caption{Clustering Blobs data: running times of the assignation step, averaged over 5 runs. The vertical black lines are the standard deviation w.r.t. the runs and the average number of parameters actually learned  in the models are reported above those lines.\addVE{to be completed}.}
+% \label{fig:clustering:blobs:assignation_time}
+% \end{figure}
+
+\todo[inline]{supplementary material montrant l'impact de la sparsity factor}
 
 \subsection{Nearest-neighbor search in a large dataset}
 The Nearest-neighbor search is a fundamental task that suffers from computational limitations when the dataset is large.
@@ -160,108 +147,15 @@ The results for the Brute Force Search, KD Tree and Ball Tree are not available 
 The running times reported in Figure~\ref{fig:nn:blobs} show a dramatic advantage of using a clustering-based approximate search 
 %\todo{to be completed by reporting the actual acceleration ratio obtained by \qkmeans over the three sklearn options.} 
 and this advantage is even stronger with the clustering obtained by our \qkmeans method. This speed-up comes at a cost though, we can see a drop in classification performance in Table~\ref{table:results_blobs}. 
-
-\begin{figure}[tbh]
-\centering
-\includegraphics[width=.45\textwidth]{blobs_1nn_inference_time.png}
-\label{fig:nn:blobs:times}
-\caption{Running time of nearest neighbor search on blobs data. Results are averaged over 5 runs (vertical lines: standard deviation) and the average number of parameters actually learned is reported above each bar.}
-\label{fig:nn:blobs}
-\end{figure}
-
-
-% \begin{table*}[!htb]
+% 
+% \begin{figure}[tbh]
 % \centering
-% \begin{tabular}{l|c|c}
-% 
-% \toprule
-% \begin{tabular}{@{}l}
-% \\
-% \thead{~}\\ 
-% \midrule
-% 1NN Brute force search            \\
-% 1NN KD Tree                       \\
-% 1NN Ball Tree                     \\
-% \midrule \midrule
-%                                   \\
-% 1NN K-means                       \\
-%                                   \\
-% \midrule
-%                                   \\
-% Nyström K-means + SVM             \\
-%                                   \\
-%                                   
-% \midrule \midrule
-%                                   \\
-% 1NN QK-means                      \\
-%                                   \\
-% \midrule
-%                                   \\
-% Nyström QK-means + SVM            \\
-%                                   \\
-% \end{tabular} 
-% 
-% &
-% 
-% \begin{tabular}{ccccc}
-%                                        & \multicolumn{2}{c}{\texttt{Blobs}}           & \multicolumn{2}{c}{\texttt{Caltech}} \\
-%                                      K & \thead{Accuracy  } & \thead{Inference time} & \thead{Accuracy} & \thead{Accuracy} \\ 
-% \midrule
-%  & N/A & N/A   \\
-%  & N/A & N/A   \\
-%  & N/A & N/A   \\ 
-% \midrule \midrule
-%  128            & 0.96 & \multirow{3}{*}{0.00}     \\
-%  256            & 0.97 &                                                          \\
-%  512            & 0.99 &                                                          \\ 
-% \midrule
-%  128            & 0.98 & 0.98     \\
-%  256          & 1.0   & 1.0       \\
-%  512           & 1.0 & 1.0        \\ 
-%  \midrule \midrule
-% 
-%  128           & 0.74 & 0.74      \\
-%  256           & 0.66 & 0.66      \\
-%  512           & 0.66 & 0.66      \\ 
-% 
-%  
-%  \midrule
-%  128           & 0.95 & 0.95      \\
-%  256           & 1.0 & 1.0        \\
-%  512           & 1.0 & 1.0        \\ 
-% \end{tabular}
-% 
-% &
-% 
-% \begin{tabular}{ccc}
-%                                  & \multicolumn{2}{c}{\texttt{MNIST}} \\
-%                               K  & \thead{Accuracy} & \thead{Inference time}  \\ 
-% \midrule
-%                &  0.97  \\
-%                &  0.97  \\
-%                &  0.97  \\ 
-% \midrule \midrule
-% 10            &  0.96  \\
-% 16            &  0.96  \\
-% 30            &  0.96  \\ 
-% \midrule 
-% 10           & 0.74  \\
-% 16           & 0.83  \\
-% 30           & 0.88  \\ 
-% \midrule \midrule
-% 10           &  0.96  \\
-% 16           &  0.96  \\
-% 30           &  0.96  \\ 
-% \midrule
-% 10           & 0.74  \\
-% 16           & 0.82  \\
-% 30           & 0.88  \\
-% \end{tabular} \\
-% \bottomrule
-% 
-% \end{tabular}
-% \caption{Classification task: results averaged over 5 runs. For \qkmeans, only results with sparsity level~5 are displayed.}
-% \end{table*}
+% \includegraphics[width=.45\textwidth]{blobs_1nn_inference_time.png}
+% \label{fig:nn:blobs:times}
+% \caption{Running time of nearest neighbor search on blobs data. Results are averaged over 5 runs (vertical lines: standard deviation) and the average number of parameters actually learned is reported above each bar.}
+% \label{fig:nn:blobs}
+% \end{figure}
+
 
 \begin{table*}[!htb]
 % \centering
@@ -270,6 +164,15 @@ and this advantage is even stronger with the clustering obtained by our \qkmeans
                                                 &                               & \thead{\texttt{Blobs} \\ K=128}       & \thead{\texttt{Blobs} \\ K=256}   & \thead{\texttt{Blobs} \\ K=512}     & \thead{\texttt{Caltech} \\ K=128}       & \thead{\texttt{Caltech} \\ K=256}   & \thead{\texttt{Caltech} \\ K=512}     & \thead{\texttt{MNIST} \\ K=10}   & \thead{\texttt{MNIST} \\ K=16} & \thead{\texttt{MNIST} \\ K=30} \\ 
                                                 
 \midrule
+
+                                                                                                                                                                                                                                                                             
+\multirow{2}{*}{\shortstack{Vector assignation \\ time (ms)}} & \kmeans               & \boldsymbol{$0.05$}                   & \boldsymbol{$0.08$}                  & $0.12$                     & \boldsymbol{$remp$}                  & \boldsymbol{$remp$}                    & $remp$                       & \boldsymbol{$0.004$}           & \boldsymbol{$0.005$}   & \boldsymbol{$0.005$}   \\
+                                                        & \qkmeans              & $0.06$                                & \boldsymbol{$0.08$}                 & \boldsymbol{$0.07$}                     & $remp$                               & $remp$                               & \boldsymbol{$remp$}            & $0.01$                       & $0.01$                 & $0.02$   \\
+
+                                                        
+\midrule \midrule                                                                                                                                                                                                                                                                                                
+                                                        
+                                                        
 
 \multirow{3}{*}{\shortstack{Nyström \\ approximation \\ error}}   & \kmeans               & \boldsymbol{$0.032$}                  & \boldsymbol{$0.030$}                   & \boldsymbol{$0.027$}           & \boldsymbol{$remp$}                  & \boldsymbol{$remp$}                   & \boldsymbol{$remp$}           & \boldsymbol{$0.087$}          & \boldsymbol{$0.069$}        & \boldsymbol{$0.049$}   \\
                                                         & \qkmeans              & \boldsymbol{$0.032$}                  &  \underline{$0.031$}                  & \underline{$0.029$}             & \boldsymbol{$remp$}                  &  \underline{$remp$}                  & \underline{$remp$}             & \underline{$0.091$}           & \underline{$0.083$}         & \underline{$0.061$}   \\
@@ -286,9 +189,22 @@ and this advantage is even stronger with the clustering obtained by our \qkmeans
 \midrule \midrule                                                                                                                                                                                                                                                                                                
 
 
-\multirow{2}{*}{\shortstack{1NN \\ Accuracy}}           & \kmeans               & \boldsymbol{$0.96$}                   & \boldsymbol{$0.97$}                & \boldsymbol{$0.99$}                 & \boldsymbol{$remp$}                  & \boldsymbol{$remp$}                    & $remp$                       & \boldsymbol{$0.96$}           & \boldsymbol{$0.96$}   & \boldsymbol{$0.96$}   \\
+\multirow{5}{*}{\shortstack{1NN \\ Accuracy}}           & \kmeans               & \boldsymbol{$0.96$}                   & \boldsymbol{$0.97$}                & \boldsymbol{$0.99$}                 & \boldsymbol{$remp$}                  & \boldsymbol{$remp$}                    & $remp$                       & \boldsymbol{$0.96$}           & \boldsymbol{$0.96$}   & \boldsymbol{$0.96$}   \\
                                                         & \qkmeans              & $0.61$                                & $0.49$                             & $0.37$                              & $remp$                               & $remp$                               & \boldsymbol{$remp$}            & \boldsymbol{$0.96$}           & \boldsymbol{$0.96$}                 & $0.95$   \\
+                                                        & Brute force          &                                           \multicolumn{3}{c|}{$N/A$}                                               & $remp$                               & $remp$                               & \boldsymbol{$remp$}           &                    \multicolumn{3}{c}{$0.97$}                                 \\
+                                                        & Ball-tree            &                                           \multicolumn{3}{c|}{$N/A$}                                               & $remp$                               & $remp$                               & \boldsymbol{$remp$}           &                    \multicolumn{3}{c}{$0.97$}                                 \\
+                                                        & Kd-tree              &                                           \multicolumn{3}{c|}{$N/A$}                                               & $remp$                               & $remp$                               & \boldsymbol{$remp$}           &                    \multicolumn{3}{c}{$0.97$}                                 \\
 
+                                                        
+\midrule \midrule                                                                                                                                                                                                                                                                                                
+                                                                                                                                                                                                                                                                             
+                                                                                                                                                                                                                                                                             
+\multirow{5}{*}{\shortstack{1NN \\ Runtime (s)}} & \kmeans               & \boldsymbol{$17.2$}                   & \boldsymbol{$15.8$}                  & \boldsymbol{$9.5$}                     & \boldsymbol{$remp$}                  & \boldsymbol{$remp$}                    & $remp$                       & \boldsymbol{$0.74$}           & \boldsymbol{$0.83$}   & \boldsymbol{$0.88$}   \\
+                                                        & \qkmeans              & $5.3$                                & \boldsymbol{$3.0$}                 & \boldsymbol{$1.2$}                     & $remp$                               & $remp$                               & \boldsymbol{$remp$}            & $0.73$                       & $0.79$                 & $0.86$   \\
+                                                        & Brute force          &                                           \multicolumn{3}{c|}{$N/A$}                                               &  $remp$                               & $remp$                               & \boldsymbol{$remp$}           &                    \multicolumn{3}{c}{$2176.1$}                                 \\
+                                                        & Ball-tree            &                                           \multicolumn{3}{c|}{$N/A$}                                               & $remp$                               & $remp$                               & \boldsymbol{$remp$}            &                    \multicolumn{3}{c}{$553.0$}                                 \\
+                                                        & Kd-tree              &                                           \multicolumn{3}{c|}{$N/A$}                                               &$remp$                               & $remp$                               & \boldsymbol{$remp$}             &                    \multicolumn{3}{c}{$707.0$}                                 \\
+                                                                                                                                                                                                  
                                                         
 \midrule \midrule                                                                                                                                                                                                                                                                                                
                                                                                                                                                                                                                                                                              
@@ -296,16 +212,16 @@ and this advantage is even stronger with the clustering obtained by our \qkmeans
 \multirow{2}{*}{\shortstack{Nyström + SVM \\ Accuracy}} & \kmeans               & \boldsymbol{$0.98$}                   & \boldsymbol{$1.0$}                  & \boldsymbol{$1.0$}                     & \boldsymbol{$remp$}                  & \boldsymbol{$remp$}                    & $remp$                       & \boldsymbol{$0.74$}           & \boldsymbol{$0.83$}   & \boldsymbol{$0.88$}   \\
                                                         & \qkmeans              & $0.95$                                & \boldsymbol{$1.0$}                 & \boldsymbol{$1.0$}                     & $remp$                               & $remp$                               & \boldsymbol{$remp$}            & $0.73$                       & $0.79$                 & $0.86$   \\
                                                                                                                                                                                                   
-                                                        
+                                                                                    
 \bottomrule
 \end{tabular}}
 \caption{
-Results of numerical experiments for landmark selection methods based on either \kmeans, \qkmeans or uniform sampling: Nyström approximation error for a sample set of size $5000$; Matrix vector multiplication time averaged over $5000$ observations; 1-nearest neighbor classification accuracy on the test set; SVM classification on top of Nyström transformation on the test set. The \qkmeans results are obtained with sparse factors with at least 2 values in each line and each column. The uniform sampling based Nyström approximation running times are not displayed because they are the same as for the Nyström approximation based on \kmeans centers. Every experiment results are averaged over 5 runs. Best results are bold while second best are underlined (when there are three).}
+Results of numerical experiments for landmark selection methods based on either \kmeans, \qkmeans or uniform sampling: Nyström approximation error and average transformation time for a sample set of size $5000$; 1-nearest neighbor classification accuracy on the test set; SVM classification on top of Nyström transformation on the test set. The \qkmeans results are obtained with sparse factors with at least 2 values in each line and each column. Every experiment results are averaged over 5 runs. Best results are bold while second best are underlined (when there are three). Cells marked as ``$N/A$'' refer to experiments that timed-out.}
 \label{tab:nystrom}
 \end{table*}
-\todo[inline]{add uniform sampling results to this table}
 
-\todo[inline]{ajouter les stds dans les tableaux et reformater les tableaux -- je ne sais pas encore comment... mais une fois fait, plus de problèmes.}
+\todo[inline]{ajouter 1NN brute results a ce tableau}
+\todo[inline]{verifier que l'on commente le fait que les résultats de vitesse avec mnist sont mauvais}
 
 \subsection{Nyström approximation}
 
