@@ -10,6 +10,7 @@ show its convergence property and analyze its computational complexity.
 % centers from the get-go...}
 
 \subsection{\qkmeans: Encoding Centroids as Products of Sparse Matrices}
+\label{sec:qkmeans:algo}
 
 \texttt{QuicK-means} is a variant of the \kmeans algorithm in which the matrix of centers $\rmU$
 is approximated as a product $\rmV=\prod_{\in\intint{\nfactors}}\rmS_q$ of sparse matrices $\rmS_q$.
@@ -103,6 +104,7 @@ regarding the cost of the assignment and the cost of the re-estimation procedure
 \fi
 
 \subsection{Convergence of \qkmeans}
+\label{sec:qkmeans:convergence}
 Similarly to \kmeans, \qkmeans converges locally as stated in the following proposition.
 
 \begin{proposition}
@@ -212,6 +214,7 @@ which is a sufficient condition to assert the Algorithm~\ref{algo:qmeans} is a \
 
 
 \subsection{Complexity analysis}
+\label{sec:qkmeans:complexity}
 
 Since the space complexity of the proposed \qkmeans algorithm is comparable to that of \kmeans, we only detail its time complexity. We set $A=\min\left (\nclusters, \datadim\right )$ and $B=\max\left (\nclusters, \datadim\right )$, and assume that the number of factors satisfies $\nfactors=\bigO{\log A}$.
 The analysis is proposed under the following assumptions: the product between two dense matrices of shapes ${N_1\times N_2}$ and ${N_2\times N_3}$ can be done $\mathcal{O}\left (N_1 N_2 N_3 \right )$ operations; 
