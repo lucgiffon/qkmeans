@@ -58,7 +58,7 @@ All factors $\rmS_q$ are with shape $A \times A$ except, depending on the shape 
 The sparsity constraint of each factor $\rmS_q$ is set in $\mathcal{E}_q$ and is governed by a global parameter denoted as \textit{sparsity level}, which indicates the desired number of non-zero coefficients in each row and in each column of $\rmS_q$. 
 Since the projection onto this set of structured-sparsity constraints may be computationally expensive, this projection is relaxed in the implementation of \palm and only guarantees that the number of non-zero coefficients in each row and each column is at least the sparsity level, as in~\cite{LeMagoarou2016Flexible}.
 The actual number of non-zero coefficients in the sparse factors is measured at the end of the optimization process and reported in the results.
-The sparse factors are updated using the \palm rather than its hierarchical version, since we observed that this was a better choice in terms of computational cost, with satisfying approximation results (See Figure~\ref{fig:mnist:objfun}~and~\ref{fig:fmnist:objfun}).
+%The sparse factors are updated using the \palm rather than its hierarchical version, since we observed that this was a better choice in terms of computational cost, with satisfying approximation results (See Figure~\ref{fig:mnist:objfun}~and~\ref{fig:fmnist:objfun}).
 Additional details about \palm are given in Appendix~\ref{sec:app:palm4msa}.
 The stopping criterion of \kmeans and \qkmeans consists of a tolerance set to $10^{-6}$ on the relative variation of the objective function and a maximum number of iterations set to 10 for the \texttt{Blobs} dataset and to 20 for others. 
 The same principle governs the stopping criterion of \palm with a tolerance set to $10^{-6}$ and a maximum number of iterations set to 300. Each experiment have been replicated using different seed values for random initialisation. 
@@ -122,7 +122,7 @@ Competing techniques share the same seed values, hence share the same initialisa
 
 \paragraph{Approximation quality.} One important question is the ability of the fast-structure model to fit arbitrary data.
 Indeed, no theoretical result about the expressivity of such models is currently available.
-In order to assess this approximation quality, the MNIST and Fashion-MNIST data have been clustered into $\nclusters=30$ clusters by \kmeans, \qkmeans and a variant of \qkmeans using the hierarchical version of \palm, with several sparsity levels.
+In order to assess this approximation quality, the MNIST and Fashion-MNIST data have been clustered into $\nclusters=30$ clusters by \kmeans and \qkmeans with several sparsity levels.
 Results are reported in Figure~\ref{fig:clustering:realdata}.
 In Figures~\ref{fig:mnist:objfun} and~\ref{fig:fmnist:objfun}, one can observe that the objective function of \qkmeans is decreasing in a similar way as \kmeans over iterations.
 In particular, the use of the fast-structure model does not seem to increase the number of iteration necessary before convergence.
