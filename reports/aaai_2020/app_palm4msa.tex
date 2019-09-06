@@ -118,12 +118,6 @@ We have noted a difference of efficiency when applying our fast-transform operat
 \label{fig:batch_vs_1vect}
 \end{figure}
 
-\begin{figure}[tbh]
-\centering
-\includegraphics[width=.47\textwidth]{RunningTime4VaryingSparsity.png}
-\caption{Running times, averaged over 30 runs, when applying dense or fast $\datadim \times \datadim$ operators to a set of 100 random vectors. The number of factors in fast operators equals $\log_2\left (\datadim\right )$ and the sparsity level denotes the number of non-zero coefficients per row and per column in each factor.}
-\label{fig:time_csr}
-\end{figure}
 
 
 \section{Hierarchical-Palm4MSA}
@@ -232,7 +226,7 @@ We show the approximation error of the Nyström approximation based on different
 
 % \todo[inline]{Faire un supplementary material montrant les expériences préliminaires de gain potentiel de temps lors de l'entrainement pour le jeu de données énorme}
 
-\todo[inline]{Ajouter le déroulement de l'equation (equation 8 environ) centers update step dans les supplementary materials}
+% \todo[inline]{Ajouter le déroulement de l'equation (equation 8 environ) centers update step dans les supplementary materials}
 
 % \todo[inline]{supplementary material montrant l'impact de la sparsity factor}
 
