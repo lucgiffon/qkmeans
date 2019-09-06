@@ -26,30 +26,37 @@ def get_df(path):
 
 
 if __name__ == "__main__":
-    # suf_path = "2019/07/qmeans_analysis_blobs_log2_clusters_bis"
     create_input_dir = lambda x: "/home/luc/PycharmProjects/qalm_qmeans/results/" + x
+    # suf_path = "2019/07/qmeans_analysis_blobs_log2_clusters_bis"
+    suf_path_blobs_caltech = "2019/08/aaai/caltech_decoda2"
+    input_dir_blobs_caltech = create_input_dir(suf_path_blobs_caltech)
+    # suf_path_blobs_caltech_extra = "2019/08/1_2_qmeans_objective_function_new_interface_qmeans_blobs_caltech_only_fail"
+    # input_dir_blobs_caltech_extra =  create_input_dir(suf_path_blobs_caltech_extra)
+
     suf_path_mnist = "2019/08/aaai/mnist"
-    input_dir_mnist =  create_input_dir(suf_path_mnist)
-    output_dir = "/home/luc/PycharmProjects/qalm_qmeans/reports/figures/" + "2019/07/tech_report" + "/histogrammes"
+    input_dir_mnist = create_input_dir(suf_path_mnist)
+    suf_path_fmnist = "2019/08/aaai/fashion_mnist"
+    input_dir_fmnist = create_input_dir(suf_path_fmnist)
+
+    output_dir = "/home/luc/PycharmProjects/qalm_qmeans/reports/figures/" + "2019/08/aaai_conference" + "/histogrammes"
     output_dir = pathlib.Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
+    df_results_blobs_caltech = get_df(input_dir_blobs_caltech)
+    # df_results_blobs_caltech_extra = get_df(input_dir_blobs_caltech_extra)
+    df_results_mnist = get_df(input_dir_mnist)
+    df_results_fmnist = get_df(input_dir_fmnist)
 
+    # df_results = pd.concat([df_results_blobs_caltech, df_results_blobs_caltech_extra, df_results_mnist_fmnist])
+    df_results = pd.concat([df_results_blobs_caltech, df_results_mnist, df_results_fmnist])
 
-    df_results_no_1024 = get_df(input_dir_mnist)
-    # df_results_1024 = get_df(input_dir_1024)
-    # df_results = pd.concat([df_results_no_1024, df_results_1024])
-    df_results = df_results_no_1024
-
-    df_results_kmeans = df_results[df_results["kmeans"]]
-
-    df_results = pd.concat([df_results, df_results_kmeans])
-    df_results["nystrom_inference_time"] = df_results["nystrom_inference_time"] * 1e3
-    df_results["batch_assignation_mean_time"] = df_results["batch_assignation_mean_time"] * 1e3
-    df_results["assignation_mean_time"] = df_results["assignation_mean_time"] * 1e3
 
     df_results_failure = df_results[df_results["failure"]]
     df_results = df_results[np.logical_not(df_results["failure"])]
+
+    df_results["nystrom_inference_time"] = df_results["nystrom_inference_time"] * 1e3
+    df_results["batch_assignation_mean_time"] = df_results["batch_assignation_mean_time"] * 1e3
+    df_results["assignation_mean_time"] = df_results["assignation_mean_time"] * 1e3
 
     df_results_qmeans = df_results[df_results["qmeans"]]
     df_results_kmeans = df_results[df_results["kmeans"]]
@@ -59,16 +66,18 @@ if __name__ == "__main__":
 
     datasets = {
         # "Fashion Mnist": "--fashion-mnist",
-        "Mnist": "--mnist",
+        # "Mnist": "--mnist",
         # "Blobs": "--blobs",
-        # "LFW": "--lfw"
+        # "LFW": "--lfw",
+        "Caltech": "--caltech256"
     }
 
     dataset_dim = {
         "Fashion Mnist": 784,
         "Mnist": 784,
         # "LFW": 1850,
-        # "Blobs": 2000
+        # "Blobs": 2000,
+        "Caltech": 2352
     }
 
     # shapes = {"Fashion Mnist": (28, 28),
@@ -81,11 +90,11 @@ if __name__ == "__main__":
 
     tasks = [
           # "1nn_kmean_accuracy",
-          # "nystrom_svm_accuracy",
+          "nystrom_svm_accuracy",
         # "nystrom_sampled_error_reconstruction",
         # "nystrom_inference_time",
         # "nystrom_sampled_error_reconstruction_uniform",
-        "batch_assignation_mean_time",
+        # "batch_assignation_mean_time",
         # "assignation_mean_time",
         # "1nn_kmean_inference_time",
 
@@ -126,8 +135,12 @@ if __name__ == "__main__":
     for dataset_name in datasets:
         print(dataset_name)
         datasets_col = datasets[dataset_name]
-        df_dataset_qmeans = df_results_qmeans[df_results_qmeans[datasets_col] == True]
-        df_dataset_kmeans = df_results_kmeans[df_results_kmeans[datasets_col] == True]
+        if dataset_name == "Caltech":
+            df_dataset_qmeans = df_results_qmeans[df_results_qmeans[datasets_col] != "None"]
+            df_dataset_kmeans = df_results_kmeans[df_results_kmeans[datasets_col] != "None"]
+        else:
+            df_dataset_qmeans = df_results_qmeans[df_results_qmeans[datasets_col] == True]
+            df_dataset_kmeans = df_results_kmeans[df_results_kmeans[datasets_col] == True]
         df_dataset_kmeans_palm = df_results_kmeans_palm[df_results_kmeans_palm[datasets_col] == True]
         nb_factors = [min(int(np.log2(nb_cluster)), int(np.log2(dataset_dim[dataset_name]))) for nb_cluster in nb_cluster_values]
         for hierarchical_value in hierarchical_values:

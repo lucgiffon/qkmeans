@@ -82,7 +82,7 @@ if __name__ == "__main__":
         # "nystrom_sampled_error_reconstruction",
         # "nystrom_inference_time",
         # "nystrom_sampled_error_reconstruction_uniform",
-        "batch_assignation_mean_time",
+        # "batch_assignation_mean_time",
         "assignation_mean_time",
         # "1nn_kmean_inference_time",
 
