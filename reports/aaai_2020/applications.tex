@@ -8,8 +8,8 @@
 \label{sec:uses:settings}
 
 \paragraph{Implementation details.}
-The simulations have been conducted in Python, including for the \palm algorithm.
-Running times are measured on computer grid with 3.8GHz-CPUs (2.5GHz in Figure~\ref{fig:time_csr}).
+The code has been written in Python, including the \palm algorithm.
+Running times are measured on a computer grid with 3.8GHz-CPUs (2.5GHz in Figure~\ref{fig:time_csr}).
 Fast operators $\rmV$ based on sparse matrices $\rmS_q$ are implemented with \texttt{csr\_matrix} objects from the \texttt{scipy.linalg} package. 
 While more efficient implementations may be beneficial for larger deployment, our implementation is sufficient as a proof of concept for assessing the performance of the proposed approach as illustrated by running times benchmarking in the Section~\ref{seq:sparse_factor_benchmarking} of supplementary material.
 % In particular, the running times of fast operators of the form $\prod_{q\in\intint{\nfactors}}{\rmS_q}$ have been measured when applying to random vectors, for several sparsity levels: 
