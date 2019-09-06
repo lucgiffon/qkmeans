@@ -21,16 +21,19 @@ that shows up in the cluster assignment process ---rewrite~\eqref{eq:assignment_
 Building upon the \kmeans optimization problem~\eqref{eq:kmean_problem} and fast-operator approximation problem~\eqref{eq:palm4msa} the \qkmeans optimization problem 
 writes:
 %
+
 \begin{align}
 \label{eq:qmean_problem}
  \argmin_{\left\{\rmS_q\right\}_{q=1}^{\nfactors}, \rvt} & g\left(\left\{\rmS_q\right\}_{q=1}^{\nfactors}, \rvt\right), 
  \end{align}
 where
+\small
 \begin{align}
   g\left(\left\{\rmS_q\right\}_{q=1}^{\nfactors}, \rvt\right) & \eqdef \sum_{k\in\intint{\nclusters}} \sum_{{n:t_n = k}} \left\|\rvx_n -\rvv_k\right\|^2 
   + \sum_{q\in\intint{\nfactors}} \delta_{\mathcal{E}_q}(\rmS_q)
  \label{eq:objective}
 \end{align}
+\normalsize
 %\begin{align}
 %\label{eq:qmean_problem}
 % \argmin_{\left\{\rmS_q\right\}_{q=1}^{\nfactors}, \rvt} & g\left(\left\{\rmS_q\right\}_{q=1}^{\nfactors}, \rvt\right)\\
@@ -152,6 +155,7 @@ g\left (\left\{\rmS_q^{(\tau-1)}\right\}_{q=1}^{\nfactors}, \rvt^{(\tau)}\right 
 %\end{align*}
 
 \paragraph{Centers update step (Lines \ref{line:qmeans:compute_means}--\ref{line:qmeans:U}).} We now consider a fixed assignment vector $\rvt$. We first note that for any cluster $k$ with true center $\rvu_k$ and approximated center $\rvv_k$, we have, by simple calculations
+\small
 \begin{align}
     \label{eq:rewrite_assignement}
 	\sum_{n:t_n = k} \norm{\rvx_n -\rvv_k}^2
@@ -163,6 +167,7 @@ g\left (\left\{\rmS_q^{(\tau-1)}\right\}_{q=1}^{\nfactors}, \rvt^{(\tau)}\right 
 %	&= \sum_{\substack{n\\t_n = k}} \norm{\rvx_n-\rvu_k}^2 + \norm{\sqrt{n_k}\left (\rvu_k-\rvv_k\right )}^2
 	&= \sum_{n:t_n = k} \norm{\rvx_n-\rvu_k}^2 + n_k \norm{\rvu_k-\rvv_k}^2,
 \end{align}
+\normalsize
 
 
 
@@ -177,13 +182,14 @@ For a fixed $\rvt$, the new sparsely-factorized centers are solutions of the sub
 %\end{align}
 
 
-
+\small
 \begin{align}
  \argmin_{\rmS_1, \ldots,\rmS_Q} & \norm{\rmD_{\sqrt{\rvn}} (\rmU - \rmV)}_F^2 + \sum_{k\in\intint{\nclusters}} c_k + \sum_{q\in\intint{\nfactors}} \delta_q(\rmS_q) \notag \\
  & \text{ s. t. } \rmV = \prod_{q\in\intint{\nfactors}}{\rmS_q} \nonumber\\
  = \argmin_{\rmS_1, \ldots,\rmS_Q} & \norm{\rmA - \prod_{q\in\left\{\intint{\nfactors} \cup \{0\}\right\}}{\rmS_q}}_F^2 + \sum_{q\in\left\{\intint{\nfactors} \cup \{0\}\right\}} \delta_q(\rmS_q) \notag \\
  \label{eq:qmeans_problem_t_fixed}
  \end{align}
+ \normalsize
 %
 where:
 %
@@ -198,6 +204,7 @@ where:
 
 We note that  problem~\eqref{eq:qmeans_problem_t_fixed} has exactly the form of~\eqref{eq:palm4msa} hence the \palm algorithm is used in Line~\ref{line:qmeans:S} to obtain an approximation of $\rmA$. The first factor $\rmS_0$ is set to $\rmD_{\sqrt{\rvn}}$ by setting $\mathcal{E}_0$ to a singleton at Line~\ref{line:qmeans:E0}. Using the previous estimates $\left \lbrace \rmS_q^{(\tau-1)}\right \rbrace_{q\in\intint{\nfactors}}$ to initialize this local minimization, we thus obtain that $g(\rmS_1^{(\tau)}, \ldots,\rmS_\nfactors^{(\tau)}, \rvt^{(\tau)}) \leq g(\rmS_1^{(\tau-1)}, \ldots,\rmS_\nfactors^{(\tau-1)}, \rvt^{(\tau)})$.
 We finally have, for any $\tau$:
+\small
 \begin{align*}
 %g\left (\left \lbrace \rmS_q^{(\tau)}\right \rbrace_{q\in\intint{\nfactors}}, \rvt^{(\tau)}\right ) & \leq
 %g\left (\left \lbrace \rmS_q^{(\tau-1)}\right \rbrace_{q\in\intint{\nfactors}}, \rvt^{(\tau)}\right ) \leq
@@ -211,6 +218,7 @@ g\left (\rmS_1^{(\tau)}, \ldots,\rmS_\nfactors^{(\tau)}, \rvt^{(\tau)}\right ) &
 %\\
 %& \leq \ldots \leq g\left (\rmS_1^{(0)}, \ldots,\rmS_\nfactors^{(0)}, \rvt^{(0)}\right )
 \end{align*}
+\normalsize
 which is a sufficient condition to assert the Algorithm~\ref{algo:qmeans} is converges.
 \todo[inline]{There is probably a bit more to assert convergence...}
 
