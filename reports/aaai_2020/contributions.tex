@@ -3,7 +3,7 @@
 \section{\texttt{QuicK-means}}
 \label{sec:contribution}
 
-We here introduce our main contribution, \texttt{QuicK-means}, abbreviated by \qkmeans, 
+We here introduce our main contribution, \texttt{QuicK-means},~abbreviated by \qkmeans, 
 show its convergence property and analyze its computational complexity.
 
 % \todo[inline]{WATCH: CENTROIDS vs CENTERS... We have specified that we would consider
@@ -23,7 +23,7 @@ writes:
 %
 \begin{align}
 \label{eq:qmean_problem}
- \argmin_{\left\{\rmS_q\right\}_{q=1}^{\nfactors}, \rvt} & g\left(\left\{\rmS_q\right\}_{q=1}^{\nfactors}, \rvt\right)
+ \argmin_{\left\{\rmS_q\right\}_{q=1}^{\nfactors}, \rvt} & g\left(\left\{\rmS_q\right\}_{q=1}^{\nfactors}, \rvt\right), 
  \end{align}
 where
 \begin{align}
@@ -54,9 +54,9 @@ and $\rmV = \prod_{q\in\intint{\nfactors}}\rmS_q$.
 
 %
 This is a constrained version of the \kmeans optimization problem~\eqref{eq:kmean_problem} in which centers $\rvv_k$ are constrained to form a matrix $\rmV$ with a fast-operator structure, the indicator functions $\delta_{\mathcal{E}_q}$ imposing the sparsity of matrices $\rmS_q$.
-More details on the modeling choices are given in the experimental part. % in section~\ref{sec:uses:settings}.
+More details on the modeling choices are given in section~\ref{sec:uses:settings}.
 
-This problem can be solved using Algorithm~\ref{algo:qmeans},
+Problem~\eqref{eq:qmean_problem} can be solved using Algorithm~\ref{algo:qmeans},
 which proceeds in a similar way as Lloyd's algorithm by alternating an assignment step at line \ref{line:qmeans:assignment} and an update of the centers at lines~\ref{line:qmeans:compute_means}--\ref{line:qmeans:U}. The assignment step can be computed efficiently thanks to the structure of $\rmV$. The update of the centers relies on learning a fast-operator $\rmV$ 
 that approximate the true center matrix $\rmU$ weighted by the number of examples $n_k$ assigned to each cluster $k$.
 
@@ -72,7 +72,7 @@ that approximate the true center matrix $\rmU$ weighted by the number of example
 %\COMMENT{$B \eqdef \max\left (\nclusters, \datadim\right )$}
 \FOR{$\tau=1, 2, \ldots$ until convergence}
 	\STATE $\rvt^{(\tau)} \eqdef \argmin_{\rvt \in \intint{\nclusters}^\nexamples} \sum_{n\in\intint{\nexamples}} {\left \|\rvx_n - \rvv^{(\tau -1)}_{t_n}\right \|^2}$
-	\COMMENT{$\mathcal{O}\left (\nexamples\left(A\log A+B\right ) + AB\right )$}
+	\COMMENT{$\mathcal{O}\left (\nexamples\left(A\log A~+B\right ) + AB\right )$}
 	\label{line:qmeans:assignment}
 	\STATE $\forall k\in\intint{\nclusters}, \rvu_k \eqdef \frac{1}{n_k} \sum_{n: t_n^{(\tau)}= k} {\rvx_n}$
 with $n_k \eqdef |\{n: t_n^{(\tau)}=k\}|$
@@ -84,7 +84,7 @@ with $n_k \eqdef |\{n: t_n^{(\tau)}=k\}|$
 	\STATE $\mathcal{E}_0 \eqdef \left \lbrace \rmD_{\sqrt{\rvn}} \right \rbrace$
 	\label{line:qmeans:E0}
 	\STATE $\left \lbrace \rmS_q^{(\tau)}\right \rbrace_{q=0}^\nfactors \eqdef \argmin_{\left \lbrace \rmS_q\right \rbrace_{q=0}^\nfactors} \left \|\rmA - \prod_{q=0}^\nfactors\rmS_q\right \|_F^2 + \sum_{q=0}^\nfactors \delta_{\mathcal{E}_q}(\rmS_q)$
-	\COMMENT{$\bigO{AB\left (\log^2 A+\log B\right )}$} % (or $\bigO{AB\left (\log^3A+\log A \log B\right )}$)}
+	\COMMENT{$\bigO{AB\left (\log^2 A~+\log B\right )}$} % (or $\bigO{AB\left (\log^3A+\log A \log B\right )}$)}
 	\label{line:qmeans:S}
 	\STATE Set $\rmV^{(\tau)} : \rvx \mapsto \prod_{q\in\intint{\nfactors}}{\rmS_q^{(\tau)}} \rvx$
 	\COMMENT{$\bigO{1}$}
@@ -161,7 +161,7 @@ g\left (\left\{\rmS_q^{(\tau-1)}\right\}_{q=1}^{\nfactors}, \rvt^{(\tau)}\right 
 %    & = \sum_{\substack{n\\t_n = k}} \norm{\rvx_n-\rvu_k}^2+n_k\norm{\rvu_k-\rvv_k}^2 \notag\\
  %   & \qquad - 2 \left\langle\underbrace{\sum_{\substack{n\\t_n = k}}\left (\rvx_n-\rvu_k\right )}_{=0},\rvu_k-\rvv_k\right\rangle\notag \\
 %	&= \sum_{\substack{n\\t_n = k}} \norm{\rvx_n-\rvu_k}^2 + \norm{\sqrt{n_k}\left (\rvu_k-\rvv_k\right )}^2
-	&= \sum_{n:t_n = k} \norm{\rvx_n-\rvu_k}^2 + n_k \norm{\rvu_k-\rvv_k}^2
+	&= \sum_{n:t_n = k} \norm{\rvx_n-\rvu_k}^2 + n_k \norm{\rvu_k-\rvv_k}^2,
 \end{align}
 
 
@@ -230,20 +230,18 @@ the product between two sparse matrices of shapes ${N_1\times N_2}$ and ${N_2\ti
 We recall here that the \kmeans algorithm complexity is dominated by its cluster assignation step which requires $\bigO{\nexamples\nclusters\datadim}=\bigO{\nexamples A B}$ operations (see Eq.~\eqref{eq:assignment_problem_kmeans}).
 
 \paragraph{Complexity of algorithm \palm.} The procedure consists in an alternate optimization of each sparse factor. 
-At each iteration, the whole set of $\nfactors$ factors is updated with at a cost in $\bigO{AB\left (\log^2 A+\log B\right )}$, as detailed in the supplemental material (Section ~\ref{sec:app:palm4msa}). 
+At each iteration, the whole set of $\nfactors$ factors is updated with at a cost in $\bigO{AB\left (\log^2 A~+\log B\right )}$, as detailed in the supplemental material (Section ~\ref{sec:app:palm4msa}). 
 The bottleneck is the computation of the gradient, which benefits from fast computations with sparse matrices.
 %The hierarchical version of \palm proposed in~\cite{LeMagoarou2016Flexible} consists in running $\palm$ $2Q$ times so that its time complexity is in $\bigO{AB\left (\log^3 A + \log A \log B\right )}$.
 
 
-\paragraph{Complexity of \qkmeans.} The complexity of each iteration of \qkmeans is $\bigO{\nexamples\left(A\log A+B\right ) + AB \log^2 A}$. The time complexities of the main steps are given in Algorithm~\ref{algo:qmeans}. 
+\paragraph{Complexity of \qkmeans.} The complexity of each iteration of \qkmeans is $\bigO{\nexamples\left(A\log A~+B\right ) + AB \log^2 A}$. The time complexities of the main steps are given in Algorithm~\ref{algo:qmeans}. 
 
-The assignation step (line~\ref{line:qmeans:assignment} and Eq.~\eqref{eq:assignment_problem_kmeans}) benefits from the fast computation of $\rmV \rmX$ in~$\bigO{\nexamples\left(A\log A+B\right )}$ while the computation of the norms of the cluster centers is in $\bigO{AB}$.
+The assignation step (line~\ref{line:qmeans:assignment} and Eq.~\eqref{eq:assignment_problem_kmeans}) benefits from the fast computation of $\rmV \rmX$ in~$\bigO{\nexamples\left(A\log A~+B\right )}$ while the computation of the norms of the cluster centers is in $\bigO{AB}$.
 One can see that the computational bottleneck of \kmeans is here reduced, which shows the advantage of using \qkmeans when $\nexamples$, $\nclusters$ and $\datadim$ are large.
 
 The computation of the centers of each cluster at line~\ref{line:qmeans:compute_means} is the same as in \kmeans and takes $\bigO{\nexamples\datadim}$ operations.
 
-The update of the fast transform, in lines~\ref{line:qmeans:A} to~\ref{line:qmeans:U} is a computational overload compared to \kmeans. 
-
-Its time complexity is dominated by the update of the sparse factors at line~\ref{line:qmeans:S}, in $\bigO{AB \log^2 A}$. 
-Note that this cost is dominated by the cost of the assignement step as soon as the number of examples $\nexamples$ is greater than $\log^3 A$. 
+The update of the fast transform, in lines~\ref{line:qmeans:A} to~\ref{line:qmeans:U} is a computational overload compared to \kmeans. Its time complexity is dominated by the update of the sparse factors at line~\ref{line:qmeans:S}, in $\bigO{AB \log^2 A}$. 
+Note that this cost is dominated by the cost of the assignement step as soon as the number of examples $\nexamples$ is greater than $\log^3 A$ which should make the \qkmeans algorithm more scalable to enormous datasets. \todo[inline]{Faire supplemental ici}
 
