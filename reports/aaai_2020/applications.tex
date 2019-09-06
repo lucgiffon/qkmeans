@@ -112,7 +112,7 @@ In Figures~\ref{fig:mnist:objfun} and~\ref{fig:fmnist:objfun}, one can observe t
 In particular, the use of the fast-structure model does not seem to increase the number of iteration necessary before convergence.
 At the end of the iterations, the value of objective function for \qkmeans is slightly above that of \kmeans.
 As expected, the sparser the model, the more degradation in the objective function.
-However, even very sparse models do not degrade the results significantly. These Figures also demonstrate the convergence property of the \qkmeans algorithm when using the standard, proved convergent, \textit{Palm4MSA} algorithm: the objective function is always non-increasing.
+However, even very sparse models do not degrade the results significantly. %These Figures also demonstrate the convergence property of the \qkmeans algorithm when using the standard, proved convergent, \textit{Palm4MSA} algorithm: the objective function is always non-increasing.
 The approximation quality can be assessed visually, in a more subjective and interpretable way, in Figures~\ref{fig:mnist:kmeans:centers} to~\ref{fig:fmnist:hqkmeans:centers} where the obtained centers are displayed as images.
 Although some degradation may be observed in some images, one can note that each image obtained with \qkmeans clearly represents a single visual item without noticeable interference with other items.
 
@@ -143,7 +143,7 @@ Inference time results and accuracy results are displayed in Table~\ref{tab:resu
 The results for the Brute Force Search, KD Tree and Ball Tree are not available for some dataset because they were longer than 10 times the \kmeans search version in the same setting.
 The running times reported in the table show a dramatic advantage of using a clustering-based approximate search 
 %\todo{to be completed by reporting the actual acceleration ratio obtained by \qkmeans over the three sklearn options.} 
-and this advantage is even stronger with the clustering obtained by our \qkmeans method. This speed-up comes at a cost in though, as we can see a drop in classification performance. \todo[inline]{verifier avec caltech si ce ``drop'' de perf est toujours present (normalement non)}
+and this advantage is even stronger with the clustering obtained by our \qkmeans method. We see that for the \texttt{Blobs} datase, this speed-up comes at a cost as we can see a drop in classification performance but not for the other datasets. We believe our method is more sensible to the very noisy nature of the blobs dataset.
 % 
 % \begin{figure}[tbh]
 % \centering
@@ -171,36 +171,36 @@ and this advantage is even stronger with the clustering obtained by our \qkmeans
                                                         
                                                         
 
-\multirow{3}{*}{\shortstack{Nyström \\ approximation \\ error}}   & \kmeans               & \boldsymbol{$0.032$}                  & \boldsymbol{$0.030$}                   & \boldsymbol{$0.027$}           & \boldsymbol{$0.6$}                  & \boldsymbol{$0.6$}                   & \boldsymbol{$0.6$}           & \boldsymbol{$0.087$}          & \boldsymbol{$0.069$}        & \boldsymbol{$0.049$}   \\
-                                                        & \qkmeans              & \boldsymbol{$0.032$}                  &  \underline{$0.031$}                  & \underline{$0.029$}             & \boldsymbol{$0.6$}                  & \boldsymbol{$0.6$}                   & \boldsymbol{$0.6$}             & \underline{$0.091$}           & \underline{$0.083$}         & \underline{$0.061$}   \\
-                                                        & Uniform sampling      & $0.035$                               & $0.032$                               & $0.030$                         & \boldsymbol{$0.6$}                  & \boldsymbol{$0.6$}                   & \boldsymbol{$0.6$}                 & $0.184$              & $0.147$            & $0.105$   \\
+% \multirow{3}{*}{\shortstack{Nyström \\ approximation \\ error}}   & \kmeans               & \boldsymbol{$0.032$}                  & \boldsymbol{$0.030$}                   & \boldsymbol{$0.027$}           & \boldsymbol{$0.6$}                  & \boldsymbol{$0.6$}                   & \boldsymbol{$0.6$}           & \boldsymbol{$0.087$}          & \boldsymbol{$0.069$}        & \boldsymbol{$0.049$}   \\
+%                                                         & \qkmeans              & \boldsymbol{$0.032$}                  &  \underline{$0.031$}                  & \underline{$0.029$}             & \boldsymbol{$0.6$}                  & \boldsymbol{$0.6$}                   & \boldsymbol{$0.6$}             & \underline{$0.091$}           & \underline{$0.083$}         & \underline{$0.061$}   \\
+%                                                         & Uniform sampling      & $0.035$                               & $0.032$                               & $0.030$                         & \boldsymbol{$0.6$}                  & \boldsymbol{$0.6$}                   & \boldsymbol{$0.6$}                 & $0.184$              & $0.147$            & $0.105$   \\
+% 
+%                                                         
+% \midrule \midrule                                                                                                                                                                                                                                                                 
 
-                                                        
-\midrule \midrule                                                                                                                                                                                                                                                                 
 
-
-\multirow{2}{*}{\shortstack{Inference \\ time (ms)}}    & \kmeans               & \boldsymbol{$0.11$}                   & \boldsymbol{$0.17$}                  & $0.32$                            & \boldsymbol{$0.09$}                  & \boldsymbol{$0.14$}                    & $0.21$                       & \boldsymbol{$0.06$}           & \boldsymbol{$0.06$}   & $0.07$   \\
+\multirow{2}{*}{\shortstack{Nyström Inference \\ time (ms)}}    & \kmeans               & \boldsymbol{$0.11$}                   & \boldsymbol{$0.17$}                  & $0.32$                            & \boldsymbol{$0.09$}                  & \boldsymbol{$0.14$}                    & \boldsymbol{$0.21$}                       & \boldsymbol{$0.06$}           & \boldsymbol{$0.06$}   & $0.07$   \\
                                                         & \qkmeans              & $0.13$                                & $0.18$                             & \boldsymbol{$0.22$}                 & $0.24$                               &$0.30$                               & $0.40$            & $0.08$                        & $0.07$                 & \boldsymbol{$0.06$}   \\
 
                                                         
 \midrule \midrule                                                                                                                                                                                                                                                                                                
 
 
-\multirow{5}{*}{\shortstack{1NN \\ Accuracy}}           & \kmeans               & \boldsymbol{$0.96$}                   & \boldsymbol{$0.97$}                & \boldsymbol{$0.99$}                 & \boldsymbol{$0.11$}                  & \boldsymbol{$0.11$}                    & \boldsymbol{$0.11$}        & \underline{$0.96$}           & \underline{$0.96$}   & \underline{$0.96$}   \\
+\multirow{3}{*}{\shortstack{1NN \\ Accuracy}}           & \kmeans               & \boldsymbol{$0.96$}                   & \boldsymbol{$0.97$}                & \boldsymbol{$0.99$}                 & \boldsymbol{$0.11$}                  & \boldsymbol{$0.11$}                    & \boldsymbol{$0.11$}        & \underline{$0.96$}           & \underline{$0.96$}   & \underline{$0.96$}   \\
                                                         & \qkmeans              & $0.61$                                & $0.49$                             & $0.37$                              & $0.10$                               & $0.10$                               & $0.09$                       & \underline{$0.96$}           & \underline{$0.96$}                 & $0.95$   \\
-                                                        & Brute force          &                                           \multicolumn{3}{c|}{$N/A$}                                               &                               \multicolumn{3}{c|}{$N/A$}                                                    &                    \multicolumn{3}{c}{\boldsymbol{$0.97$}}                                 \\
-                                                        & Ball-tree            &                                           \multicolumn{3}{c|}{$N/A$}                                               &                               \multicolumn{3}{c|}{$N/A$}                                                    &                    \multicolumn{3}{c}{\boldsymbol{$0.97$}}                                 \\
-                                                        & Kd-tree              &                                           \multicolumn{3}{c|}{$N/A$}                                               &                               \multicolumn{3}{c|}{$N/A$}                                                    &                    \multicolumn{3}{c}{\boldsymbol{$0.97$}}                                 \\
+%                                                         & Brute force          &                                           \multicolumn{3}{c|}{$N/A$}                                               &                               \multicolumn{3}{c|}{$N/A$}                                                    &                    \multicolumn{3}{c}{\boldsymbol{$0.97$}}                                 \\
+                                                        & Ball-tree            &                                           \multicolumn{3}{c|}{$\text{timed-out}$}                                               &                               \multicolumn{3}{c|}{$\text{timed-out}$}                                                    &                    \multicolumn{3}{c}{\boldsymbol{$0.97$}}                                 \\
+%                                                         & Kd-tree              &                                           \multicolumn{3}{c|}{$N/A$}                                               &                               \multicolumn{3}{c|}{$N/A$}                                                    &                    \multicolumn{3}{c}{\boldsymbol{$0.97$}}                                 \\
 
                                                         
 \midrule \midrule                                                                                                                                                                                                                                                                                                
                                                                                                                                                                                                                                                                              
                                                                                                                                                                                                                                                                              
-\multirow{5}{*}{\shortstack{1NN \\ Runtime (s)}} & \kmeans               & \boldsymbol{$17.2$}                   & \boldsymbol{$15.8$}                  & \boldsymbol{$9.5$}                & $74.4$                                             & $50.0$                                           & $35.3$                       & \boldsymbol{$0.74$}           & \boldsymbol{$0.83$}   & \boldsymbol{$0.88$}   \\
+\multirow{3}{*}{\shortstack{1NN \\ Runtime (s)}} & \kmeans               & \boldsymbol{$17.2$}                   & \boldsymbol{$15.8$}                  & \boldsymbol{$9.5$}                & $74.4$                                             & $50.0$                                           & $35.3$                       & \boldsymbol{$0.74$}           & \boldsymbol{$0.83$}   & \boldsymbol{$0.88$}   \\
                                                         & \qkmeans              & $5.3$                                & \boldsymbol{$3.0$}                 & \boldsymbol{$1.2$}             & \boldsymbol{$67.0$}                               & \boldsymbol{$30.9$}                              & \boldsymbol{$19.8$}            & \underline{$0.73$}           & \underline{$0.79$}   & \underline{$0.86$}   \\
-                                                        & Brute force          &                                           \multicolumn{3}{c|}{$N/A$}                                          &                               \multicolumn{3}{c|}{$N/A$}                                                    &                    \multicolumn{3}{c}{$2176.1$}                                 \\
-                                                        & Ball-tree            &                                           \multicolumn{3}{c|}{$N/A$}                                          &                               \multicolumn{3}{c|}{$N/A$}                                                    &                    \multicolumn{3}{c}{$553.0$}                                 \\
-                                                        & Kd-tree              &                                           \multicolumn{3}{c|}{$N/A$}                                          &                               \multicolumn{3}{c|}{$N/A$}                                                     &                    \multicolumn{3}{c}{$707.0$}                                 \\
+%                                                         & Brute force          &                                           \multicolumn{3}{c|}{$N/A$}                                          &                               \multicolumn{3}{c|}{$N/A$}                                                    &                    \multicolumn{3}{c}{$2176.1$}                                 \\
+                                                        & Ball-tree            &                                           \multicolumn{3}{c|}{$\text{timed-out}$}                                          &                               \multicolumn{3}{c|}{$\text{timed-out}$}                                                    &                    \multicolumn{3}{c}{$553.0$}                                 \\
+%                                                         & Kd-tree              &                                           \multicolumn{3}{c|}{$N/A$}                                          &                               \multicolumn{3}{c|}{$N/A$}                                                     &                    \multicolumn{3}{c}{$707.0$}                                 \\
                                                                                                                                                                                                   
                                                         
 \midrule \midrule                                                                                                                                                                                                                                                                                                
@@ -217,7 +217,7 @@ and this advantage is even stronger with the clustering obtained by our \qkmeans
 \bottomrule
 \end{tabular}}
 \caption{
-Results of numerical experiments for landmark selection methods based on either \kmeans, \qkmeans or uniform sampling: Nyström approximation error and average transformation time for a sample set of size $5000$; 1-nearest neighbor classification accuracy on the test set; SVM classification on top of Nyström transformation on the test set. The \qkmeans results are obtained with sparse factors with at least 2 values in each line and each column. Every experiment results are averaged over 5 runs. Best results are bold while second best are underlined (when there are three). Cells marked as ``$N/A$'' refer to experiments that timed-out.}
+Results of numerical experiments for landmark selection methods based on either \kmeans, \qkmeans or uniform sampling: average Nyström transformation time for a sample set of size $5000$; 1-nearest neighbor classification accuracy on the test set; SVM classification on top of Nyström transformation on the test set. The \qkmeans results are obtained with sparse factors with at least 2 values in each line and each column. Every experiment results are averaged over 5 runs. Best results are bold while second best are underlined (when there are three). ``Ball-tree'' aggregates the results of the ``brute'' and ``kd-tree'' implementations of 1 nearest neigbor from \texttt{sklearn} as it has given the best results of those three.}
 \label{tab:results}
 \end{table*}
 
@@ -244,19 +244,7 @@ with $\rmW \in \R^{K \times K}$ containing all the kernel values between landmar
 
 A substantial amount of research has been conducted toward landmark point selection methods for improved approximation accuracy \cite{kumar2012sampling} \cite{musco2017recursive}, but much less has been done to improve computation speed. In \cite{si2016computationally}, the authors propose an algorithm to learn the matrix of landmark points with some structure constraint, so that its utilisation is fast, taking advantage of fast-transforms. This results in an efficient Nyström approximation that is faster to use both in the training and testing phases of some ulterior machine learning application.
 
-Remarking that the main computation cost of the Nyström approximation comes from the computation of the kernel function between the train/test samples and the landmark points, \cite{si2016computationally} aim at accelerating this step. In particular, they focus on a family of kernel functions that has the following form:
-%
-\begin{equation}
- k(\rvx_i, \rvx_j) = f(\rvx_i) f(\rvx_j) g(\rvx_i^T\rvx_j),
-\end{equation}
-%
-where $f: \R^d \rightarrow \R$ and $g: \R \rightarrow \R$. They show that this family of functions contains some widely used kernels such as the Gaussian and the polynomial kernel. Given a set of $K$ landmark points $\rmU \in \R^{K \times d}$ and a sample $\rvx$, the computational time for computing the kernel between $\rvx$ and each row of $\rmU$ (necessary for the Nyström approximation) is bottlenecked by the computation of the product $\rmU\rvx$. They hence propose to write the $\rmU$ matrix as the concatenation of structured $s = K / d$ product of matrices:
-%
-\begin{equation}
- \rmU = \left[ \rmV_1 \rmH^T, \cdots, \rmV_s\rmH^T  \right]^T,
-\end{equation}
-%
-where the $\rmH$ is a $d \times d$ matrix associated with a fast transform such as the \textit{Haar} or \textit{Hadamard} matrix, and the $\rmV_i$s are some $d \times d$ diagonal matrices to be either chosen with a standard landmark selection method or learned using an algorithm they provide.
+Remarking that the main computation cost of the Nyström approximation comes from the computation of the kernel function between the train/test samples and the landmark points, \cite{si2016computationally} aim at accelerating this step. In particular, they focus on a family of kernel functions that has the form $k(\rvx_i, \rvx_j) = f(\rvx_i) f(\rvx_j) g(\rvx_i^T\rvx_j)$, where $f: \R^d \rightarrow \R$ and $g: \R \rightarrow \R$. They show that this family of functions contains some widely used kernels such as the Gaussian and the polynomial kernel. Given a set of $K$ landmark points $\rmU \in \R^{K \times d}$ and a sample $\rvx$, the computational time for computing the kernel between $\rvx$ and each row of $\rmU$ (necessary for the Nyström approximation) is bottlenecked by the computation of the product $\rmU\rvx$. They hence propose to write the $\rmU$ matrix as the concatenation of structured $s = K / d$ product of matrices such that $\rmU = \left[ \rmV_1 \rmH^T, \cdots, \rmV_s\rmH^T  \right]^T$, where the $\rmH$ is a $d \times d$ matrix associated with a fast transform such as the \textit{Haar} or \textit{Hadamard} matrix, and the $\rmV_i$s are some $d \times d$ diagonal matrices to be either chosen with a standard landmark selection method or learned using an algorithm they provide.
 
 Depending on the $\rmH$ matrix chosen, it is possible to improve the time complexity for the computation of $\rmU\rvx$ from $O(Kd)$ to $O(K \log{d})$ (\textit{Fast Hadamard transform}) or $O(K)$ (\textit{Fast Haar Transform}).
 
@@ -270,15 +258,13 @@ As shown in the next sub-section, our algorithm allows to obtain an efficient Ny
 
 The Table~\ref{tab:results} summarizes the results achieved in the Nyström approximation setting. An histogram representation and an evaluation for other sparsity factors are available in the supplementary material~Section~\ref{supp:nystrom}.
 
-The bottom part displays the average time for computing one line of the approximated matrix in Equation~\ref{eq:nystrom}. For $K=512$, when it is big enough, we clearly see the speed-up offered using the \qkmeans method on the \texttt{Blobs} dataset. On the \texttt{Mnist} and \texttt{Fashion-MNIST} dataset, this speed-up is sensible but not as clear because the standard deviation is much larger. 
+The ``Nyström inference time'' displays the average time for computing one line of the approximated matrix in Equation~\ref{eq:nystrom}. For $K=512$, when the landmark matrix is big enough, we clearly see the speed-up offered using the \qkmeans method on the \texttt{Blobs} dataset. Intringingly, this speed-up is not sensible for the \texttt{Caltech} dataset even though the vector assignation time was still faster.
 
-The top part shows the approximation error of the Nyström approximation based on different sampling schemes w.r.t. the real kernel matrix. This error is computed by the Froebenius norm of the difference between the matrices and then normalized:
-
-\begin{equation}
- error = \frac{||\rmK - \tilde\rmK||_F}{||\rmK||_F}.
-\end{equation}
-
-The \qkmeans approach gives better reconstruction error than the Nyström method based on uniform sampling although it is slightly worse than the one obtained with the regular \kmeans centers. We see that that the difference in approximation error between \kmeans and \qkmeans is almost negligible when compared to the approximation error obtained with the uniform sampling scheme.
+% The top part shows the approximation error of the Nyström approximation based on different sampling schemes w.r.t. the real kernel matrix. This error is computed by the Froebenius norm of the difference between the matrices and then normalized:
+% 
+% \begin{equation}
+%  error = \frac{||\rmK - \tilde\rmK||_F}{||\rmK||_F}.
+% \end{equation}
 
 From a more practical point of view, we show in Table~\ref{tab:results} that the Nyström approximation based on \qkmeans can then be used in a linear SVM and achieve as good performance as the one based on the \kmeans approach.
 
