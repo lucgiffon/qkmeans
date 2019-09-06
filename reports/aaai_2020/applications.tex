@@ -34,7 +34,7 @@ While more efficient implementations may be beneficial for larger deployment, ou
 \paragraph{Datasets.}
 We present results on real-world and toy datasets.
 Our experiments are conducted on synthetic and real-world data sets to show (i) --- quantitatively and qualitatively --- the good quality of the obtained centers when using our method on the \texttt{MNIST}~\cite{lecun-mnisthandwrittendigit-2010} and \texttt{Fashion-Mnist}~\cite{Pedregosa2011Scikit} %and \texttt{Labeled Faces in the Wild}~\cite{Huang07e.:labeled} (\texttt{LFW}) 
-($D=784$, $K=10$) datasets and (ii) the speed up offered by our method \qkmeans when the number of clusters and the dimensionality of the data are sufficiently large on the \texttt{blobs} synthetic dataset from \texttt{sklearn.dataset}  ($D=2000$, $K=1000$) and the \texttt{Caltech256} \cite{caltech} dataset ($D=2352$, $K=256$) (see supplementary material Section~\ref{supp:datasets} for compact statistics table).
+($D=784$, $K=10$) datasets and (ii) the speed up offered by our method \qkmeans when the number of clusters and the dimensionality of the data are sufficiently large on the \texttt{blobs} synthetic dataset from \texttt{sklearn.dataset}  ($D=2000$, $K=1000$) and the \texttt{Caltech256} \cite{griffinHolubPerona} dataset ($D=2352$, $K=256$) (see supplementary material Section~\ref{supp:datasets} for compact statistics table).
 %The code of our method \qkmeans is available on request and will be available online soon. \addLG{je serais d'avis de ne pas dire ça mais soit de dire qu'il est déjà disponible, soit de ne rien dire. Sachant qu'on ne peut pas dire qu'il est déjà disponible en ligne avant le processus de reviewing}
 
 
@@ -46,9 +46,9 @@ Since the projection onto this set of structured-sparsity constraints may be com
 The actual number of non-zero coefficients in the sparse factors is measured at the end of the optimization process and reported in the results.
 %The sparse factors are updated using the \palm rather than its hierarchical version, since we observed that this was a better choice in terms of computational cost, with satisfying approximation results (See Figure~\ref{fig:mnist:objfun}~and~\ref{fig:fmnist:objfun}).
 Additional details about \palm are given in supplementary material Section~\ref{sec:app:palm4msa}.
-The stopping criterion of \kmeans and \qkmeans consists of a tolerance set to $10^{-6}$ on the relative variation of the objective function and a maximum number of iterations set to 10 for the \texttt{Blobs} dataset and to 20 for others. 
+The stopping criterion of \kmeans and \qkmeans consists of a tolerance set to $10^{-6}$ on the relative variation of the objective function and a maximum number of iterations set to 10. 
 The same principle governs the stopping criterion of \palm with a tolerance set to $10^{-6}$ and a maximum number of iterations set to 300. Each experiment have been replicated using different seed values for random initialisation. 
-Competing techniques share the same seed values, hence share the same initialisation of centers.
+Competing techniques share the same seed values, hence share the same initialisation of centers as they are sampled uniformly from the dataset. For the \qkmeans experiments, the inital matrix of centroids is processed once by the \textit{Hierarchical}-\palm euristic proposed in \cite{LeMagoarou2016Flexible} but then the simple \palm algorithm is used inside \qkmeans as it didn't impact much of the performance while saving a lot of time. (See supplementary material Section~\ref{supp:hierarchical} for details).
 
 %\subsection{Sparse factors multiplication}
 %
@@ -117,8 +117,8 @@ The approximation quality can be assessed visually, in a more subjective and int
 Although some degradation may be observed in some images, one can note that each image obtained with \qkmeans clearly represents a single visual item without noticeable interference with other items.
 
 \paragraph{Clustering assignation times.}
-Higher dimensions are required to assess the computational benefits of the proposed approach, as shown here.
-Results reported in Table~\ref{tab:results} show that in this setting and with the current implementation, the computational advantage of \qkmeans is observed in high dimension, for $\nclusters=256$ and $\nclusters=512$ clusters. It is worth noticing that when $K$ increases, the running times are not affected that much for \qkmeans while it significantly grows for \kmeans. These trends are directly related to the number of model parameters that are reported in the figure. It can be noticed that these numbers of parameters doesn't necessarily grow with the number of clusters, for instance with the \texttt{MNIST} dataset. This is because our implementation of the \palm algorithm doesn't enforce a precise number of values in the result but at least a given number of value for each line and each column of the sparse factor, in this case 2.
+Higher dimensions are required to assess the computational benefits of the proposed approach, as shown here with the comparison between the \texttt{MNIST} dataset and the others: the \texttt{MNIST} dataset has low dimensionality and low cluster number then the vector assignation times are even worse due to the computational overload induced by our poor implementation. 
+Results reported in Table~\ref{tab:results} show that in this setting and with the current implementation, the computational advantage of \qkmeans is observed in high dimension, for $\nclusters=256$ and $\nclusters=512$ clusters. It is worth noticing that when $K$ increases, the running times are not affected that much for \qkmeans while it significantly grows for \kmeans. These trends are directly related to the number of model parameters that are reported in the figure. It can be noticed that these numbers of parameters doesn't necessarily grow with the number of clusters because each sparse factor must have \textit{at least} a given number of value for each line and each column of the sparse factor, in this case 2. 
 
 
 %\todo[inline]{Montrer ensuite les temps d'assignation en mode batch 5000 sur blobs, cf. Figure~\ref{fig:clustering:blobs:assignation_time}. Objectif: montrer qu'à partir d'une certaine dimension, \qkmeans est plus rapide.}
@@ -130,7 +130,7 @@ Results reported in Table~\ref{tab:results} show that in this setting and with t
 % \caption{Clustering Blobs data: running times of the assignation step, averaged over 5 runs. The vertical black lines are the standard deviation w.r.t. the runs and the average number of parameters actually learned  in the models are reported above those lines.\addVE{to be completed}.}
 % \label{fig:clustering:blobs:assignation_time}
 % \end{figure}
-
+No experiments shows the runtime improvement of the \qkmeans algorithm compared to the \kmeans one but supplementary material Section~\ref{supp:traintime_expe} shows preliminary results on this matter.
 
 
 \subsection{Nearest-neighbor search in a large dataset}

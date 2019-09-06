@@ -195,7 +195,7 @@ where:
 %
 \begin{itemize}
  \item $\sqrt{\rvn} \in \R^{\nclusters}$ is the pairwise square root of the vector indicating the number of observations $n_k \eqdef \left | \left \lbrace n: t_n = k\right \rbrace \right |$  in each cluster $k$;
- \item $\rmD_{\sqrt{\rvn}} \in \R^{K \times K}$ refers to a diagonal matrix with vector $\sqrt{\rvn}$ on the diagonal;
+%  \item $\rmD_{\sqrt{\rvn}} \in \R^{K \times K}$ refers to a diagonal matrix with vector $\sqrt{\rvn}$ on the diagonal;
  \item $\rmU\in \R^{K \times d}$ refers to the unconstrained center matrix obtained from the data matrix $\rmX$ and the indicator vector $\rvt$: $\rvu_k \eqdef \frac{1}{n_k}\sum_{n:t_n = k} {\rvx_n}$ (see Line~\ref{line:qmeans:compute_means});
  \item $\rmD_{\sqrt{\rvn}} (\rmU - \rmV)$ is the matrix with $\sqrt{n_k}\left (\rvu_k-\rvv_k\right )$ as row~$k$;
  \item $c_k \eqdef \sum_{\substack{n\\t_n = k}}\norm{\rvx_n - \rvu_k}$ is constant w.r.t. $ \rmS_1, \ldots,\rmS_Q$;
@@ -214,13 +214,13 @@ We finally have, for any $\tau$:
 %g\left (\left \lbrace \rmS_q^{(0)}\right \rbrace_{q\in\intint{\nfactors}}, \rvt^{(0)}\right )
 %\\
 g\left (\rmS_1^{(\tau)}, \ldots,\rmS_\nfactors^{(\tau)}, \rvt^{(\tau)}\right ) & \leq g\left (\rmS_1^{(\tau-1)}, \ldots,\rmS_\nfactors^{(\tau-1)}, \rvt^{(\tau)}\right ) \\
-& \leq g\left (\rmS_1^{(\tau-1)}, \ldots,\rmS_\nfactors^{(\tau-1)}, \rvt^{(\tau-1)}\right ) 
+& \leq g\left (\rmS_1^{(\tau-1)}, \ldots,\rmS_\nfactors^{(\tau-1)}, \rvt^{(\tau-1)}\right ) .
 %\\
 %& \leq \ldots \leq g\left (\rmS_1^{(0)}, \ldots,\rmS_\nfactors^{(0)}, \rvt^{(0)}\right )
 \end{align*}
 \normalsize
-which is a sufficient condition to assert the Algorithm~\ref{algo:qmeans} is converges.
-\todo[inline]{There is probably a bit more to assert convergence...}
+
+which is a sufficient condition to assert the sequence of $g$ converges. \palm can be designed so that it returns its initialization if it didn't manage to lower the objective. Hence the sequence of $\rmV$ also converges, so does Algorithm~\ref{algo:qmeans}.
 
 \end{proof}
 
@@ -246,10 +246,8 @@ The bottleneck is the computation of the gradient, which benefits from fast comp
 \paragraph{Complexity of \qkmeans.} The complexity of each iteration of \qkmeans is $\bigO{\nexamples\left(A\log A~+B\right ) + AB \log^2 A}$. The time complexities of the main steps are given in Algorithm~\ref{algo:qmeans}. 
 
 The assignation step (line~\ref{line:qmeans:assignment} and Eq.~\eqref{eq:assignment_problem_kmeans}) benefits from the fast computation of $\rmV \rmX$ in~$\bigO{\nexamples\left(A\log A~+B\right )}$ while the computation of the norms of the cluster centers is in $\bigO{AB}$.
-One can see that the computational bottleneck of \kmeans is here reduced, which shows the advantage of using \qkmeans when $\nexamples$, $\nclusters$ and $\datadim$ are large.
 
 The computation of the centers of each cluster at line~\ref{line:qmeans:compute_means} is the same as in \kmeans and takes $\bigO{\nexamples\datadim}$ operations.
 
 The update of the fast transform, in lines~\ref{line:qmeans:A} to~\ref{line:qmeans:U} is a computational overload compared to \kmeans. Its time complexity is dominated by the update of the sparse factors at line~\ref{line:qmeans:S}, in $\bigO{AB \log^2 A}$. 
-Note that this cost is dominated by the cost of the assignement step as soon as the number of examples $\nexamples$ is greater than $\log^3 A$ which should make the \qkmeans algorithm more scalable to enormous datasets. \todo[inline]{Faire supplemental ici}
-
+Note that the overall cost of \qkmeans is dominated by the cost of the assignement step as soon as the number of examples $\nexamples$ is greater than $\log^3 A$. One can see that the computational bottleneck of \kmeans is here reduced, which shows the advantage of using \qkmeans when $\nexamples$, $\nclusters$ and $\datadim$ are large.

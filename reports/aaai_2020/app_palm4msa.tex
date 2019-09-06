@@ -1,5 +1,4 @@
 \section{\palm algorithm}
-\todo[inline]{Ajouter une figure qui illustre un résultat de PALM (figure avec visu des facteurs sparses et de la matrice reconstruite)}
 \label{sec:app:palm4msa}
 
 The \palm algorithm~\cite{LeMagoarou2016Flexible} is given in Algorithm~\ref{algo:palm4msa} together with the time complexity of each line, using $A=\min(\nclusters, \datadim)$ and $B=\max(\nclusters, \datadim)$. 
@@ -10,8 +9,6 @@ The sparse constraints we used, as in~\cite{LeMagoarou2016Flexible}, consist of 
 This number of non-zero coefficients is called sparsity level in this paper.
 In practice, the projection function at Line~\ref{line:palm:update:S} keeps the largest non-zero coefficients in each row and in each column, which only guarantees
 the actual number of non-zero coefficients is at least equal to the sparsity level.
-
-
 
 
 \begin{algorithm}
@@ -57,6 +54,13 @@ the actual number of non-zero coefficients is at least equal to the sparsity lev
 		
 	\end{algorithmic}
 \end{algorithm}
+
+\begin{figure}
+\centering
+ \includegraphics[scale=.4]{hadamard_decomposition.png}
+ \caption{Decomposition of hadamard matrix by sparse factors. Bottom line show the initialization of the factors while middle line shows their final form at the end of the algorithm.}
+\end{figure}
+
 
 The complexity analysis is proposed under the following assumptions, which are satisfied in the mentioned applications and experiments: the number of factors is $\nfactors=\mathcal{O}\left (\log A\right )$; all but one sparse factors are of shape $A \times A$ and have $\bigO{A}$ non-zero entries while one of them is of shape $A\times B$ or $B\times A$ with $\bigO{B}$ non-zero entries.
 In such conditions, the complexity of each line is:
@@ -106,9 +110,13 @@ as shown in Figure~\ref{fig:time_csr}, they are significantly faster than dense 
 \end{figure}
 
 \section{Hierarchical-Palm4MSA}
-\todo[inline]{Faire une référence à ce résultat hierarchical dans le texte}
+\label{supp:hierarchical}
+
+The Hierarchical-\palm algorithm has been used only for initialization of centroid sparse factors because it didn't improve that much the results when used on all iterations of  \qkmeans while it was very time consuming. Figure~\ref{fig:hierarchical_objective} shows the evolution of the objective function and the final centroids images when using the hierarchical version in all iteration.
+
 
 \begin{figure*}[h]
+\label{fig:hierarchical_objective}
 \begin{subfigure}{.49\textwidth}
 \includegraphics[width=\textwidth]{mnist30_objective_with_hierarchical.png}
 \caption{MNIST, $\nclusters=30$: objective function.}
@@ -129,7 +137,7 @@ as shown in Figure~\ref{fig:time_csr}, they are significantly faster than dense 
 \caption{Hierarchical-\palm \qkmeans centers.}
 \label{fig:fmnist:hqkmeans:centers}
 \end{subfigure}
-\caption{Clustering results on MNIST (left) and Fashion-MNIST (right) for $\nclusters=30$ clusters and comparison with hierarchical version.}
+\caption{Clustering results on MNIST (left) and Fashion-MNIST (right) for $\nclusters=30$ clusters. Results marked as ``hierarchical'' refers to the one obtained with hierarchical-\palm usage inside of the  \qkmeans algorithm}
 \end{figure*}
 
 \FloatBarrier
