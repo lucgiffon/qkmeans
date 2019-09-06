@@ -109,14 +109,30 @@ as shown in Figure~\ref{fig:time_csr}, they are significantly faster than dense 
 \label{fig:time_csr}
 \end{figure}
 
+We have noted a difference of efficiency when applying our fast-transform operator to single vector or complete matrices (concatenated vectors) as shown in Figure~\ref{fig:batch_vs_1vect}. The fast-transform operator is more efficient compared to a numpy dense operator when applied to one single vector.
+
+\begin{figure}[tbh]
+\centering
+\includegraphics[width=.47\textwidth]{bacth_vs_1vec.png}
+\caption{Running times,when applying dense or fast $\datadim \times \datadim$ operators to a set of 500 random vectors or a single vector. The number of factors in fast operators equals $\log_2\left (\datadim\right )$ and the sparsity level denotes the number of non-zero coefficients per row and per column in each factor.}
+\label{fig:batch_vs_1vect}
+\end{figure}
+
+\begin{figure}[tbh]
+\centering
+\includegraphics[width=.47\textwidth]{RunningTime4VaryingSparsity.png}
+\caption{Running times, averaged over 30 runs, when applying dense or fast $\datadim \times \datadim$ operators to a set of 100 random vectors. The number of factors in fast operators equals $\log_2\left (\datadim\right )$ and the sparsity level denotes the number of non-zero coefficients per row and per column in each factor.}
+\label{fig:time_csr}
+\end{figure}
+
+
 \section{Hierarchical-Palm4MSA}
 \label{supp:hierarchical}
 
 The Hierarchical-\palm algorithm has been used only for initialization of centroid sparse factors because it didn't improve that much the results when used on all iterations of  \qkmeans while it was very time consuming. Figure~\ref{fig:hierarchical_objective} shows the evolution of the objective function and the final centroids images when using the hierarchical version in all iteration.
 
 
-\begin{figure*}[h]
-\label{fig:hierarchical_objective}
+\begin{figure}[h]
 \begin{subfigure}{.49\textwidth}
 \includegraphics[width=\textwidth]{mnist30_objective_with_hierarchical.png}
 \caption{MNIST, $\nclusters=30$: objective function.}
@@ -138,7 +154,9 @@ The Hierarchical-\palm algorithm has been used only for initialization of centro
 \label{fig:fmnist:hqkmeans:centers}
 \end{subfigure}
 \caption{Clustering results on MNIST (left) and Fashion-MNIST (right) for $\nclusters=30$ clusters. Results marked as ``hierarchical'' refers to the one obtained with hierarchical-\palm usage inside of the  \qkmeans algorithm}
-\end{figure*}
+\label{fig:hierarchical_objective}
+
+\end{figure}
 
 \FloatBarrier
 
@@ -212,11 +230,11 @@ We show the approximation error of the Nyström approximation based on different
 \end{figure*}
 
 
-\todo[inline]{Faire un supplementary material montrant les expériences préliminaires de gain potentiel de temps lors de l'entrainement pour le jeu de données énorme}
+% \todo[inline]{Faire un supplementary material montrant les expériences préliminaires de gain potentiel de temps lors de l'entrainement pour le jeu de données énorme}
 
 \todo[inline]{Ajouter le déroulement de l'equation (equation 8 environ) centers update step dans les supplementary materials}
 
-\todo[inline]{supplementary material montrant l'impact de la sparsity factor}
+% \todo[inline]{supplementary material montrant l'impact de la sparsity factor}
 
 
 
