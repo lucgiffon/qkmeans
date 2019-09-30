@@ -1,0 +1,211 @@
+\def\year{2020}\relax
+%File: formatting-instruction.tex
+\documentclass[letterpaper]{article} % DO NOT CHANGE THIS
+\usepackage{aaai20}  % DO NOT CHANGE THIS
+\usepackage{times}  % DO NOT CHANGE THIS
+\usepackage{helvet} % DO NOT CHANGE THIS
+\usepackage{courier}  % DO NOT CHANGE THIS
+\usepackage[hyphens]{url}  % DO NOT CHANGE THIS
+\usepackage{graphicx} % DO NOT CHANGE THIS
+\urlstyle{rm} % DO NOT CHANGE THIS
+\def\UrlFont{\rm}  % DO NOT CHANGE THIS
+\usepackage{graphicx}  % DO NOT CHANGE THIS
+\frenchspacing  % DO NOT CHANGE THIS
+\setlength{\pdfpagewidth}{8.5in}  % DO NOT CHANGE THIS
+\setlength{\pdfpageheight}{11in}  % DO NOT CHANGE THIS
+
+%====================================================================================
+\input{math_commands.tex}
+
+\usepackage{placeins}
+
+\usepackage[table,xcdraw]{xcolor}
+\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+\usepackage{hyperref}       % hyperlinks
+\usepackage{url}            % simple URL typesetting
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+\usepackage{stmaryrd}
+\usepackage{todonotes}
+\usepackage{dsfont}
+\usepackage{makecell}
+\usepackage{amsthm}
+\usepackage{adjustbox}
+% \usepackage[lofdepth,lotdepth]{subfig}
+
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{varwidth}
+\usepackage{graphicx}
+\usepackage{enumitem}
+\usepackage{color}
+\usepackage{xspace}
+\usepackage{subcaption}
+\usepackage{caption} 
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{appendix}
+
+\captionsetup[table]{skip=8pt}
+
+
+\newcolumntype{P}[1]{>{\centering\arraybackslash}p{#1}}
+\newcolumntype{M}[1]{>{\centering\arraybackslash}m{#1}}
+
+\def\rmGamma{{\mathbf{\Gamma}}}
+
+\newcommand{\addLG}[1]{{\color{green}  #1}}
+\newcommand{\addVE}[1]{{\color{blue}  #1}}
+\newcommand{\addHK}[1]{{\color{red}  #1}}
+
+\def\datadim{D}
+\def\nexamples{N}
+\def\nclusters{K}
+\def\nfactors{Q}
+
+\renewcommand{\algorithmiccomment}[1]{\hfill #1}
+\newcommand{\bigO}[1]{\mathcal{O}\left(#1\right)}
+\def\qkmeans{\texttt{QK-means}\xspace}
+\def\kmeans{\texttt{K-means}\xspace}
+\def\palm{\texttt{palm4MSA}\xspace}
+
+\newcommand\norm[1]{\left \| #1\right \|}
+
+\def\eqdef{:=}
+
+\newcommand{\citet}[1]{\citeauthor{#1} \shortcite{#1}}
+\newcommand{\citep}{\cite}
+\newcommand{\citealp}[1]{\citeauthor{#1} \citeyear{#1}}
+
+\graphicspath{{./figures/}}
+%====================================================================================
+
+
+\newtheorem*{remark}{Remark}
+\newtheorem*{proposition}{Proposition}
+\newcommand{\diag}{\text{diag}}
+\newcommand{\indicator}{\mathds{1}}
+
+
+%\nocopyright
+%PDF Info Is REQUIRED.
+% For /Author, add all authors within the parentheses, separated by commas. No accents or commands.
+% For /Title, add Title in Mixed Case. No accents or commands. Retain the parentheses.
+ \pdfinfo{
+/Title (AAAI Press Formatting Instructions for Authors Using LaTeX -- A Guide)
+/Author (AAAI Press Staff, Pater Patel Schneider, Sunil Issar, J. Scott Penberthy, George Ferguson, Hans Guesgen)
+} %Leave this	
+% /Title ()
+% Put your actual complete title (no codes, scripts, shortcuts, or LaTeX commands) within the parentheses in mixed case
+% Leave the space between \Title and the beginning parenthesis alone
+% /Author ()
+% Put your actual complete list of authors (no codes, scripts, shortcuts, or LaTeX commands) within the parentheses in mixed case. 
+% Each author should be only by a comma. If the name contains accents, remove them. If there are any LaTeX commands, 
+% remove them. 
+
+% DISALLOWED PACKAGES
+% \usepackage{authblk} -- This package is specifically forbidden
+% \usepackage{balance} -- This package is specifically forbidden
+% \usepackage{caption} -- This package is specifically forbidden
+% \usepackage{color (if used in text)
+% \usepackage{CJK} -- This package is specifically forbidden
+% \usepackage{float} -- This package is specifically forbidden
+% \usepackage{flushend} -- This package is specifically forbidden
+% \usepackage{fontenc} -- This package is specifically forbidden
+% \usepackage{fullpage} -- This package is specifically forbidden
+% \usepackage{geometry} -- This package is specifically forbidden
+% \usepackage{grffile} -- This package is specifically forbidden
+% \usepackage{hyperref} -- This package is specifically forbidden
+% \usepackage{navigator} -- This package is specifically forbidden
+% (or any other package that embeds links such as navigator or hyperref)
+% \indentfirst} -- This package is specifically forbidden
+% \layout} -- This package is specifically forbidden
+% \multicol} -- This package is specifically forbidden
+% \nameref} -- This package is specifically forbidden
+% \natbib} -- This package is specifically forbidden -- use the following workaround:
+% \usepackage{savetrees} -- This package is specifically forbidden
+% \usepackage{setspace} -- This package is specifically forbidden
+% \usepackage{stfloats} -- This package is specifically forbidden
+% \usepackage{tabu} -- This package is specifically forbidden
+% \usepackage{titlesec} -- This package is specifically forbidden
+% \usepackage{tocbibind} -- This package is specifically forbidden
+% \usepackage{ulem} -- This package is specifically forbidden
+% \usepackage{wrapfig} -- This package is specifically forbidden
+% DISALLOWED COMMANDS
+% \nocopyright -- Your paper will not be published if you use this command
+% \addtolength -- This command may not be used
+% \balance -- This command may not be used
+% \baselinestretch -- Your paper will not be published if you use this command
+% \clearpage -- No page breaks of any kind may be used for the final version of your paper
+% \columnsep -- This command may not be used
+% \newpage -- No page breaks of any kind may be used for the final version of your paper
+% \pagebreak -- No page breaks of any kind may be used for the final version of your paperr
+% \pagestyle -- This command may not be used
+% \tiny -- This is not an acceptable font size.
+% \vspace{- -- No negative value may be used in proximity of a caption, figure, table, section, subsection, subsubsection, or reference
+% \vskip{- -- No negative value may be used to alter spacing above or below a caption, figure, table, section, subsection, subsubsection, or reference
+
+\setcounter{secnumdepth}{2} %May be changed to 1 or 2 if section numbers are desired.
+
+% The file aaai20.sty is the style file for AAAI Press 
+% proceedings, working notes, and technical reports.
+%
+\setlength\titlebox{2.5in} % If your paper contains an overfull \vbox too high warning at the beginning of the document, use this
+% command to correct it. You may not alter the value below 2.5 in
+\title{QuicK-means: Acceleration of K-means by Learning a Fast Transform}
+% Blind review
+% \author{}
+\author{%
+  Luc Giffon  \textsuperscript{\rm 1},
+Valentin Emiya \textsuperscript{\rm 1},
+Liva Ralaivola \textsuperscript{\rm 2},
+Hachem Kadri\textsuperscript{\rm 1} \\
+\textsuperscript{\rm 1} Aix Marseille Université, Université de Toulon, CNRS, LIS, Marseille, France \\
+%\textsuperscript{\rm 2} firstname.name@lis-lab.fr \\
+\textsuperscript{\rm 2} Criteo, France
+}
+
+%Your title must be in mixed case, not sentence case. 
+% That means all verbs (including short verbs like be, is, using,and go), 
+% nouns, adverbs, adjectives should be capitalized, including both words in hyphenated terms, while
+% articles, conjunctions, and prepositions are lower case unless they
+% directly follow a colon or long dash
+
+ \begin{document}
+
+\maketitle
+
+\begin{abstract}
+\kmeans~ -- and the celebrated Lloyd's algorithm -- is more than the clustering method it was originally designed to be. 
+It has indeed proven pivotal to help increase the speed of many machine learning and data analysis techniques such as indexing, nearest-neighbor search and prediction, data compression; its beneficial use has been shown to carry over to the acceleration of kernel machines (when using the Nyström method). 
+Here, we propose a fast extension of \kmeans, dubbed \texttt{QuicK-means}, that rests on the idea of expressing the matrix of the $\nclusters$ cluster centers as a product of sparse matrices, a feat made possible by recent results devoted to find approximations of matrices as a product of sparse factors.
+Using such a decomposition squashes the complexity of the matrix-vector product between the factorized $\nclusters \times \datadim$ center matrix $\mathbf{U}$ and any vector from $\mathcal{O}(\nclusters \datadim)$ to $\mathcal{O}(A \log A~ +B)$, with $A=\min (\nclusters,\datadim)$ and $B=\max (\nclusters,\datadim)$, where $\datadim$ is the dimension of the data. 
+This drastic computational saving has a direct impact in the assignment process of a point to a cluster.
+%, meaning that it is not only tangible at prediction time, but also at training time, provided the factorization procedure is performed during Lloyd's algorithm. 
+We precisely show that resorting to a factorization step at each iteration does not impair the convergence of the optimization scheme and that, depending on the context, it may entail a reduction of the training time. Finally, we provide discussions and numerical simulations that show the versatility of our computationally-efficient  \texttt{QuicK-means} algorithm. 
+\end{abstract}
+
+% OUR PAPER %%%%%
+%====================================================================================
+\input{introduction.tex}
+\input{background.tex}
+\input{contributions.tex}
+\input{applications.tex}
+\input{conclusion.tex}
+%====================================================================================
+
+\bibliography{qmeans}
+\bibliographystyle{aaai} %
+
+\cleardoublepage
+\onecolumn 
+\appendix
+\renewcommand\appendixpagename{Supplemental material}
+\appendixpage
+\input{app_palm4msa.tex}
+
+
+\end{document}

@@ -307,7 +307,7 @@ def update_clusters(X_data, X_centroids_hat, K_nb_cluster, counts_before, new_co
         if total_count_vector[c] != 0:
             X_centroids_hat[c] = ((counts_before[c] / total_count_vector[c]) * X_centroids_hat[c]) +  ((1. / total_count_vector[c]) * np.sum(X_data[indicator_vector == c, :], 0))
         else:
-            logger.warning("Cluster {} has zero point, continue".format(c))
+            logger.debug("Cluster {} has zero point, continue".format(c))
 
     return total_count_vector
 

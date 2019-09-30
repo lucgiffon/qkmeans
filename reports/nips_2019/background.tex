@@ -1,12 +1,9 @@
 %!TEX root=neurips2019_qmeans.tex
 \section{Preliminaries}
 \label{sec:background}
-We briefly review the basics of \kmeans and
- give background on learning fast transforms.
- %
-  To  assist  the  reading,  we  list  the notations used in the paper in Table~\ref{tab:notation}.
+We briefly review the basics of \kmeans and give background on learning fast transforms.
+To  assist  the  reading,  we  list  the notations used in the paper in Table~\ref{tab:notation}.
 
-%\subsection{Notations}
 
 
 \input{notations.tex}
@@ -26,8 +23,6 @@ of the cluster $k$ it belongs to ---the center $\rvu_k$ of cluster $k$ is the
 \label{eq:kmean_problem}
     \argmin_{\rmU, \rvt} \sum_{k\in\intint{\nclusters}} \sum_{n: t_n = k} \|\rvx_{n} -\rvu_{k}\|^2,
 \end{equation}
-% autre écriture de l'objectif de k-means
-% = \argmin_{\rmU, \rvt} \sum_{k=1}^{K} c_k + \sum_{k=1}^{K} n_k||\hat{\rmU}_k - \rmU_k||^2
 where $\rmU=\{\rvu_1,\ldots,\rvu_K\}$ is the set of cluster centers and $\rvt \in  \intint{\nclusters}^{\nexamples}$ is the assignment vector that puts $\rvx_n$ in cluster $k$
 if $t_n=k$.
 
@@ -49,50 +44,11 @@ In little more detail, the algorithm starts with an initialized set of $\ncluste
 \forall k\in\intint{K}, \rvu^{(\tau)}_k \leftarrow \hat{\rvx}_k(\rvt^{(\tau)}) \eqdef \frac{1}{n_k^{(\tau)}} \sum_{n: t^{(\tau)}_n= k} {\rvx_{n}}
 \end{align}
 where $n_k^{(\tau)}\eqdef |\{n: t^{(\tau)}_n=k\}|$ is the number of points in cluster $k$
-at time $\tau$ and $\hat{\rvx}_k(\rvt)$ is the mean vector of the elements of cluster $k$ according to assignment $\rvt$. %at a total cost of $\mathcal{O}\left (\nexamples\datadim\right )$ operations.
+at time $\tau$ and $\hat{\rvx}_k(\rvt)$ is the mean vector of the elements of cluster $k$ according to assignment $\rvt$. 
 
 \paragraph{Complexity of Lloyd's algorithm.} The assignment step \eqref{eq:assignment_problem_kmeans} costs $\mathcal{O}(\nexamples\datadim\nclusters)$ operations while the update of the centers~\eqref{eq:center_update} costs $\mathcal{O}\left (\nexamples\datadim\right )$ operations. Hence, the bottleneck of the overall time complexity $\mathcal{O}(\nexamples\datadim\nclusters)$ stems from the assignment step. Once the clusters have been defined, assigning $\nexamples'$ new points to these clusters is performed via \eqref{eq:assignment_problem_kmeans} at the cost of $\mathcal{O}\left (\nexamples'\datadim\nclusters \right )$ operations.
 
 The main contribution in this paper relies on the idea that \eqref{eq:assignment_problem_kmeans} may be computed more efficiently by approximating $\rmU$ as a fast operator.
-
-% Each update step $\tau$ is divided into two parts: (i) all observations $\rmX_{[n]}$ are assigned to their nearest cluster based on the center-points $\rmU_{[\rvt[n]]}^{(\tau-1)}$s at this step (Line \ref{line:kmeans:assignment}) in $\mathcal{O}(\nexamples\datadim\nclusters)$ operations
-%
-% (ii) the new center-points $\rmU_{[k]}^{(\tau)}$s are computed as the means of the assignated $\rmX_{[n]}$ (Line \ref{line:kmeans:compute_means}) for a total of $\mathcal{O}\left (\nexamples\datadim\right )$ operations.
-
-%\begin{algorithm}
-%\caption{\kmeans algorithm}
-%\label{algo:kmeans}
-%\begin{algorithmic}[1]
-%
-%
-%\REQUIRE $\rmX \in \R^{\nexamples \times \datadim}$, $\nclusters$, $\{\rmU_i \in \R^\datadim\}_{i=1}^{\nclusters}$
-%\ENSURE $\{\rmU_i\}_{i=1}^{\nclusters}$ the K means of $\nexamples$ $\datadim$-dimensional samples
-%\STATE $\tau \leftarrow 0$
-%\REPEAT
-%\STATE $\tau \leftarrow \tau + 1$
-%\STATE $\rvt^{(\tau)} \leftarrow \argmin_{\rvt \in [\![\nclusters]\!]^n} \sum_{i=1}^{\nexamples} {||\rmX_i - \rmU^{(\tau-1)}_{\rvt_i}||_2^2}$
-%\label{line:kmeans:assignment}
-%\FORALL {$k \in [\![\nclusters]\!]^\nexamples$}
-%\STATE $n_k^{(\tau)} \leftarrow |\{i: \rvt^{(\tau)}_i=k\}|$
-%\label{line:kmeans:count}
-%\STATE $\rmU^{(\tau)}_k \leftarrow \frac{1}{n_k^{(\tau)}} \sum_{i: \rvt^{(\tau)}_i = k} {\rmX_i}$
-%\label{line:kmeans:compute_means}
-%\ENDFOR
-%\UNTIL{stop criterion}
-%\RETURN $\rmU^{(\tau)}$
-%\end{algorithmic}
-%\end{algorithm}
-
-
-%Once the clusters have been defined, for any $\rvx \in \R^\datadim$ the cluster associated with this $\rvx$ is:
-%
-%\begin{equation}
-%\label{eq:assignment_problem_kmeans}
-%\argmin_{k \in [\![\nclusters]\!]} ||\rvx - \rmU_{[k]}||_2^2 = \argmin_{k \in [\![\nclusters]\!]} ||\rmU_{[k]}||_2^2 - 2 \rmU_{[k]}^T\rvx.
-%\end{equation}
-%
-%
-%We remark here that the computational bottleneck of this assignment lies in the computation of $\rmU_{[k]}^T\rvx$ for all $k$. This computation is also encountered in the assignment step (line \ref{line:kmeans:assignment}) of the Algorithm \ref{algo:kmeans}.
 
 
 \subsection{Learning Fast Transforms as the Product of Sparse Matrices}
@@ -115,34 +71,6 @@ A recent contribution~\cite{LeMagoarou2016Flexible} has proposed algorithmic str
 where, for each $q\in\intint{Q}$, $\delta_{\mathcal{E}_q}(\rmS_q)=0$ 
 if $\rmS_q \in \mathcal{E}_q$ and $\delta_{\mathcal{E}_q}(\rmS_q)=+\infty$ otherwise, $\mathcal{E}_q$ being a constraint set that typically impose a sparsity structure on its elements, as well as a scaling constraint. The \palm algorithm and more related details are given in Appendix~\ref{sec:app:palm4msa}.
 
-\iffalse
-TO BE COMPLETED + algo~\ref{algo:palm4msa} in appendix~\ref{sec:app:palm4msa}.
-
-A popular way for providing concise description of high-dimensional vectors $\rmU \in \R^{K \times d}$ is to compute a sparse representation using a dictionary:
-%
-\begin{equation}
-\rmU^T \approx \rmD\rmGamma
-\end{equation}
-%
-where $\rmD \in \R^{d \times d}$ is a dictionary and $\rmGamma \in \R^{d \times K}$ has sparse columns. Historically, the dictionary is either (i) analytic: $\rmD$ is chosen to give a fast reconstruction of the initial matrix by taking advantage of some fast-transform algorithm (the \textit{Fast Hadamard Transform} for instance) or (ii) learned: $\rmD$ is learned from the data itself to give a good reconstruction of the initial matrix.
-
-Building on the observation that the fast-transform associated with an analytic dictionary can be expressed as the product of sparse matrices $\mathcal{S}_j$ from a set $\mathcal{S}$ of size $M$, \cite{magoarou2014learning} proposes an algorithm to learn a dictionary from the data with sparsity constraints such that this dictionary would be both well-suited with the data and fast to use:
-%
-\begin{equation}
-\rmD = \lambda \prod_{j=1}^{M}\mathcal{S}_j
-\end{equation}
-%
-with $\forall j \in \{1 \ldots M\}$, $\mathcal{S}_j \in \mathcal{E}_j$, $\mathcal{E}_j = \lbrace \rmA \in \R^{a \times a+1}~\text{s.t.}~||\rmA||_0^0 \leq p_j, ||\rmA||_1 = 1 \rbrace$ and $p_j$ being chosen suitably. The $\lambda$ parameter has been added along with the normalization constraint in the $\mathcal{E}_j$ in order to remove scaling ambiguity in the learned $\mathcal{S}_j$.
-
-Considering $\rmGamma$ being a sparse matrice too, it can be renamed as $\rmGamma = \mathcal{S}_{M+1}$. We set $Q = M+1$ and the overall dictionary learning problem can be expressed as the following optimisation problem:
-%
-\begin{equation}
-\label{eq:problem_gribon}
-\min_{\{\mathcal{S}_1 \dots \mathcal{S}_Q, \lambda\}} ||\rmU - \lambda \prod_{j=1}^{Q}{\mathcal{S}_j}||_2^2 + \sum_{j=1}^{Q} \delta_j(\mathcal{S}_j)
-\end{equation}
-%
-with the $\delta_j(\mathcal{S}_j) = 0$ if $\mathcal{S}_j \in \mathcal{E}_j$ being the sparsity constraints to satisfy on the associated $\mathcal{S}_j$.
-\fi
 
 Although this problem is non-convex and the computation of a global optimum cannot be
 ascertained, the \palm algorithm is able to find good local minima with convergence guarantees. 

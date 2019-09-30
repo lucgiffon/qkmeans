@@ -57,7 +57,7 @@ def get_objective_and_df(path):
 if __name__ == "__main__":
     suf_path = "2019/06/qmeans_analysis_littledataset_fast"
     input_dir = "/home/luc/PycharmProjects/qalm_qmeans/results/" + suf_path
-    output_dir = "/home/luc/PycharmProjects/qalm_qmeans/reports/figures/" + "2019/07/tech_report" + "/objectives"
+    output_dir = "/home/luc/PycharmProjects/qalm_qmeans/reports/figures/" + "2019/08/aaai_conference" + "/objectives"
     output_dir = pathlib.Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -95,12 +95,15 @@ if __name__ == "__main__":
 
         nb_factors = [min(int(np.log2(nb_cluster)), int(np.log2(dataset_dim[dataset_name]))) for nb_cluster in lst_nb_cluster_values]
         for idx_nb_clust, clust_nbr in enumerate(lst_nb_cluster_values):
+
             f, curr_ax = plt.subplots()
+            f.set_size_inches(8, 4)
             # qmeans part #
             ###############
             df_nb_clust_qmeans = df_dataset_qmeans[df_dataset_qmeans["--nb-cluster"] == clust_nbr]
 
-            for hierarchical_value in [True, False]:
+
+            for hierarchical_value in [False]:
                 df_hierarchical = df_nb_clust_qmeans[df_nb_clust_qmeans["--hierarchical"] == hierarchical_value]
 
                 for idx_sparsy_val, sparsy_val in enumerate(lst_sparsity_values):
@@ -161,6 +164,7 @@ if __name__ == "__main__":
             # plt.title(title)
             print(title)
             plt.grid()
-            # plt.savefig(output_dir / title.replace(" ", "_").replace(":", "").replace("#", ""))
-            #
-            plt.show()
+            plt.tight_layout()
+            plt.savefig(output_dir / title.replace(" ", "_").replace(":", "").replace("#", ""))
+
+            # plt.show()

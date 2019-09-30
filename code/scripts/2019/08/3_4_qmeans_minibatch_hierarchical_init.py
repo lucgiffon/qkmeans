@@ -458,8 +458,8 @@ def make_nystrom_evaluation(x_train, y_train, x_test, y_test, U_centroids):
     #################################
 
     sklearn_nystrom = Nystroem(gamma=gamma, n_components=uniform_sample.shape[0])
-    sklearn_nystrom = sklearn_nystrom.fit(sample)
-    sklearn_transfo = sklearn_nystrom.transform(uniform_sample)
+    sklearn_nystrom = sklearn_nystrom.fit(uniform_sample)
+    sklearn_transfo = sklearn_nystrom.transform(sample)
     kernel_sklearn_nys = sklearn_transfo  @ sklearn_transfo.T
 
     ################################################################
@@ -572,16 +572,18 @@ if __name__ == "__main__":
     try:
         dataset = paraman.get_dataset()
 
-        dataset["x_train"] = dataset["x_train"]
+        if dataset["x_train"].dtype != np.float32:
+            dataset["x_train"] = dataset["x_train"].astype(np.float32)
 
         sizes = {
             "size_train": dataset["x_train"].shape[0]
         }
 
         if "x_test" in dataset:
-            dataset["x_test"] = dataset["x_test"]
-            dataset["y_test"] = dataset["y_test"]
-            dataset["y_train"] = dataset["y_train"]
+            if dataset["x_train"].dtype != np.float32:
+                dataset["x_test"] = dataset["x_test"].astype(np.float32)
+                dataset["y_test"] = dataset["y_test"].astype(np.float32)
+                dataset["y_train"] = dataset["y_train"].astype(np.float32)
             sizes.update({
                 "size_test": dataset["x_test"].shape[0]
             })

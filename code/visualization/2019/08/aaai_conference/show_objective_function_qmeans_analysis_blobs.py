@@ -30,7 +30,6 @@ def get_objective_and_df(path):
                      "--1-nn",
                      "--assignation-time",
                      "--help",
-                     "--blobs",
                      "--kddcup",
                      "--census",
                      "--nb-factors",
@@ -55,7 +54,9 @@ def get_objective_and_df(path):
 
 
 if __name__ == "__main__":
-    suf_path = "2019/06/qmeans_analysis_littledataset_fast"
+    # suf_path = "2019/06/qmeans_analysis_littledataset_fast"
+    suf_path = "2019/07/qmeans_analysis_blobs_log2_clusters_bis"
+
     input_dir = "/home/luc/PycharmProjects/qalm_qmeans/results/" + suf_path
     output_dir = "/home/luc/PycharmProjects/qalm_qmeans/reports/figures/" + "2019/07/tech_report" + "/objectives"
     output_dir = pathlib.Path(output_dir)
@@ -67,18 +68,28 @@ if __name__ == "__main__":
     df_results_kmeans = df_results[df_results["kmeans"]]
 
     datasets = {
-        "Fashion Mnist": "--fashion-mnist",
-        "Mnist": "--mnist"
-        }
+        # "Fashion Mnist": "--fashion-mnist",
+        # "Mnist": "--mnist",
+        "Blobs": "--blobs",
+        # "LFW": "--lfw"
+    }
+
+    dataset_dim = {
+        # "Fashion Mnist": 784,
+        # "Mnist": 784,
+        # "LFW": 1850,
+        "Blobs": 2000
+    }
+
+    # shapes = {"Fashion Mnist": (28, 28),
+    #             "Mnist": (28, 28),
+    #             "LFW": (50, 37)}
 
     color_by_sparsity = {
         2: "g",
         3: "b",
         5: "c"
     }
-
-    dataset_dim = {"Fashion Mnist": 784,
-                "Mnist": 784}
 
     lst_sparsity_values = sorted(set(df_results_qmeans["--sparsity-factor"]))
     lst_nb_cluster_values = sorted(set(df_results_qmeans["--nb-cluster"]))
@@ -90,8 +101,10 @@ if __name__ == "__main__":
 
         datasets_col = datasets[dataset_name]
 
-        df_dataset_qmeans = df_results_qmeans[df_results_qmeans[datasets_col]]
-        df_dataset_kmeans = df_results_kmeans[df_results_kmeans[datasets_col]]
+        df_dataset_qmeans = df_results_qmeans[df_results_qmeans[datasets_col] != False]
+        df_dataset_qmeans = df_dataset_qmeans[df_dataset_qmeans[datasets_col] != None]
+        df_dataset_kmeans = df_results_kmeans[df_results_kmeans[datasets_col] != False]
+        df_dataset_kmeans = df_dataset_kmeans[df_dataset_kmeans[datasets_col] != None]
 
         nb_factors = [min(int(np.log2(nb_cluster)), int(np.log2(dataset_dim[dataset_name]))) for nb_cluster in lst_nb_cluster_values]
         for idx_nb_clust, clust_nbr in enumerate(lst_nb_cluster_values):
@@ -100,7 +113,7 @@ if __name__ == "__main__":
             ###############
             df_nb_clust_qmeans = df_dataset_qmeans[df_dataset_qmeans["--nb-cluster"] == clust_nbr]
 
-            for hierarchical_value in [True, False]:
+            for hierarchical_value in [False]:
                 df_hierarchical = df_nb_clust_qmeans[df_nb_clust_qmeans["--hierarchical"] == hierarchical_value]
 
                 for idx_sparsy_val, sparsy_val in enumerate(lst_sparsity_values):
@@ -162,5 +175,5 @@ if __name__ == "__main__":
             print(title)
             plt.grid()
             # plt.savefig(output_dir / title.replace(" ", "_").replace(":", "").replace("#", ""))
-            #
+
             plt.show()

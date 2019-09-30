@@ -24,7 +24,7 @@ matplotlib.rc('font', **font)
 
 def get_objective_and_df(path):
     src_result_dir = pathlib.Path(path)
-    dct_output_files_by_root = get_dct_result_files_by_root(src_results_dir=src_result_dir)
+    dct_output_files_by_root = get_dct_result_files_by_root(src_results_dir=src_result_dir, old_filename_objective=True)
 
     col_to_delete = ["--initialization",
                      "--1-nn",

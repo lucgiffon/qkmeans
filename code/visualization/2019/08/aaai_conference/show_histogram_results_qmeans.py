@@ -44,13 +44,15 @@ def get_df(path):
 if __name__ == "__main__":
     create_input_dir = lambda x: "/home/luc/PycharmProjects/qalm_qmeans/results/" + x
     # suf_path = "2019/07/qmeans_analysis_blobs_log2_clusters_bis"
-    suf_path_blobs_caltech = "2019/08/3_4_qmeans_no_hierarchical_blobs_caltech"
+    suf_path_blobs_caltech = "2019/08/aaai/caltech_decoda2"
     input_dir_blobs_caltech = create_input_dir(suf_path_blobs_caltech)
     # suf_path_blobs_caltech_extra = "2019/08/1_2_qmeans_objective_function_new_interface_qmeans_blobs_caltech_only_fail"
     # input_dir_blobs_caltech_extra =  create_input_dir(suf_path_blobs_caltech_extra)
 
-    # suf_path_mnist_fmnist = "2019/08/1_2_qmeans_objective_function_new_interface_qmeans_mnist_fmnist"
-    # input_dir_mnist_fmnist =  create_input_dir(suf_path_mnist_fmnist)
+    suf_path_mnist = "2019/08/aaai/mnist"
+    input_dir_mnist =  create_input_dir(suf_path_mnist)
+    suf_path_fmnist = "2019/08/aaai/fashion_mnist"
+    input_dir_fmnist =  create_input_dir(suf_path_fmnist)
 
 
     output_dir = "/home/luc/PycharmProjects/qalm_qmeans/reports/figures/"+ "2019/08/aaai_conference" + "/histogrammes"
@@ -60,10 +62,11 @@ if __name__ == "__main__":
 
     df_results_blobs_caltech = get_df(input_dir_blobs_caltech)
     # df_results_blobs_caltech_extra = get_df(input_dir_blobs_caltech_extra)
-    # df_results_mnist_fmnist = get_df(input_dir_mnist_fmnist)
+    df_results_mnist = get_df(input_dir_mnist)
+    df_results_fmnist = get_df(input_dir_fmnist)
 
     # df_results = pd.concat([df_results_blobs_caltech, df_results_blobs_caltech_extra, df_results_mnist_fmnist])
-    df_results = pd.concat([df_results_blobs_caltech])
+    df_results = pd.concat([df_results_blobs_caltech, df_results_mnist, df_results_fmnist])
     df_results_failure = df_results[df_results["failure"]]
     df_results = df_results[np.logical_not(df_results["failure"])]
     df_results = df_results[df_results["--nb-cluster"].astype(int) != 1024]
@@ -72,9 +75,9 @@ if __name__ == "__main__":
     df_results_kmeans = df_results[df_results["kmeans"]]
 
     datasets = {
-        # "Fashion Mnist": "--fashion-mnist",
-        # "Mnist": "--mnist",
-        "Blobs": "--blobs",
+        "Fashion Mnist": "--fashion-mnist",
+        "Mnist": "--mnist",
+        # "Blobs": "--blobs",
         "Caltech": "--caltech256"
     }
 
@@ -213,11 +216,15 @@ if __name__ == "__main__":
 
                     # display number of parameters
                     for idx_bar, xcoor in enumerate(x_indices + bar_width * idx_sparsy_val):
-                        nb_param = df_sparsy_val[df_sparsy_val["--nb-cluster"] == nb_cluster_values[idx_bar]]["nb_param_centroids"].mean()
-                        ax.text(xcoor, mean_task_values[idx_bar] + std_task_values[idx_bar], ' {}'.format(int(round(nb_param))),
-                                horizontalalignment='center',
-                                verticalalignment='bottom',
-                                rotation='vertical')
+                        try:
+                            nb_param = df_sparsy_val[df_sparsy_val["--nb-cluster"] == nb_cluster_values[idx_bar]]["nb_param_centroids"].mean()
+                            ax.text(xcoor, mean_task_values[idx_bar] + std_task_values[idx_bar], ' {}'.format(int(round(nb_param))),
+                                    horizontalalignment='center',
+                                    verticalalignment='bottom',
+                                    rotation='vertical')
+                        except Exception as e:
+                            print("there is a pb")
+                            raise e
 
 
                 # Kmeans
@@ -238,26 +245,26 @@ if __name__ == "__main__":
                             verticalalignment='bottom',
                             rotation='vertical')
 
-                # # for nearest neighbor: add other bars for brute, kdtree and balltree
-                # if "1nn_kmean" in str_task:
-                #     # offset_from_qmeans = 1 + len(sparsity_values) # offset from qmeans =3 because there are both kmeans first
-                #     offset_from_qmeans = 1 # offset from qmeans =3 because there are both kmeans first
-                #     for idx_other_1nn, str_other_1nn in enumerate(other_1nn_methods):
-                #         str_task_special_1nn = str_task.replace("kmean", str_other_1nn)
-                #         task_values_kmeans = [pd.to_numeric(df_dataset_kmeans[df_dataset_kmeans["--nb-cluster"] == clust_nbr][str_task_special_1nn], errors="coerce") for clust_nbr in nb_cluster_values]
-                #         mean_task_values_kmeans = [d.mean() for d in task_values_kmeans]
-                #         std_task_values_kmeans = [d.std() for d in task_values_kmeans]
-                #
-                #         bars.append(ax.bar(x_indices + bar_width * (len(sparsity_values) + offset_from_qmeans + idx_other_1nn), mean_task_values_kmeans, bar_width, yerr=std_task_values_kmeans,
-                #                            label=other_1nn_methods_names[str_other_1nn], zorder=10))
-                #
-                #         max_value_in_plot = max(max_value_in_plot, max(np.array(mean_task_values_kmeans) + np.array(std_task_values_kmeans)))
-                #         # for idx_bar, xcoor in enumerate(x_indices + bar_width * (len(sparsity_values) + offset_from_qmeans + idx_other_1nn)):
-                #         #     nb_param = df_dataset_kmeans[df_dataset_kmeans["--nb-cluster"] == nb_cluster_values[idx_bar]]["nb_param_centroids"].mean()
-                #         #     ax.text(xcoor, mean_task_values_kmeans[idx_bar] + std_task_values_kmeans[idx_bar], '{}'.format(int(round(nb_param))),
-                #         #             horizontalalignment='center',
-                #         #             verticalalignment='bottom',
-                #         #             rotation='vertical')
+                # for nearest neighbor: add other bars for brute, kdtree and balltree
+                if "1nn_kmean" in str_task:
+                    # offset_from_qmeans = 1 + len(sparsity_values) # offset from qmeans =3 because there are both kmeans first
+                    offset_from_qmeans = 1 # offset from qmeans =3 because there are both kmeans first
+                    for idx_other_1nn, str_other_1nn in enumerate(other_1nn_methods):
+                        str_task_special_1nn = str_task.replace("kmean", str_other_1nn)
+                        task_values_kmeans = [pd.to_numeric(df_dataset_kmeans[df_dataset_kmeans["--nb-cluster"] == clust_nbr][str_task_special_1nn], errors="coerce") for clust_nbr in nb_cluster_values]
+                        mean_task_values_kmeans = [d.mean() for d in task_values_kmeans]
+                        std_task_values_kmeans = [d.std() for d in task_values_kmeans]
+
+                        bars.append(ax.bar(x_indices + bar_width * (len(sparsity_values) + offset_from_qmeans + idx_other_1nn), mean_task_values_kmeans, bar_width, yerr=std_task_values_kmeans,
+                                           label=other_1nn_methods_names[str_other_1nn], zorder=10))
+
+                        max_value_in_plot = max(max_value_in_plot, max(np.array(mean_task_values_kmeans) + np.array(std_task_values_kmeans)))
+                        # for idx_bar, xcoor in enumerate(x_indices + bar_width * (len(sparsity_values) + offset_from_qmeans + idx_other_1nn)):
+                        #     nb_param = df_dataset_kmeans[df_dataset_kmeans["--nb-cluster"] == nb_cluster_values[idx_bar]]["nb_param_centroids"].mean()
+                        #     ax.text(xcoor, mean_task_values_kmeans[idx_bar] + std_task_values_kmeans[idx_bar], '{}'.format(int(round(nb_param))),
+                        #             horizontalalignment='center',
+                        #             verticalalignment='bottom',
+                        #             rotation='vertical')
 
                 if "nystrom_sampled_error_reconstruction" in str_task:
                     offset_from_qmeans = 1 # offset from qmeans =1 because there are both kmeans first

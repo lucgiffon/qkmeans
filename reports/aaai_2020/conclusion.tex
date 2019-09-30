@@ -1,10 +1,12 @@
 \section{Conclusion}
 \label{sec:conclusion}
 
-In this paper, we have proposed a variant of the \kmeans algorithm, named \qkmeans, designed to achieve a similar goal -- clustering data points around $\nclusters$ learned centroids -- with a much lower computational complexity as the dimension of the data, the number of examples and the number of clusters get high. Our approach is based on the approximation of the centroid matrix by an operator structured as a product of a small number of sparse matrices, resulting in a low time and space complexity when applied to data vectors.
+In this paper, we have proposed a variant of the \kmeans algorithm, named \qkmeans, designed to achieve a similar goal -- clustering data points around $\nclusters$ learned centers -- with a much lower computational complexity as the dimension of the data, the number of examples and the number of clusters get high. 
+Our approach is based on the approximation of the matrix of centers by an operator structured as a product of a small number of sparse matrices, resulting in a low time and space complexity when applied to data vectors.
 We have shown the convergence properties of the proposed algorithm and provided its complexity analysis.
 
-An implementation prototype has been run in several core machine learning use cases including clustering, nearest-neighbor search and Nystr\"om approximation. The experimental results illustrate the computational gain in high dimension at inference time as well as the good approximation qualities of the proposed model.
+An implementation prototype has been run in several core machine learning use cases including clustering, nearest-neighbor search and Nystr\"om approximation. 
+The experimental results illustrate the computational gain in high dimension at inference time as well as the good approximation qualities of the proposed model.
 
 Beyond these modeling, algorithmic and experimental contributions to low-complexity high-dimensional machine learning, we have identified several important questions that are still to be addressed.
 First, although learning the fast-structure operator has been nicely integrated in the training algorithm with an advantageous theoretical time and space complexity, exhibiting gains in actual running times has not been achieved yet for the \qkmeans learning procedure, compared to \kmeans.
