@@ -212,8 +212,8 @@ if __name__ == '__main__':
         "residual_on_right": residual_on_right}
 
     # try:
-    objective_values_q_hier, centroids_finaux_q_hier, indicator_hier = qmeans(X, nb_clusters, nb_iter_kmeans, nb_factors, hierarchical_palm_init, initialization=U_centroids_hat, graphical_display=True, hierarchical_inside=True)
-    objective_values_q_hier, centroids_finaux_q_hier, indicator = qmeans(X, nb_clusters, nb_iter_kmeans, nb_factors, hierarchical_palm_init, initialization=U_centroids_hat, graphical_display=True, hierarchical_inside=True)
+    objective_values_q_hier, centroids_finaux_q_hier, indicator_hier = qmeans(X, nb_clusters, nb_iter_kmeans, nb_factors, hierarchical_palm_init, initialization=U_centroids_hat, graphical_display=False, hierarchical_inside=True)
+    # objective_values_q_hier, centroids_finaux_q_hier, indicator = qmeans(X, nb_clusters, nb_iter_kmeans, nb_factors, hierarchical_palm_init, initialization=U_centroids_hat, graphical_display=True, hierarchical_inside=True)
     objective_values_q, centroids_finaux_q, indicator = qmeans(X, nb_clusters, nb_iter_kmeans, nb_factors, hierarchical_palm_init, initialization=U_centroids_hat, graphical_display=False)
     # except Exception as e:
     #     logger.info("There have been a problem in qmeans: {}".format(str(e)))

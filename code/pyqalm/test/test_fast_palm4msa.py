@@ -20,6 +20,7 @@ class TestPalm4Msa(unittest.TestCase):
         X = np.random.randn(n_rows, n_cols)
         self.data['random matrix'] = X
 
+    @unittest.skip("palm1 deprecated")
     def test_palm4msa_compare01(self):
         for k, X in self.data.items():
             print(k)
@@ -78,6 +79,7 @@ class TestPalm4Msa(unittest.TestCase):
             np.testing.assert_array_almost_equal(out1[3], out0[3],
                                                  err_msg='objective_function')
 
+    @unittest.skip("palm2 deprecated")
     def test_palm4msa_compare12(self):
         for k, X in self.data.items():
             print(k)
@@ -136,6 +138,7 @@ class TestPalm4Msa(unittest.TestCase):
             np.testing.assert_array_almost_equal(out2[3], out1[3],
                                                  err_msg='objective_function')
 
+    @unittest.skip("palm3 deprecated")
     def test_palm4msa_compare23(self):
         for k, X in self.data.items():
             print(k)
@@ -218,6 +221,7 @@ class TestPalm4Msa(unittest.TestCase):
             np.testing.assert_array_almost_equal(out3[3], out2[3],
                                                  err_msg='objective_function')
 
+    @unittest.skip("palm4 deprecated")
     def test_palm4msa_compare34(self):
         for k, X in self.data.items():
             print(k)

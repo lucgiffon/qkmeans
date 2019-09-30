@@ -73,8 +73,8 @@ def get_side_prod(lst_factors, id_shape=(0,0)):
     return side_prod
 
 
-def get_lambda_proxsplincol(nb_keep_values):
-    return lambda mat: prox_splincol(mat, nb_keep_values)
+def get_lambda_proxsplincol(nb_keep_values, fast_unstable=False):
+    return lambda mat: prox_splincol(mat, nb_keep_values, fast_unstable=fast_unstable)
 
 
 def constant_proj(mat):
@@ -150,22 +150,17 @@ class ObjectiveFunctionPrinter:
             self.__ext_file = output_file.suffix
             self.__base_file = (output_file.parent / output_file.stem).as_posix()
         elif output_file is not None:
-            self.__ext_file = ".csv"
+            self.__ext_file = ".npz"
             self.__base_file = self.__output_file.as_posix()
 
-    def add(self, name, cols, arr):
+    def add(self, name, label_dims, arr):
         """
         arr must be either 1d or 2d arr
         :param name:
         :param arr:
         :return:
         """
-        if len(arr.shape) > 2:
-            raise ValueError("Trying to add a {}-D array to ObjectiveFunctionPrinter. Maximum dim accepted is 2.".format(len(arr.shape)))
-
-        assert (len(arr.shape) == 1 and len(cols) == 1) or len(cols) == len(arr[0])
-
-        self.objectives[name] = (cols, arr)
+        self.objectives[name] = (label_dims, arr)
 
     def print(self):
         def print_2d_row(row):
@@ -174,26 +169,29 @@ class ObjectiveFunctionPrinter:
         def print_1d_row(row):
             return str(row)
 
-        for name, (cols, arr) in self.objectives.items():
-            cols_str = ",".join(cols)
-            head = name + "\n" + "\n" + cols_str
-            print(head)
+        np.savez(self.__output_file, **self.objectives)
 
-            if self.__output_file is not None:
-                path_arr = Path(self.__base_file + "_" + name + self.__ext_file)
-                with open(path_arr, "w+") as out_f:
-                    out_f.write(head + "\n")
-
-            if len(arr.shape) == 1:
-                print_row_fct = print_1d_row
-            else:
-                print_row_fct = print_2d_row
-            for row in arr:
-                str_row = print_row_fct(row)
-                print(str_row)
-                if self.__output_file is not None:
-                    with open(path_arr, "a") as out_f:
-                        out_f.write(str_row + "\n")
+        #
+        # for name, (cols, arr) in self.objectives.items():
+        #     cols_str = ",".join(cols)
+        #     head = name + "\n" + "\n" + cols_str
+        #     print(head)
+        #
+        #     if self.__output_file is not None:
+        #         path_arr = Path(self.__base_file + "_" + name + self.__ext_file)
+        #         with open(path_arr, "w+") as out_f:
+        #             out_f.write(head + "\n")
+        #
+        #     if len(arr.shape) == 1:
+        #         print_row_fct = print_1d_row
+        #     else:
+        #         print_row_fct = print_2d_row
+        #     for row in arr:
+        #         str_row = print_row_fct(row)
+        #         print(str_row)
+        #         if self.__output_file is not None:
+        #             with open(path_arr, "a") as out_f:
+        #                 out_f.write(str_row + "\n")
 
 
 def get_random():
@@ -214,6 +212,11 @@ class ParameterManager(dict):
         self["--batch-assignation-time"] = int(self["--batch-assignation-time"]) if self["--batch-assignation-time"] is not None else None
         self["--assignation-time"] = int(self["--assignation-time"]) if self["--assignation-time"] is not None else None
         self["--nystrom"] = int(self["--nystrom"]) if self["--nystrom"] is not None else None
+
+        self["--delta-threshold"] = float(self["--delta-threshold"])
+
+        self["--minibatch"] = int(self["--minibatch"]) if self["--minibatch"] is not None else None
+        self["--max-eval-train-size"] = int(self["--max-eval-train-size"]) if self["--max-eval-train-size"] is not None else None
 
         self.__init_nb_factors()
         self.__init_output_file()
@@ -245,7 +248,7 @@ class ParameterManager(dict):
             raise ValueError("Output file name should be given without any extension (no `.` in the string)")
         if out_file is not None:
             self["--output-file_resprinter"] = Path(out_file + "_results.csv")
-            self["--output-file_objprinter"] = Path(out_file + "_objective.csv")
+            self["--output-file_objprinter"] = Path(out_file + "_objective.npz")
             self["--output-file_centroidprinter"] = Path(out_file + "_centroids.npy")
 
     def __init_seed(self):
@@ -290,6 +293,8 @@ class ParameterManager(dict):
             return blobs_dataset(blob_size, blob_features, blob_centers)
         elif self["--lfw"]:
             return lfw_dataset(self["--seed"])
+        elif self["--million-blobs"] is not None:
+            return million_blobs_dataset(int(self["--million-blobs"]))
         else:
             raise NotImplementedError("Unknown dataset.")
 
@@ -406,6 +411,22 @@ def lfw_dataset(seed=None):
         "y_test": y_test
     }
 
+def million_blobs_dataset(nb_million):
+    data_dir_obs = project_dir / "data/external" / "blobs_{}_million.dat".format(nb_million)
+    data_dir_labels = project_dir / "data/external" / "blobs_{}_million.lab".format(nb_million)
+    X = np.memmap(data_dir_obs, mode="r", dtype="float32", shape=(int(1e6) * nb_million, 2000))
+    y = np.memmap(data_dir_labels, mode="r", shape=(int(1e6) * nb_million,))
+    test_size = 1000
+    X_train, X_test = X[:-test_size], X[-test_size:]
+    y_train, y_test = y[:-test_size], y[-test_size:]
+    return {
+        "x_train": X_train,
+        "y_train": y_train,
+        "x_test": X_test,
+        "y_test": y_test
+    }
+
+
 
 def create_directory(_dir, parents=True, exist_ok=True):
     """
@@ -456,6 +477,8 @@ class DataGenerator(keras.utils.Sequence):
             self.n_classes = len(set(labels))
         self.shuffle = shuffle
         self.to_categorical = to_categorical
+        if (self.to_categorical and not self.labels):
+            raise AssertionError("Can't use 'to_categorical' if no labels are provided")
         self.return_indexes = return_indexes
         self.on_epoch_end()
 

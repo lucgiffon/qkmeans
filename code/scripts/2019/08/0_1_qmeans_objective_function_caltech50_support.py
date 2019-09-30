@@ -3,13 +3,14 @@ Analysis of objective function during qmeans execution. This script is derived f
 and change in nystrom evaluation that is now normalized.
 
 Usage:
-  qmeans_objective_function_analysis kmeans [-h] [-v] [--seed=int] (--blobs str|--light-blobs|--census|--kddcup|--plants|--mnist|--fashion-mnist|--lfw|--caltech256 int) --nb-cluster=int --initialization=str [--nb-iteration=int] [--assignation-time=int] [--1-nn] [--nystrom=int] [--batch-assignation-time=int]
-  qmeans_objective_function_analysis kmeans palm [-h] [-v] [--seed=int] (--blobs str|--light-blobs|--census|--kddcup|--plants|--mnist|--fashion-mnist|--lfw|--caltech256 int) --nb-cluster=int --initialization=str [--nb-iteration=int] [--assignation-time=int] [--1-nn] [--nystrom=int] [--batch-assignation-time=int] [--nb-iteration-palm=int] [--nb-factors=int] --sparsity-factor=int [--hierarchical]
-  qmeans_objective_function_analysis qmeans [-h] [-v] [--seed=int] (--blobs str|--light-blobs|--census|--kddcup|--plants|--mnist|--fashion-mnist|--lfw|--caltech256 int) --nb-cluster=int --initialization=str [--nb-factors=int] --sparsity-factor=int [--hierarchical] [--nb-iteration=int] [--nb-iteration-palm=int] [--assignation-time=int] [--1-nn] [--nystrom=int] [--batch-assignation-time=int]
+  qmeans_objective_function_analysis kmeans [-h] [-v|-vv] [--seed=int] (--blobs str|--light-blobs|--census|--kddcup|--plants|--mnist|--fashion-mnist|--lfw|--caltech256 int) --nb-cluster=int --initialization=str [--nb-iteration=int] [--assignation-time=int] [--1-nn] [--nystrom=int] [--batch-assignation-time=int]
+  qmeans_objective_function_analysis kmeans palm [-v|-vv] [-v] [--seed=int] (--blobs str|--light-blobs|--census|--kddcup|--plants|--mnist|--fashion-mnist|--lfw|--caltech256 int) --nb-cluster=int --initialization=str [--nb-iteration=int] [--assignation-time=int] [--1-nn] [--nystrom=int] [--batch-assignation-time=int] [--nb-iteration-palm=int] [--nb-factors=int] --sparsity-factor=int [--hierarchical]
+  qmeans_objective_function_analysis qmeans [-h] [-v|-vv] [--seed=int] (--blobs str|--light-blobs|--census|--kddcup|--plants|--mnist|--fashion-mnist|--lfw|--caltech256 int) --nb-cluster=int --initialization=str [--nb-factors=int] --sparsity-factor=int [--hierarchical] [--nb-iteration=int] [--nb-iteration-palm=int] [--assignation-time=int] [--1-nn] [--nystrom=int] [--batch-assignation-time=int]
 
 Options:
   -h --help                             Show this screen.
-  -v --verbose                          Set verbosity to debug.
+  -vv                                   Set verbosity to debug.
+  -v                                    Set verbosity to info.
   --seed=int                            The seed to use for numpy random module.
 
 Dataset:
@@ -536,10 +537,17 @@ if __name__ == "__main__":
     resprinter.add(paraman)
     objprinter = ObjectiveFunctionPrinter(output_file=paraman["--output-file_objprinter"])
     has_failed = False
-    if paraman["--verbose"]:
+    if paraman["-v"] >= 2:
         daiquiri.setup(level=logging.DEBUG)
-    else:
+    elif paraman["-v"] >= 1:
         daiquiri.setup(level=logging.INFO)
+    else:
+        daiquiri.setup(level=logging.WARNING)
+
+    logging.warning("Verbosity set to warning")
+    logging.info("Verbosity set to info")
+    logging.debug("Verbosity set to debug")
+
 
     try:
         dataset = paraman.get_dataset()

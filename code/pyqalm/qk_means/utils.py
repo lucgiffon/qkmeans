@@ -1,6 +1,6 @@
 import numpy as np
 from pyqalm.data_structures import SparseFactors
-from pyqalm.utils import constant_proj, get_lambda_proxsplincol, logger
+from pyqalm.utils import constant_proj, get_lambda_proxsplincol, logger, DataGenerator
 
 
 def get_squared_froebenius_norm_line_wise(data_arr):
@@ -13,6 +13,13 @@ def get_squared_froebenius_norm_line_wise(data_arr):
 
     return centroid_norms
 
+def get_squared_froebenius_norm_line_wise_batch_by_batch(data_arr_memmap, batch_size):
+    data_norms = np.zeros(data_arr_memmap.shape[0])
+    logger.debug("Start computing norm of datat array of shape {}, batch by batch".format(data_arr_memmap.shape))
+    for i_batch, batch in enumerate(DataGenerator(data_arr_memmap, batch_size=batch_size, return_indexes=False)):
+        logger.debug("Compute norm of batch {}/{}".format(i_batch, data_arr_memmap.shape[0]//batch_size))
+        data_norms[i_batch*batch_size:(i_batch+1)*batch_size] = np.linalg.norm(batch, axis=1) ** 2
+    return data_norms
 
 def get_distances(X_data, centroids, precomputed_centroids_norm=None, precomputed_data_points_norm=None):
     """
@@ -84,7 +91,7 @@ def assign_points_to_clusters(X, centroids, X_norms=None):
     return indicator_vector, distances
 
 
-def build_constraint_set_smart(left_dim, right_dim, nb_factors, sparsity_factor, residual_on_right):
+def build_constraint_set_smart(left_dim, right_dim, nb_factors, sparsity_factor, residual_on_right, fast_unstable_proj=False):
     """
 
     :param left_dim:
@@ -104,7 +111,7 @@ def build_constraint_set_smart(left_dim, right_dim, nb_factors, sparsity_factor,
                 lambda_func.__name__ = "ident"
                 local_lst_constraints.append(lambda_func)
             else:
-                lambda_func = get_lambda_proxsplincol(val)
+                lambda_func = get_lambda_proxsplincol(val, fast_unstable=fast_unstable_proj)
                 lambda_func.__name__ = "proxsplincol_{}".format(val)
                 local_lst_constraints.append(lambda_func)
 
@@ -233,7 +240,7 @@ def build_constraint_sets(left_dim, right_dim, nb_factors, sparsity_factor):
     return lst_proj_op_by_fac_step, lst_proj_op_desc_by_fac_step
 
 
-def assess_clusters_integrity(X_data, X_data_norms, X_centroids_hat, K_nb_cluster, counts, indicator_vector, distances, cluster_names, cluster_names_sorted):
+def update_clusters_with_integrity_check(X_data, X_data_norms, X_centroids_hat, K_nb_cluster, counts, indicator_vector, distances, cluster_names, cluster_names_sorted):
     """
     Checki if no cluster has lost point and if yes, create a new cluster with the farthest point away in the cluster with the biggest population.
 
@@ -275,6 +282,61 @@ def assess_clusters_integrity(X_data, X_data_norms, X_centroids_hat, K_nb_cluste
             distances_to_new_cluster = get_distances(X_data, X_centroids_hat[c].reshape(1, -1), precomputed_data_points_norm=X_data_norms)
             distances[:, c] = distances_to_new_cluster.flatten()
         else:
-            X_centroids_hat[c] = np.mean(X_data[indicator_vector == c], 0)
+            X_centroids_hat[c] = np.mean(X_data[indicator_vector == c, :], 0)
 
     return counts, cluster_names_sorted
+
+def update_clusters(X_data, X_centroids_hat, K_nb_cluster, counts_before, new_counts, indicator_vector):
+    """
+    Update centroids and return new counts of each centroid.
+    All changes are made in place.
+
+    :param X_data:
+    :param X_data_norms:
+    :param X_centroids_hat:
+    :param K_nb_cluster:
+    :param new_counts:
+    :param indicator_vector:
+    :param distances:
+    :param cluster_names:
+    :param cluster_names_sorted:
+    :return:
+    """
+    total_count_vector = counts_before + new_counts
+    for c in range(K_nb_cluster):
+        if total_count_vector[c] != 0:
+            X_centroids_hat[c] = ((counts_before[c] / total_count_vector[c]) * X_centroids_hat[c]) +  ((1. / total_count_vector[c]) * np.sum(X_data[indicator_vector == c, :], 0))
+        else:
+            logger.debug("Cluster {} has zero point, continue".format(c))
+
+    return total_count_vector
+
+def check_cluster_integrity(X_data, X_centroids_hat, K_nb_cluster, counts, indicator_vector):
+    """
+    Check for each cluster if it has data points in it. If not, create a new cluster from the data points of the most populated cluster so far.
+
+    :param X_data:
+    :param X_centroids_hat:
+    :param K_nb_cluster:
+    :param counts:
+    :param indicator_vector:
+    :return:
+    """
+    for c in range(K_nb_cluster):
+
+        cluster_data = X_data[indicator_vector == c]
+        if len(cluster_data) == 0:
+            biggest_cluster_index = np.argmax(counts)  # type: int
+            biggest_cluster_data_indexes_bool = indicator_vector == biggest_cluster_index
+            biggest_cluster_actual_data_indexes = np.where(biggest_cluster_data_indexes_bool)[0]
+
+            random_index_in_biggest_cluster = np.random.choice(biggest_cluster_actual_data_indexes, size=1)[0]
+            random_point_in_biggest_cluster = X_data[random_index_in_biggest_cluster]
+
+            logger.warning("cluster has lost data, add new cluster. cluster idx: {}".format(c))
+            X_centroids_hat[c] = random_point_in_biggest_cluster.reshape(1, -1)
+            counts[biggest_cluster_index] -= 1
+            counts[c] = 1
+
+            indicator_vector[random_index_in_biggest_cluster] = c
+

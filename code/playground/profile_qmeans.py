@@ -56,7 +56,7 @@ def main(small_dim):
     # try:
     graphical_display = False
     # logger.info('Running QuicK-means with H-Palm')
-    # objective_function_hier, op_centroids_hier, indicator_hier = \
+    # objective_function_with_hier_palm, op_centroids_hier, indicator_hier = \
     #     qmeans(X, nb_clusters, nb_iter_kmeans,
     #            nb_factors, hierarchical_palm_init,
     #            initialization=U_centroids_hat,
@@ -87,11 +87,11 @@ if __name__ == '__main__':
     import logging
     import line_profiler
     from pyqalm.utils import logger
-    from pyqalm.qk_means.utils import assess_clusters_integrity, \
+    from pyqalm.qk_means.utils import update_clusters_with_integrity_check, \
         assign_points_to_clusters, get_distances
     from pyqalm.data_structures import SparseFactors
-    from pyqalm.palm.qalm_fast import palm4msa_fast4, hierarchical_palm4msa, \
-        compute_objective_function
+    from pyqalm.palm.qalm_fast import palm4msa_fast4, hierarchical_palm4msa
+    from pyqalm.palm.utils import compute_objective_function
     from pyqalm.palm.projection_operators import prox_splincol
 
     logger.setLevel(logging.ERROR)
@@ -99,7 +99,7 @@ if __name__ == '__main__':
     lp = line_profiler.LineProfiler()
     # Add functions to be profiled
     lp.add_function(kmeans)
-    lp.add_function(assess_clusters_integrity)
+    lp.add_function(update_clusters_with_integrity_check)
     lp.add_function(assign_points_to_clusters)
     lp.add_function(qmeans)
     lp.add_function(compute_objective_function)

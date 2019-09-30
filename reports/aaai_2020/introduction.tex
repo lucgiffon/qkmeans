@@ -1,0 +1,37 @@
+%!TEX root=aaai2020_qmeans.tex
+\section{Introduction}
+
+\kmeans is one of the most popular clustering algorithms~\cite{hartigan1979algorithm,jain2010data} and it can be used beyond clustering, for tasks such as indexing, data compression,  nearest-neighbor search and prediction, and local network community detection~\cite{muja2014scalable,van2016local}.
+\kmeans is also a pivotal process to increase the speed and the accuracy of learning procedures, e.g., for kernel machines~\cite{si2016computationally} and RBF networks~\cite{que2016back}, when combined with the Nyström approximation.
+%
+The  conventional  \kmeans  algorithm, i.e.  Lloyd's algorithm, has  a $\bigO{\nexamples\nclusters\datadim}$  complexity  per iteration when learning $\nclusters$ clusters from $\nexamples$ data points in dimension $\datadim$.
+In addition, the larger the number of clusters, the more iterations are needed to converge~\cite{arthur2006slow}.
+%
+As data dimensionality and sample size grow, it is critical to have at hand cost-effective 
+alternatives to the computationally expensive conventional \kmeans. 
+Known strategies to alleviate its computational issues rely on batch-, sparsity- and randomization-based methods~\cite{Sculley2010Web,boutsidis2014randomized,shen2017compressed,liu2017sparse}.
+%Settings with a large sample size in high dimension require
+%computationally-efficient alternatives to the conventional \kmeans. 
+%Known strategies rely on batch-, sparsity- and randomization-based methods~\cite{Sculley2010Web,boutsidis2014randomized,shen2017compressed,liu2017sparse}.
+
+Fast transforms have recently received increased attention in machine learning as they can speed up random projections~\cite{le2013fastfood,gittens2016revisiting} and to improve landmark-based approximations~\cite{si2016computationally}.
+%
+These works focused on fixed fast transforms such as well-known Fourier and Hadamard transforms.
+A question is whether one can go beyond and learn fast transforms that fit the data. 
+%
+Recently, \citet{LeMagoarou2016Flexible} introduced an approach aimed  at  reducing the  complexity  of  applying  linear  operators  in  high  dimension by   approximately   factorizing   the   corresponding   matrix   into few   sparse   factors. 
+Indeed, the aforementioned fixed fast transforms can be factorized into few sparse matrices.
+%
+In this paper, we take this idea further and investigate computationally-efficient variants of \kmeans by learning fast transforms from data.
+%
+After introducing the background elements in Section~\ref{sec:background}, we make the following contributions:
+\begin{itemize}
+	\item in Section~\ref{sec:qkmeans:algo}, we introduce \qkmeans, a fast extension of \kmeans that rests on learning a fast transform that approximate the matrix of centers;
+	\item in Section~\ref{sec:qkmeans:convergence}, we show that each update step in one iteration of our algorithm  reduces the overall objective, which establishes the convergence of \qkmeans;
+	\item in Section~\ref{sec:qkmeans:complexity}, we provide a complexity analysis of \qkmeans, showing that the computational gain has a direct impact in assigning a point to a cluster;
+	%which is not only tangible at prediction time, but also at training time;
+	\item in Section~\ref{sec:uses}, an empirical evaluation of \qkmeans  performance demonstrates its effectiveness on different datasets in the contexts of clustering, nearest neighbor search and kernel Nystr\"om approximation.
+\end{itemize}
+%\todo[inline]{Annoncer le plan}
+
+

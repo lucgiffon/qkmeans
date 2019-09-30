@@ -24,7 +24,7 @@ install:
 	$(PYTHON_INTERPRETER) -m pip install -e code/
 
 ## Make Dataset
-data:
+data: million
 	$(PYTHON_INTERPRETER) code/data/make_dataset.py all data/external
 
 kddcup: data/external/kddcup.npz
@@ -42,6 +42,32 @@ data/external/caltech256_50.npz:
 caltech256_32: data/external/caltech256_32.npz
 data/external/caltech256_32.npz:
 	$(PYTHON_INTERPRETER) code/data/make_dataset.py caltech256_32 data/external
+
+caltech256_28: data/external/caltech256_28.npz
+data/external/caltech256_28.npz:
+	$(PYTHON_INTERPRETER) code/data/make_dataset.py caltech256_28 data/external
+
+million: blobs_1_million blobs_10_million blobs_5_million blobs_2_million blobs_3_million
+
+blobs_1_million: data/external/blobs_1_million.dat
+data/external/blobs_1_million.dat:
+	$(PYTHON_INTERPRETER) code/data/make_dataset.py blobs_1_million data/external
+
+blobs_2_million: data/external/blobs_2_million.dat
+data/external/blobs_2_million.dat:
+	$(PYTHON_INTERPRETER) code/data/make_dataset.py blobs_2_million data/external
+
+blobs_3_million: data/external/blobs_3_million.dat
+data/external/blobs_3_million.dat:
+	$(PYTHON_INTERPRETER) code/data/make_dataset.py blobs_3_million data/external
+
+blobs_5_million: data/external/blobs_5_million.dat
+data/external/blobs_5_million.dat:
+	$(PYTHON_INTERPRETER) code/data/make_dataset.py blobs_5_million data/external
+
+blobs_10_million: data/external/blobs_10_million.dat
+data/external/blobs_10_million.dat:
+	$(PYTHON_INTERPRETER) code/data/make_dataset.py blobs_10_million data/external
 
 
 
