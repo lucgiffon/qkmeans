@@ -168,7 +168,8 @@ g\left (\left\{\rmS_q^{(\tau-1)}\right\}_{q=1}^{\nfactors}, \rvt^{(\tau)}\right 
 	&= \sum_{n:t_n = k} \norm{\rvx_n-\rvu_k}^2 + n_k \norm{\rvu_k-\rvv_k}^2,
 \end{align}
 \normalsize
-
+~\\
+(See supplementary material Section~\ref{supp:qkmeans_proof} for step by step calculus)
 
 
 For $\rvt$ fixed, the new sparsely-factorized centers are set as solutions of the problem $\argmin_{\rmS_1, \ldots,\rmS_Q} g(\rmS_1, \ldots,\rmS_Q, \rvt)$ which rewrites,  thanks to~\eqref{eq:rewrite_assignement} as
@@ -219,7 +220,7 @@ g\left (\rmS_1^{(\tau)}, \ldots,\rmS_\nfactors^{(\tau)}, \rvt^{(\tau)}\right ) &
 %& \leq \ldots \leq g\left (\rmS_1^{(0)}, \ldots,\rmS_\nfactors^{(0)}, \rvt^{(0)}\right )
 \end{align*}
 \normalsize
-
+~\\
 which is a sufficient condition to assert that Algorithm~\ref{algo:qmeans} converges (the sequence of objective values is nonincreasing and lower bounded, thus convergent).
 \end{proof}
 

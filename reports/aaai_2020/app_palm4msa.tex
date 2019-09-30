@@ -118,6 +118,19 @@ We have noted a difference of efficiency when applying our fast-transform operat
 \label{fig:batch_vs_1vect}
 \end{figure}
 
+\section{\qkmeans proof}
+\label{supp:qkmeans_proof}
+We propose in Equation~\ref{supp:rewrite_assignement} a step by step re-writting of Equation~\eqref{eq:rewrite_assignement}.
+
+\begin{align}
+    \label{supp:rewrite_assignement}
+	\sum_{n:t_n = k} \norm{\rvx_n -\rvv_k}^2
+	 & =\sum_{\substack{n\\t_n = k}} \norm{\rvx_n -\rvu_k+\rvu_k-\rvv_k}^2 \notag\\
+	& = \sum_{\substack{n\\t_n = k}}\left(\norm{\rvx_n-\rvu_k}^2+\norm{\rvu_k-\rvv_k}^2  \vphantom{\norm{\rvx_n-\rvu_k}^2+\norm{\rvu_k-\rvv_k}^2} - 2\langle\rvx_n-\rvu_k,\rvu_k-\rvv_k\rangle \right)\notag\\
+   & = \sum_{\substack{n\\t_n = k}} \norm{\rvx_n-\rvu_k}^2+n_k\norm{\rvu_k-\rvv_k}^2  - 2 \left\langle\underbrace{\sum_{\substack{n\\t_n = k}}\left (\rvx_n-\rvu_k\right )}_{=0},\rvu_k-\rvv_k\right\rangle\notag \\
+	&= \sum_{\substack{n\\t_n = k}} \norm{\rvx_n-\rvu_k}^2 + \norm{\sqrt{n_k}\left (\rvu_k-\rvv_k\right )}^2 \\
+	&= \sum_{n:t_n = k} \norm{\rvx_n-\rvu_k}^2 + n_k \norm{\rvu_k-\rvv_k}^2,
+\end{align}
 
 
 \section{Hierarchical-Palm4MSA}

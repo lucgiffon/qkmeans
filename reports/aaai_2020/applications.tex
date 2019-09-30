@@ -142,9 +142,9 @@ We compare this strategy using \kmeans and \qkmeans against the \texttt{scikit-l
 Inference time results and accuracy results are displayed in Table~\ref{tab:results}. 
 % As shown in Figure~\ref{fig:nn:blobs:accuracy}, the accuracy of the approximate nearest neighbor search is above $0.99$ \todo{Accuracy $>0.99$ to be checked} for all the tested variants of \qkmeans, which is an solid evidence about the reliability of the approach.
 The results for the Brute Force Search, KD Tree and Ball Tree are not available for some dataset because they were longer than 10 times the \kmeans search version in the same setting.
-The running times reported in the table show a dramatic advantage of using a clustering-based approximate search 
+The running times reported in the table show a drastic advantage of using a clustering-based approximate search 
 %\todo{to be completed by reporting the actual acceleration ratio obtained by \qkmeans over the three sklearn options.} 
-and this advantage is even stronger with the clustering obtained by our \qkmeans method. We see that for the \texttt{Blobs} datase, this speed-up comes at a cost as we can see a drop in classification performance but not for the other datasets. We believe our method is more sensible to the very noisy nature of the blobs dataset.
+and this advantage is even stronger with the clustering obtained by our \qkmeans method. We see that for the \texttt{Blobs} dataset, this speed-up comes at a cost as we can see a drop in classification performance but not for the other datasets. We believe our method is more sensible to the very noisy nature of the blobs dataset.
 % 
 % \begin{figure}[tbh]
 % \centering
