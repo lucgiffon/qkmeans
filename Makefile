@@ -6,7 +6,7 @@
 
 PROJECT_DIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 PROFILE = default
-PROJECT_NAME = deepstrom_network
+PROJECT_NAME = QK-means
 PYTHON_INTERPRETER = python3
 
 ifeq (,$(shell which conda))
@@ -71,7 +71,7 @@ data/external/blobs_10_million.dat:
 
 
 
-## Delete all compiled Python files
+## Delete all compiled Python files and data
 clean:
 	find . -type f -name "*.py[co]" -delete
 	find . -type d -name "__pycache__" -delete
