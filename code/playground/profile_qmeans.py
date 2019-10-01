@@ -8,9 +8,9 @@ import numpy as np
 from sklearn import datasets
 from pprint import pformat
 
-from qkmeans.qk_means.utils import build_constraint_set_smart
-from qkmeans.qk_means.kmeans import kmeans
-from qkmeans.qk_means.qmeans_fast import qmeans
+from qkmeans.core.utils import build_constraint_set_smart
+from qkmeans.core.kmeans import kmeans
+from qkmeans.core.qmeans_fast import qmeans
 
 
 def main(small_dim):
@@ -87,7 +87,7 @@ if __name__ == '__main__':
     import logging
     import line_profiler
     from qkmeans.utils import logger
-    from qkmeans.qk_means.utils import update_clusters_with_integrity_check, \
+    from qkmeans.core.utils import update_clusters_with_integrity_check, \
         assign_points_to_clusters, get_distances
     from qkmeans.data_structures import SparseFactors
     from qkmeans.palm.palm_fast import palm4msa_fast4, hierarchical_palm4msa

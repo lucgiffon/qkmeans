@@ -53,9 +53,9 @@ from qkmeans.data_structures import SparseFactors
 from qkmeans.palm.palm_fast import hierarchical_palm4msa, palm4msa
 from qkmeans.utils import ResultPrinter, ParameterManager, ObjectiveFunctionPrinter, logger, timeout_signal_handler, compute_euristic_gamma
 # todo graphical evaluation option
-from qkmeans.qk_means.qmeans_fast import qmeans, init_lst_factors
-from qkmeans.qk_means.utils import build_constraint_set_smart, get_distances, get_squared_froebenius_norm_line_wise
-from qkmeans.qk_means.kmeans import kmeans
+from qkmeans.core.qmeans_fast import qmeans, init_lst_factors
+from qkmeans.core.utils import build_constraint_set_smart, get_distances, get_squared_froebenius_norm_line_wise
+from qkmeans.core.kmeans import kmeans
 from sklearn.neighbors import KNeighborsClassifier
 from scipy.sparse.linalg import LinearOperator
 

@@ -1,6 +1,6 @@
 import numpy as np
 from qkmeans.data_structures import SparseFactors
-from qkmeans.qk_means.utils import get_squared_froebenius_norm_line_wise
+from qkmeans.core.utils import get_squared_froebenius_norm_line_wise
 from qkmeans.utils import logger
 
 

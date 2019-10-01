@@ -2,7 +2,7 @@ import unittest
 import numpy as np
 from qkmeans.kernel.kernel import special_rbf_kernel, prepare_nystrom, nystrom_transformation
 from qkmeans.data_structures import create_sparse_factors
-from qkmeans.qk_means.utils import get_squared_froebenius_norm_line_wise
+from qkmeans.core.utils import get_squared_froebenius_norm_line_wise
 from qkmeans.utils import compute_euristic_gamma, mnist_dataset, fashion_mnist_dataset, caltech_dataset
 from sklearn.kernel_approximation import Nystroem
 from sklearn.metrics.pairwise import rbf_kernel

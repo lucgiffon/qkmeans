@@ -8,7 +8,7 @@ mpl_logger.setLevel(logging.WARNING)
 import copy
 
 import numpy as np
-from qkmeans.qk_means.utils import get_distances, compute_objective, assign_points_to_clusters, get_squared_froebenius_norm_line_wise, update_clusters, \
+from qkmeans.core.utils import get_distances, compute_objective, assign_points_to_clusters, get_squared_froebenius_norm_line_wise, update_clusters, \
     get_squared_froebenius_norm_line_wise_batch_by_batch
 from qkmeans.utils import logger, DataGenerator
 from sklearn import datasets
