@@ -53,44 +53,55 @@ def inplace_hardthreshold(input_arr, nb_keep_values):
     input_arr.reshape(-1)[lowest_values_idx] = 0
 
 
+def _projection_max_by_col(X, nb_val_by_col, fast_unstable):
+    """
+    Return a copy of `X` but with only the `nb_val_by_col` biggest (in amplitude) values in each columns (other values are zero-ed)
+
+    Parameters
+    ----------
+    X
+    nb_val_by_col
+    fast_unstable
+
+    Returns
+    -------
+
+    """
+    nb_val_by_col = round(nb_val_by_col)
+    Xabs = np.abs(X)  # biggest amplitude
+    Xprox_col = np.zeros_like(X)
+    if not fast_unstable:
+        sortIndex = np.argsort(-Xabs, axis=0,
+                               kind="stable")  # -Xabs for sort in descending order
+        maxIndex = sortIndex[:nb_val_by_col, :]
+    else:
+        maxIndex = np.argpartition(-Xabs, nb_val_by_col, axis=0)[
+                   :nb_val_by_col, :]
+        # todo peut-être faire un tri après pour plus de stabilité
+
+    unraveled_indices = get_unraveled_indexes_from_index_array(maxIndex,
+                                                               shape=X.shape,
+                                                               order="F")
+
+    Xprox_col[unraveled_indices] = X[unraveled_indices]
+    return Xprox_col
+
+
 def prox_splincol(input_arr, nb_val_total, fast_unstable=False):
-    def projection_max_by_col(X, nb_val_by_col):
-        """
-        Return a copy of `X` but with only the `nb_val_by_col` biggest (in amplitude) values in each columns (other values are zero-ed)
-
-        :param X:
-        :param nb_val_by_col:
-        :return:
-        """
-        nb_val_by_col = round(nb_val_by_col)
-        Xabs = np.abs(X)  # biggest amplitude
-        Xprox_col = np.zeros_like(X)
-        if not fast_unstable:
-            sortIndex = np.argsort(-Xabs, axis=0, kind="stable")  # -Xabs for sort in descending order
-            maxIndex = sortIndex[:nb_val_by_col, :]
-        else:
-            maxIndex = np.argpartition(-Xabs, nb_val_by_col, axis=0)[:nb_val_by_col, :]
-            # todo peut-être faire un tri après pour plus de stabilité
-
-        unraveled_indices = get_unraveled_indexes_from_index_array(maxIndex, shape=X.shape, order="F")
-
-        Xprox_col[unraveled_indices] = X[unraveled_indices]
-        return Xprox_col
-
     input_arr = np.round(input_arr, 10)  # maybe use hard decimal cut ? I don't know
 
     fraction_by_row_col = input_arr.shape[0] * input_arr.shape[1] / nb_val_total
     nb_val_by_col = int(input_arr.shape[0] / fraction_by_row_col)
     nb_val_by_row = int(input_arr.shape[1] / fraction_by_row_col)
 
-    Xprox_col = projection_max_by_col(input_arr, nb_val_by_col)
-    Xprox_lin = projection_max_by_col(input_arr.T, nb_val_by_row).T
+    Xprox_col = _projection_max_by_col(input_arr, nb_val_by_col, fast_unstable)
+    Xprox_lin = _projection_max_by_col(input_arr.T, nb_val_by_row, fast_unstable).T
     Xprox = Xprox_col + Xprox_lin * (Xprox_col == 0)
 
     return Xprox
 
 # def prox_splincol_fast(input_arr, nb_val_total):
-#     def projection_max_by_col(X, nb_val_by_col):
+#     def _projection_max_by_col(X, nb_val_by_col):
 #         nb_val_by_col = round(nb_val_by_col)
 #         Xabs = np.abs(X)
 #         Xprox_col = np.zeros_like(X)
@@ -110,8 +121,8 @@ def prox_splincol(input_arr, nb_val_total, fast_unstable=False):
 #     nb_val_by_col = int(input_arr.shape[0] / fraction_by_row_col)
 #     nb_val_by_row = int(input_arr.shape[1] / fraction_by_row_col)
 #
-#     Xprox_col = projection_max_by_col(input_arr, nb_val_by_col)
-#     Xprox_lin = projection_max_by_col(input_arr.T, nb_val_by_row).T
+#     Xprox_col = _projection_max_by_col(input_arr, nb_val_by_col)
+#     Xprox_lin = _projection_max_by_col(input_arr.T, nb_val_by_row).T
 #     Xprox = Xprox_col + Xprox_lin * (Xprox_col == 0)
 #
 #     return csr_matrix(Xprox)
