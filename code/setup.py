@@ -3,7 +3,7 @@ import os
 from setuptools import setup, find_packages
 import sys
 
-NAME = 'pyqalm'
+NAME = 'qkmeans'
 DESCRIPTION = 'Clustering with learned fast transforms'
 LICENSE = 'GNU General Public License v3 (GPLv3)'
 # URL = 'https://gitlab.lis-lab.fr/qarma/{}'.format(NAME)
