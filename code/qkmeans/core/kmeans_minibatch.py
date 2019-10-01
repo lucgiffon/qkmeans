@@ -1,3 +1,9 @@
+"""
+Kmeans implementation with batch-by-batch read of the input dataset.
+
+The algorithm convergence is strictly equivalent to the Kmeans algorithm.
+"""
+
 import matplotlib.pyplot as plt
 import time
 
@@ -8,10 +14,9 @@ mpl_logger.setLevel(logging.WARNING)
 import copy
 
 import numpy as np
-from qkmeans.core.utils import get_distances, compute_objective, assign_points_to_clusters, get_squared_froebenius_norm_line_wise, update_clusters, \
+from qkmeans.core.utils import compute_objective, assign_points_to_clusters, update_clusters, \
     get_squared_froebenius_norm_line_wise_batch_by_batch
 from qkmeans.utils import logger, DataGenerator
-from sklearn import datasets
 
 
 def kmeans_minibatch(X_data,
@@ -20,12 +25,19 @@ def kmeans_minibatch(X_data,
                      initialization,
                      batch_size,
                      delta_objective_error_threshold=1e-6):
+    """
+
+    :param X_data: The data matrix of n examples in dimensions d in shape (n, d).
+    :param K_nb_cluster: The number of clusters to look for.
+    :param nb_iter: The maximum number of iteration.
+    :param initialization: The (K, d) matrix of centroids at initialization.
+    :param batch_size: The size of each batch.
+    :param delta_objective_error_threshold: The normalized difference between the error criterion at 2 successive step must be greater or equal to that value.
+    :return:
+    """
 
     logger.debug("Compute squared froebenius norm of data")
     X_data_norms = get_squared_froebenius_norm_line_wise_batch_by_batch(X_data, batch_size)
-
-    # plt.figure()
-    # plt.yscale("log")
 
     # Initialize our centroids by picking random data points
 

@@ -1,5 +1,5 @@
 """
-kmeans algorithm inspired from https://jonchar.net/notebooks/k-means/ .
+Accelerated version of the qkmeans_naive algorithm
 
 .. moduleauthor:: Valentin Emiya
 .. moduleauthor:: Luc Giffon
@@ -20,7 +20,6 @@ import matplotlib.pyplot as plt
 
 from qkmeans.palm.palm_fast import hierarchical_palm4msa, \
     palm4msa
-from qkmeans.test.test_qalm import visual_evaluation_palm4msa
 from qkmeans.data_structures import SparseFactors
 from qkmeans.utils import logger
 
@@ -54,8 +53,20 @@ def qmeans(X_data: np.ndarray,
            hierarchical_inside=False,
            delta_objective_error_threshold=1e-6,
            hierarchical_init=False):
+    """
 
-    assert K_nb_cluster == initialization.shape[0]
+    :param X_data: The data matrix of n examples in dimensions d in shape (n, d).
+    :param K_nb_cluster: The number of clusters to look for.
+    :param nb_iter: The maximum number of iteration.
+    :param nb_factors: The number of factors for the decomposition.
+    :param initialization: The initial matrix of centroids not yet factorized.
+    :param params_palm4msa: The dictionnary of parameters for the palm4msa algorithm.
+    :param hierarchical_inside: Tell the algorithm if the hierarchical version of palm4msa should be used.
+    :param delta_objective_error_threshold:
+    :param hierarchical_init: Tells if the algorithm should make the initialization of sparse factors with the hierarchical version of palm or not.
+    :return:
+    """
+    assert K_nb_cluster == initialization.shape[0], "The number of cluster {} is not equal to the number of centroids in the initialization {}.".format(K_nb_cluster, initialization.shape[0])
 
     X_data_norms = get_squared_froebenius_norm_line_wise(X_data)
 
@@ -256,7 +267,6 @@ if __name__ == '__main__':
         qmeans(X, nb_clusters, nb_iter_kmeans, nb_factors,
                hierarchical_palm_init,
                initialization=U_centroids_hat)
-               # return_objective_function=True)
 
     try:
         logger.info('Running K-means')
@@ -268,7 +278,6 @@ if __name__ == '__main__':
 
     logger.info('Display')
     plt.figure()
-    # plt.yscale("log")
 
     plt.plot(np.arange(len(objective_function_with_hier_palm)), objective_function_with_hier_palm, marker="x", label="hierarchical")
     plt.plot(np.arange(len(objective_function_with_palm)), objective_function_with_palm, marker="x", label="palm")

@@ -1,5 +1,7 @@
 """
 This is a slow implementation of qkmeans using the naive palm algorithm.
+
+This shouldn't be used anymore because it hasn't been maintained in a long time. This is here for history purposes.
 """
 import logging
 import daiquiri
@@ -18,7 +20,7 @@ import matplotlib.pyplot as plt
 
 from qkmeans.utils import logger
 
-daiquiri.setup(level=logging.INFO)
+logger.warning("The module {} hasn't been maintained in a long time and shouldn't be used anymore.".format(__file__))
 
 def qmeans(X_data:np.ndarray,
            K_nb_cluster:int,
@@ -28,6 +30,17 @@ def qmeans(X_data:np.ndarray,
            initialization:np.ndarray,
            hierarchical_inside=False,
            graphical_display=False):
+    """
+    :param X_data: The data matrix of n examples in dimensions d in shape (n, d).
+    :param K_nb_cluster: The number of clusters to look for.
+    :param nb_iter: The maximum number of iteration.
+    :param nb_factors: The number of factors for the decomposition.
+    :param initialization: The initial matrix of centroids not yet factorized.
+    :param params_palm4msa: The dictionnary of parameters for the palm4msa algorithm.
+    :param hierarchical_inside: Tell the algorithm if the hierarchical version of palm4msa should be used.
+    :param graphical_display: Tell the algorithm to display the results.
+    :return:
+    """
 
     assert K_nb_cluster == initialization.shape[0]
 

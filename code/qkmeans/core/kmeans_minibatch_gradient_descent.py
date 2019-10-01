@@ -1,3 +1,12 @@
+"""
+Implementation sketch of Kmeans based on minibatch gradient descent.
+
+This is work in progress and shouldn't be used.
+
+Reference: Sculley, D. « Web-Scale k-Means Clustering ». In Proceedings of the 19th International Conference on World Wide Web - WWW ’10, 1177. Raleigh, North Carolina, USA: ACM Press, 2010. https://doi.org/10.1145/1772690.1772862.
+
+"""
+
 import matplotlib.pyplot as plt
 
 import logging
@@ -7,12 +16,22 @@ mpl_logger.setLevel(logging.WARNING)
 import copy
 
 import numpy as np
-from qkmeans.core.utils import get_distances, compute_objective, assign_points_to_clusters, get_squared_froebenius_norm_line_wise, update_clusters_with_integrity_check
+from qkmeans.core.utils import compute_objective, assign_points_to_clusters, get_squared_froebenius_norm_line_wise
 from qkmeans.utils import logger, DataGenerator
 from sklearn import datasets
 
+logger.warning("Module {} hasn't been tested and shouldn't be used.  It is work in progress".format(__file__))
 
 def kmeans_minibatch(X_data, K_nb_cluster, nb_iter, initialization, batch_size):
+    """
+
+    :param X_data: The data matrix of n examples in dimensions d in shape (n, d).
+    :param K_nb_cluster: The number of clusters to look for.
+    :param nb_iter: The maximum number of iteration.
+    :param initialization: The (K, d) matrix of centroids at initialization.
+    :param batch_size: The size of each batch.
+    :return:
+    """
 
     X_data_norms = get_squared_froebenius_norm_line_wise(X_data)
 

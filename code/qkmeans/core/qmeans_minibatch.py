@@ -1,29 +1,24 @@
 """
-kmeans algorithm inspired from https://jonchar.net/notebooks/k-means/ .
+QKmeans implementation with batch-by-batch read of the input dataset.
+
+The algorithm convergence is strictly equivalent to the QKmeans algorithm.
 
 .. moduleauthor:: Valentin Emiya
 .. moduleauthor:: Luc Giffon
 
 """
-import logging
 import time
 
-import daiquiri
 import copy
-from collections import OrderedDict
-from pprint import pformat
 
 import numpy as np
 from qkmeans.core.utils import compute_objective, assign_points_to_clusters, build_constraint_set_smart, get_squared_froebenius_norm_line_wise, update_clusters_with_integrity_check, \
     get_squared_froebenius_norm_line_wise_batch_by_batch, update_clusters, check_cluster_integrity
-from qkmeans.core.kmeans import kmeans
 from scipy.sparse import csr_matrix
-from sklearn import datasets
 import matplotlib.pyplot as plt
 
 from qkmeans.palm.palm_fast import hierarchical_palm4msa, \
     palm4msa
-from qkmeans.test.test_qalm import visual_evaluation_palm4msa
 from qkmeans.data_structures import SparseFactors
 from qkmeans.utils import logger, DataGenerator
 
@@ -58,6 +53,21 @@ def qkmeans_minibatch(X_data: np.ndarray,
            hierarchical_inside=False,
            delta_objective_error_threshold=1e-6,
            hierarchical_init=False):
+
+    """
+    :param X_data: The data matrix of n examples in dimensions d in shape (n, d).
+    :param K_nb_cluster: The number of clusters to look for.
+    :param nb_iter: The maximum number of iteration.
+    :param nb_factors: The number of factors for the decomposition.
+    :param initialization: The initial matrix of centroids not yet factorized.
+    :param params_palm4msa: The dictionnary of parameters for the palm4msa algorithm.
+    :param hierarchical_inside: Tell the algorithm if the hierarchical version of palm4msa should be used.
+    :param delta_objective_error_threshold:
+    :param hierarchical_init: Tells if the algorithm should make the initialization of sparse factors with the hierarchical version of palm or not.
+    :param batch_size:  The size of each batch.
+    
+    :return:
+    """
 
     assert K_nb_cluster == initialization.shape[0]
 
