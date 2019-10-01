@@ -90,7 +90,7 @@ if __name__ == '__main__':
     from qkmeans.qk_means.utils import update_clusters_with_integrity_check, \
         assign_points_to_clusters, get_distances
     from qkmeans.data_structures import SparseFactors
-    from qkmeans.palm.qalm_fast import palm4msa_fast4, hierarchical_palm4msa
+    from qkmeans.palm.palm_fast import palm4msa_fast4, hierarchical_palm4msa
     from qkmeans.palm.utils import compute_objective_function
     from qkmeans.palm.projection_operators import prox_splincol
 

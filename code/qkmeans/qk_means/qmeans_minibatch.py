@@ -21,7 +21,7 @@ from scipy.sparse import csr_matrix
 from sklearn import datasets
 import matplotlib.pyplot as plt
 
-from qkmeans.palm.qalm_fast import hierarchical_palm4msa, \
+from qkmeans.palm.palm_fast import hierarchical_palm4msa, \
     palm4msa
 from qkmeans.test.test_qalm import visual_evaluation_palm4msa
 from qkmeans.data_structures import SparseFactors

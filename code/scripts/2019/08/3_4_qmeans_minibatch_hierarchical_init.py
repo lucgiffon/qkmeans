@@ -62,7 +62,7 @@ from sklearn.kernel_approximation import Nystroem
 from sklearn.metrics.pairwise import rbf_kernel
 from qkmeans.data_structures import SparseFactors
 from qkmeans.kernel.kernel import special_rbf_kernel, nystrom_transformation, prepare_nystrom
-from qkmeans.palm.qalm_fast import hierarchical_palm4msa, palm4msa
+from qkmeans.palm.palm_fast import hierarchical_palm4msa, palm4msa
 from qkmeans.qk_means.kmeans_minibatch import kmeans_minibatch
 from qkmeans.qk_means.qmeans_minibatch import qkmeans_minibatch
 from qkmeans.utils import ResultPrinter, ParameterManager, ObjectiveFunctionPrinter, logger, timeout_signal_handler, compute_euristic_gamma, log_memory_usage

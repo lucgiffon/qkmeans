@@ -13,7 +13,7 @@ from qkmeans.utils import logger, get_lambda_proxsplincol
 from numpy.linalg import norm
 from sklearn import datasets
 
-from qkmeans.palm.qalm import hierarchical_palm4msa
+from qkmeans.palm.palm import hierarchical_palm4msa
 from qkmeans.test.test_qalm import visual_evaluation_palm4msa
 
 

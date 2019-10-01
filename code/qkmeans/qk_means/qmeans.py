@@ -9,7 +9,7 @@ from pprint import pformat
 
 import numpy as np
 from numpy.linalg import multi_dot
-from qkmeans.palm.qalm import hierarchical_palm4msa, palm4msa
+from qkmeans.palm.palm import hierarchical_palm4msa, palm4msa
 from qkmeans.qk_means.kmeans import kmeans
 from qkmeans.qk_means.utils import build_constraint_set_smart, compute_objective, get_distances, get_squared_froebenius_norm_line_wise
 from qkmeans.test.test_qalm import visual_evaluation_palm4msa

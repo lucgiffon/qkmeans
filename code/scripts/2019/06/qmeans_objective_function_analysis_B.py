@@ -50,7 +50,7 @@ import sys
 import time
 import numpy as np
 from qkmeans.data_structures import SparseFactors
-from qkmeans.palm.qalm_fast import hierarchical_palm4msa
+from qkmeans.palm.palm_fast import hierarchical_palm4msa
 from qkmeans.utils import ResultPrinter, ParameterManager, ObjectiveFunctionPrinter, logger, timeout_signal_handler, compute_euristic_gamma
 # todo graphical evaluation option
 from qkmeans.qk_means.qmeans_fast import qmeans, init_lst_factors
