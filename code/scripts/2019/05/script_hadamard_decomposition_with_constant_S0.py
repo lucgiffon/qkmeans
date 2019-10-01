@@ -8,12 +8,12 @@ import logging
 import daiquiri
 
 import numpy as np
-from pyqalm.utils import logger, get_lambda_proxsplincol, constant_proj
+from qkmeans.utils import logger, get_lambda_proxsplincol, constant_proj
 from scipy.linalg import hadamard
 from numpy.linalg import norm
 
-from pyqalm.palm.qalm import hierarchical_palm4msa
-from pyqalm.test.test_qalm import visual_evaluation_palm4msa
+from qkmeans.palm.qalm import hierarchical_palm4msa
+from qkmeans.test.test_qalm import visual_evaluation_palm4msa
 
 
 daiquiri.setup(level=logging.DEBUG)

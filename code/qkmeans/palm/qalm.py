@@ -10,9 +10,9 @@ import numpy as np
 from numpy.linalg import norm
 from numpy.linalg import multi_dot
 import matplotlib.pyplot as plt
-from pyqalm.palm.utils import compute_objective_function
+from qkmeans.palm.utils import compute_objective_function
 
-from pyqalm.utils import get_side_prod, logger
+from qkmeans.utils import get_side_prod, logger
 
 
 # TODO avoid conversions between dense ndarray and sparse matrices
@@ -372,7 +372,7 @@ def hierarchical_palm4msa(arr_X_target: np.array,
 
 if __name__ == '__main__':
     from scipy.linalg import hadamard
-    from pyqalm.utils import get_lambda_proxsplincol
+    from qkmeans.utils import get_lambda_proxsplincol
 
     if False:
         data = dict()

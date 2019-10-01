@@ -8,9 +8,9 @@ import numpy as np
 from sklearn import datasets
 from pprint import pformat
 
-from pyqalm.qk_means.utils import build_constraint_set_smart
-from pyqalm.qk_means.kmeans import kmeans
-from pyqalm.qk_means.qmeans_fast import qmeans
+from qkmeans.qk_means.utils import build_constraint_set_smart
+from qkmeans.qk_means.kmeans import kmeans
+from qkmeans.qk_means.qmeans_fast import qmeans
 
 
 def main(small_dim):
@@ -86,13 +86,13 @@ if __name__ == '__main__':
     # See https://stackoverflow.com/questions/23885147/how-do-i-use-line-profiler-from-robert-kern
     import logging
     import line_profiler
-    from pyqalm.utils import logger
-    from pyqalm.qk_means.utils import update_clusters_with_integrity_check, \
+    from qkmeans.utils import logger
+    from qkmeans.qk_means.utils import update_clusters_with_integrity_check, \
         assign_points_to_clusters, get_distances
-    from pyqalm.data_structures import SparseFactors
-    from pyqalm.palm.qalm_fast import palm4msa_fast4, hierarchical_palm4msa
-    from pyqalm.palm.utils import compute_objective_function
-    from pyqalm.palm.projection_operators import prox_splincol
+    from qkmeans.data_structures import SparseFactors
+    from qkmeans.palm.qalm_fast import palm4msa_fast4, hierarchical_palm4msa
+    from qkmeans.palm.utils import compute_objective_function
+    from qkmeans.palm.projection_operators import prox_splincol
 
     logger.setLevel(logging.ERROR)
 

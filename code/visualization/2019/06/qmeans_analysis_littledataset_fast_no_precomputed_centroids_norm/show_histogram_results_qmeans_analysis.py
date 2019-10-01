@@ -6,7 +6,7 @@ import os
 import re
 from io import StringIO
 from pandas.errors import EmptyDataError
-from pyqalm.utils import logger
+from qkmeans.utils import logger
 from visualization.utils import get_dct_result_files_by_root, build_df
 
 

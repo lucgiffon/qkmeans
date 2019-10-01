@@ -1,6 +1,6 @@
 import unittest
 import numpy as np
-from pyqalm.palm.utils import update_scaling_factor
+from qkmeans.palm.utils import update_scaling_factor
 
 
 class TestUpdateScalingFactor(unittest.TestCase):

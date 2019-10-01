@@ -1,6 +1,6 @@
 import numpy as np
-from pyqalm.data_structures import SparseFactors
-from pyqalm.utils import constant_proj, get_lambda_proxsplincol, logger, DataGenerator
+from qkmeans.data_structures import SparseFactors
+from qkmeans.utils import constant_proj, get_lambda_proxsplincol, logger, DataGenerator
 
 
 def get_squared_froebenius_norm_line_wise(data_arr):

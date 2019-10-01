@@ -1,7 +1,7 @@
 import re
 from io import StringIO
 import pandas as pd
-from pyqalm.utils import logger
+from qkmeans.utils import logger
 
 output_file_end_re = {
     "centroids": r"_centroids.npy",

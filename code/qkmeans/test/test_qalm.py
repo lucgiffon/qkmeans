@@ -1,8 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from pyqalm.utils import get_side_prod
-from pyqalm.palm.projection_operators import projection_operator
+from qkmeans.utils import get_side_prod
+from qkmeans.palm.projection_operators import projection_operator
 
 
 def test_get_side_prod():

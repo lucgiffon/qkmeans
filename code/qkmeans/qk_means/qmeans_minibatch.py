@@ -14,18 +14,18 @@ from collections import OrderedDict
 from pprint import pformat
 
 import numpy as np
-from pyqalm.qk_means.utils import compute_objective, assign_points_to_clusters, build_constraint_set_smart, get_squared_froebenius_norm_line_wise, update_clusters_with_integrity_check, \
+from qkmeans.qk_means.utils import compute_objective, assign_points_to_clusters, build_constraint_set_smart, get_squared_froebenius_norm_line_wise, update_clusters_with_integrity_check, \
     get_squared_froebenius_norm_line_wise_batch_by_batch, update_clusters, check_cluster_integrity
-from pyqalm.qk_means.kmeans import kmeans
+from qkmeans.qk_means.kmeans import kmeans
 from scipy.sparse import csr_matrix
 from sklearn import datasets
 import matplotlib.pyplot as plt
 
-from pyqalm.palm.qalm_fast import hierarchical_palm4msa, \
+from qkmeans.palm.qalm_fast import hierarchical_palm4msa, \
     palm4msa
-from pyqalm.test.test_qalm import visual_evaluation_palm4msa
-from pyqalm.data_structures import SparseFactors
-from pyqalm.utils import logger, DataGenerator
+from qkmeans.test.test_qalm import visual_evaluation_palm4msa
+from qkmeans.data_structures import SparseFactors
+from qkmeans.utils import logger, DataGenerator
 
 
 def init_lst_factors(d_in, d_out, p_nb_factors):

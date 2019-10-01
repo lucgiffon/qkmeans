@@ -1,7 +1,7 @@
 import unittest
 
 import numpy as np
-from pyqalm.palm.projection_operators import projection_operator, inplace_hardthreshold, prox_splincol
+from qkmeans.palm.projection_operators import projection_operator, inplace_hardthreshold, prox_splincol
 
 
 class TestProjectionOperators(unittest.TestCase):

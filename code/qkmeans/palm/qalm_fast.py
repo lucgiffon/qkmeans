@@ -9,11 +9,11 @@ from copy import deepcopy
 import numpy as np
 from numpy.linalg import norm
 import matplotlib.pyplot as plt
-from pyqalm.palm.utils import compute_objective_function, update_scaling_factor
+from qkmeans.palm.utils import compute_objective_function, update_scaling_factor
 from scipy.sparse import coo_matrix, csr_matrix
 
-from pyqalm.utils import get_side_prod, logger
-from pyqalm.data_structures import SparseFactors
+from qkmeans.utils import get_side_prod, logger
+from qkmeans.data_structures import SparseFactors
 from sklearn import datasets
 
 
@@ -738,7 +738,7 @@ palm4msa = palm4msa_fast4
 
 if __name__ == '__main__':
     from scipy.linalg import hadamard
-    from pyqalm.utils import get_lambda_proxsplincol
+    from qkmeans.utils import get_lambda_proxsplincol
 
     do_hierarchical = False
 

@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 
 from yafe.base import Experiment
 
-from pyqalm.data_structures import SparseFactors, create_sparse_factors
+from qkmeans.data_structures import SparseFactors, create_sparse_factors
 
 
 def get_data(size, seed):

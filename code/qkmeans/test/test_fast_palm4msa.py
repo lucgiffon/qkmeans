@@ -1,13 +1,13 @@
 import unittest
 import numpy as np
 from scipy.linalg import hadamard
-from pyqalm.palm.qalm import palm4msa as palm4msa_fast0
-from pyqalm.palm.qalm import hierarchical_palm4msa as hierarchical_palm4msa_slow
-from pyqalm.palm.qalm_fast import palm4msa_fast1, palm4msa_fast2, \
+from qkmeans.palm.qalm import palm4msa as palm4msa_fast0
+from qkmeans.palm.qalm import hierarchical_palm4msa as hierarchical_palm4msa_slow
+from qkmeans.palm.qalm_fast import palm4msa_fast1, palm4msa_fast2, \
     palm4msa_fast3, palm4msa_fast4
-from pyqalm.palm.qalm_fast import hierarchical_palm4msa as \
+from qkmeans.palm.qalm_fast import hierarchical_palm4msa as \
     hierarchical_palm4msa_fast
-from pyqalm.utils import get_lambda_proxsplincol
+from qkmeans.utils import get_lambda_proxsplincol
 
 
 class TestPalm4Msa(unittest.TestCase):

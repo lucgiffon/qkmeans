@@ -44,12 +44,12 @@ import daiquiri
 import sys
 import time
 import numpy as np
-from pyqalm.data_structures import SparseFactors
-from pyqalm.utils import ResultPrinter, ParameterManager, ObjectiveFunctionPrinter, logger, timeout_signal_handler, compute_euristic_gamma
+from qkmeans.data_structures import SparseFactors
+from qkmeans.utils import ResultPrinter, ParameterManager, ObjectiveFunctionPrinter, logger, timeout_signal_handler, compute_euristic_gamma
 # todo graphical evaluation option
-from pyqalm.qk_means.qmeans_fast import qmeans
-from pyqalm.qk_means.utils import build_constraint_set_smart, get_distances, get_squared_froebenius_norm_line_wise
-from pyqalm.qk_means.kmeans import kmeans
+from qkmeans.qk_means.qmeans_fast import qmeans
+from qkmeans.qk_means.utils import build_constraint_set_smart, get_distances, get_squared_froebenius_norm_line_wise
+from qkmeans.qk_means.kmeans import kmeans
 from sklearn.neighbors import KNeighborsClassifier
 from scipy.sparse.linalg import LinearOperator
 

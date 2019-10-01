@@ -1,7 +1,7 @@
 import numpy as np
-from pyqalm.data_structures import SparseFactors
-from pyqalm.qk_means.utils import get_squared_froebenius_norm_line_wise
-from pyqalm.utils import logger
+from qkmeans.data_structures import SparseFactors
+from qkmeans.qk_means.utils import get_squared_froebenius_norm_line_wise
+from qkmeans.utils import logger
 
 
 def special_rbf_kernel(X, Y, gamma, norm_X, norm_Y, exp_outside=True):

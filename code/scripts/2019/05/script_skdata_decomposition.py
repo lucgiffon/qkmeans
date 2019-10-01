@@ -9,12 +9,12 @@ from pprint import pformat
 
 import daiquiri
 import numpy as np
-from pyqalm.utils import logger, get_lambda_proxsplincol
+from qkmeans.utils import logger, get_lambda_proxsplincol
 from numpy.linalg import norm
 from sklearn import datasets
 
-from pyqalm.palm.qalm import hierarchical_palm4msa
-from pyqalm.test.test_qalm import visual_evaluation_palm4msa
+from qkmeans.palm.qalm import hierarchical_palm4msa
+from qkmeans.test.test_qalm import visual_evaluation_palm4msa
 
 
 daiquiri.setup(level=logging.INFO)

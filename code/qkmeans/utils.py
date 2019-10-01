@@ -16,8 +16,8 @@ from numpy import eye
 import numpy as np
 from numpy.linalg import multi_dot
 import daiquiri
-from pyqalm.palm.projection_operators import prox_splincol
-from pyqalm import project_dir
+from qkmeans.palm.projection_operators import prox_splincol
+from qkmeans import project_dir
 from sklearn.datasets import fetch_lfw_people
 from sklearn.model_selection import train_test_split
 import keras

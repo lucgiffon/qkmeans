@@ -3,9 +3,9 @@ import unittest
 import numpy as np
 from sklearn import datasets
 
-from pyqalm.qk_means.qmeans import qmeans as qmeans_slow
-from pyqalm.qk_means.utils import build_constraint_set_smart
-from pyqalm.qk_means.qmeans_fast import qmeans as qmeans_fast
+from qkmeans.qk_means.qmeans import qmeans as qmeans_slow
+from qkmeans.qk_means.utils import build_constraint_set_smart
+from qkmeans.qk_means.qmeans_fast import qmeans as qmeans_fast
 
 
 class TestCompareQmeans(unittest.TestCase):

@@ -1,6 +1,6 @@
 import numpy as np
 from numpy.linalg import multi_dot
-from pyqalm.data_structures import SparseFactors
+from qkmeans.data_structures import SparseFactors
 
 
 def compute_objective_function(arr_X_target, _f_lambda, _lst_S):

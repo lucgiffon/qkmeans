@@ -17,7 +17,7 @@ from PIL import Image
 # from skluc.main.utils import read_matfile, logger, download_data
 from sklearn.datasets import make_blobs
 from sklearn.model_selection import train_test_split
-from pyqalm.utils import download_data, logger
+from qkmeans.utils import download_data, logger
 import cv2
 
 

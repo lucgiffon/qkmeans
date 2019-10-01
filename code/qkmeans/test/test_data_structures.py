@@ -1,7 +1,7 @@
 import unittest
 import numpy as np
 
-from pyqalm.data_structures import SparseFactors
+from qkmeans.data_structures import SparseFactors
 
 
 class TestSparseFactors(unittest.TestCase):
