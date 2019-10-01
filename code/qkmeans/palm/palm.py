@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 """
+Naive implementation of palm4msa without using sparse matrices and wise data structure.
+
+Shouldn't be used because it hasn't been maintained in a long time.
 
 .. moduleauthor:: Valentin Emiya
 .. moduleauthor:: Luc Giffon
@@ -18,6 +21,7 @@ from qkmeans.utils import get_side_prod, logger
 # TODO avoid conversions between dense ndarray and sparse matrices
 # TODO init palm with SparseFactors
 
+logger.warning("The module {} shouldn't be used because it hasn't been maintained in a long time".format(__file__))
 
 
 def palm4msa(arr_X_target: np.array,
@@ -34,6 +38,15 @@ def palm4msa(arr_X_target: np.array,
 
     lst S [-j] = Sj
 
+    :param arr_X_target: The target to approximate.
+    :param lst_S_init: The initial list of sparse factors.
+    :param nb_factors: The number of factors.
+    :param lst_projection_functions: The projection function for each of the sparse factor.
+    :param f_lambda_init: The initial scaling factor.
+    :param nb_iter: The number of iteration before stopping.
+    :param update_right_to_left: Tells the algorithm to update factors from right to left (S1 first)
+    :param graphical_display: Make a graphical representation of results.
+    :return:
     """
 
     def update_S(S_old, _left_side, _right_side, _c, _lambda,
@@ -174,19 +187,25 @@ def hierarchical_palm4msa(arr_X_target: np.array,
                           update_right_to_left=True,
                           graphical_display=False):
     """
+    lst S init contains factors in decreasing indexes (e.g: the order along which they are multiplied in the product).
+    example: S5 S4 S3 S2 S1
+
+    lst S [-j] = Sj
 
 
-    :param arr_X_target:
-    :param lst_S_init: The factors are given right to left. In all case.
-    :param nb_keep_values:
-    :param f_lambda_init:
-    :param nb_iter:
+    :param arr_X_target: The target to approximate.
+    :param lst_S_init: The initial list of sparse factors. The factors are given right to left. In all case.
+    :param nb_factors: The number of factors.
+    :param lst_projection_functions: The projection function for each of the sparse factor.
+    :param f_lambda_init: The initial scaling factor.
+    :param nb_iter: The number of iteration before stopping.
     :param update_right_to_left: Way in which the factors are updated in the inner palm4msa algorithm. If update_right_to_left is True,
     the factors are updated right to left (e.g; the last factor in the list first). Otherwise the contrary.
     :param residual_on_right: During the split step, the residual can be computed as a right or left factor. If residual_on_right is True,
     the residuals are computed as right factors. We can also see this option as the update way for the hierarchical strategy:
     when the residual is computed on the right, it correspond to compute the last factor first (left to right according to the paper: the factor with the
     bigger number first)
+    :param graphical_display: Make a graphical representation of results.
     :return:
     """
     if not update_right_to_left:
