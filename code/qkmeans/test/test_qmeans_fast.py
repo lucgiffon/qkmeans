@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 from sklearn import datasets
 
-from qkmeans.core.qmeans import qmeans as qmeans_slow
+from qkmeans.core.qkmeans_naive import qmeans as qmeans_slow
 from qkmeans.core.utils import build_constraint_set_smart
 from qkmeans.core.qmeans_fast import qmeans as qmeans_fast
 
