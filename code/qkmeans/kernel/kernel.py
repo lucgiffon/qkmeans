@@ -1,3 +1,7 @@
+"""
+Kernel related functions.
+"""
+
 import numpy as np
 from qkmeans.data_structures import SparseFactors
 from qkmeans.core.utils import get_squared_froebenius_norm_line_wise
@@ -47,6 +51,16 @@ def special_rbf_kernel(X, Y, gamma, norm_X, norm_Y, exp_outside=True):
         return np.exp(in_exp)
 
 def prepare_nystrom(landmarks, landmarks_norm, gamma):
+    """
+    Return the K^{-1/2} matrix of Nyström: the metric used for the transformation.
+
+    It uses the rbf kernel.
+
+    :param landmarks: The matrix of landmark points
+    :param landmarks_norm: The norm of the matrix of landmark points
+    :param gamma: The gamma value to use in the rbf kernel.
+    :return:
+    """
     basis_kernel_W = special_rbf_kernel(landmarks, landmarks, gamma, landmarks_norm, landmarks_norm)
     U, S, V = np.linalg.svd(basis_kernel_W)
     Sprim =  np.maximum(S, 1e-12)
@@ -59,5 +73,20 @@ def prepare_nystrom(landmarks, landmarks_norm, gamma):
     return normalization_
 
 def nystrom_transformation(x_input, landmarks, p_metric, landmarks_norm, x_input_norm, gamma):
+    """
+    Apply the nystrom transformation given the metric.
+
+    It uses the rbf kernel.
+
+    :param x_input: The inputs to transform.
+    :param landmarks: The landmark points used in the nystrom transformation.
+    :param p_metric: The metric used by the transformation (usually K^{-1/2})
+    :param landmarks_norm: The norm of the landmark points
+    :param x_input_norm: The norm of the input.
+    :param gamma: The gamma value for the rbf kernel.
+    :return:
+    """
+
+
     nystrom_embedding = special_rbf_kernel(landmarks, x_input, gamma, landmarks_norm, x_input_norm).T @ p_metric
     return nystrom_embedding
