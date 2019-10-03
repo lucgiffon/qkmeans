@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+"""
+This file contains functions for downloading and storing dataset (also perform basic preprocessing on datasets)
+"""
 
 import click
 import os
@@ -10,11 +13,8 @@ from pathlib import Path
 from dotenv import find_dotenv, load_dotenv
 import tarfile
 import re
-# from keras.datasets import mnist, fashion_mnist
 from sklearn import preprocessing
 import matplotlib.pyplot as plt
-from PIL import Image
-# from skluc.main.utils import read_matfile, logger, download_data
 from sklearn.datasets import make_blobs
 from sklearn.model_selection import train_test_split
 from qkmeans.utils import download_data, logger
@@ -57,7 +57,6 @@ def load_caltech(final_size):
     with tempfile.TemporaryDirectory() as d_tmp:
         logger.debug(f"Downloading file from url {data_url} to temporary directory {d_tmp}")
         tarfile_path = Path(download_data(data_url, d_tmp))
-        # tarfile_path = Path("/home/luc/Téléchargements/256_ObjectCategories.tar")
 
         dir_path = Path(d_tmp)
 
@@ -137,8 +136,6 @@ def load_plants():
 
 MAP_NAME_DATASET = {
     "kddcup": load_kddcup04bio,
-    # "mnist": mnist.load_data,
-    # "fashion_mnist": fashion_mnist.load_data,
     "census": load_census1990,
     "plants": load_plants,
     "caltech256_50": lambda: load_caltech(50),
@@ -148,8 +145,6 @@ MAP_NAME_DATASET = {
 
 MAP_NAME_CLASSES_PRESENCE = {
     "kddcup": False,
-    # "mnist": True,
-    # "fashion_mnist": True,
     "census": False,
     "plants": False,
     "caltech256_50": True,

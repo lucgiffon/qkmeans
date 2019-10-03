@@ -7,12 +7,11 @@
 from copy import deepcopy
 
 import numpy as np
-from numpy.linalg import norm
 import matplotlib.pyplot as plt
 from qkmeans.palm.utils import compute_objective_function, update_scaling_factor
-from scipy.sparse import coo_matrix, csr_matrix
+from scipy.sparse import csr_matrix
 
-from qkmeans.utils import get_side_prod, logger
+from qkmeans.utils import logger
 from qkmeans.data_structures import SparseFactors
 from sklearn import datasets
 

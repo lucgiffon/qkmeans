@@ -181,7 +181,6 @@ def qmeans(X_data:np.ndarray,
             visual_evaluation_palm4msa(diag_counts_sqrt @ X_centroids_hat, lst_factors_init, lst_factors, _lambda_tmp * multi_dot(lst_factors))
 
         _lambda = _lambda_tmp / diag_counts_sqrt_norm
-        # _lambda = _lambda_tmp
 
         logger.debug("Returned loss (with diag) palm: {}".format(objective_palm[-1, 0]))
 

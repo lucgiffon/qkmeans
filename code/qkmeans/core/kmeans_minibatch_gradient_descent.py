@@ -35,9 +35,6 @@ def kmeans_minibatch(X_data, K_nb_cluster, nb_iter, initialization, batch_size):
 
     X_data_norms = get_squared_froebenius_norm_line_wise(X_data)
 
-    # plt.figure()
-    # plt.yscale("log")
-
     # Initialize our centroids by picking random data points
     U_centroids_hat = copy.deepcopy(initialization)
     U_centroids = U_centroids_hat

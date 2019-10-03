@@ -4,7 +4,6 @@ Kernel related functions.
 
 import numpy as np
 from qkmeans.data_structures import SparseFactors
-from qkmeans.core.utils import get_squared_froebenius_norm_line_wise
 from qkmeans.utils import logger
 from sklearn.utils import check_array
 from sklearn.utils.extmath import row_norms

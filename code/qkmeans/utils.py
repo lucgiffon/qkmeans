@@ -1,10 +1,13 @@
+"""
+General utils functions for the project.
+"""
+
 import logging
 import os
 import random
 import urllib
 
 import pathlib
-from copy import deepcopy
 
 from pathlib import Path
 

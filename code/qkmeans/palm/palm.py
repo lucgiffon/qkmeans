@@ -66,7 +66,6 @@ def palm4msa(arr_X_target: np.array,
                        - arr_X_target) \
                     @ _right_side.T
 
-        # grad_step[np.abs(grad_step) < np.finfo(float).eps] = 0.
         # 1 step for minimizing + flatten necessary for the upcoming projection
         S_tmp = S_old - grad_step
 
@@ -211,7 +210,6 @@ def hierarchical_palm4msa(arr_X_target: np.array,
     if not update_right_to_left:
         raise NotImplementedError  # todo voir pourquoi ça plante... mismatch dimension
 
-    # min_shape = min(arr_X_target.shape)
 
     arr_residual = arr_X_target
 

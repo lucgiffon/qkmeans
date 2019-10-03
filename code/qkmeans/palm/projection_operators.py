@@ -1,12 +1,15 @@
+"""
+Matrix-projection related functions.
+"""
+
 import numpy as np
 from numpy import argpartition
 from numpy.matlib import repmat
-from scipy.sparse import csr_matrix
 
 
 def get_unraveled_indexes_from_index_array(index_arr, shape, order='C'):
     """
-    Inplace rearrange.
+    Inplace rearrange or array values following index_arr.
 
     :param array:
     :param index_arr:
@@ -17,11 +20,6 @@ def get_unraveled_indexes_from_index_array(index_arr, shape, order='C'):
     index_arr = index_arr + incremat
 
     index_arr = np.ravel(index_arr)
-
-
-    # maxIndex = maxIndex + incremat  # type: np.ndarray
-    # maxIndex = maxIndex.ravel()  # index of the column-wise maximum values (in the flattened version of the input array)
-    # unraveled_indices = np.unravel_index(maxIndex, Xabs.shape, order='F')  # order=F: translation from matlab code with column major indexing (Fortran style)
 
     return np.unravel_index(
         index_arr,
