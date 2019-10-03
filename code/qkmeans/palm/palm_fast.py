@@ -51,7 +51,7 @@ def hierarchical_palm4msa(arr_X_target: np.array,
     nb_factors = op_S_factors.n_factors
 
     # check if lst_dct_param_projection_operator contains a list of dict with param for step split and finetune
-    assert len(lst_dct_projection_function) == nb_factors - 1
+    assert len(lst_dct_projection_function) == nb_factors - 1, "Number of factor {} and number of constraints {} are different".format(len(lst_dct_projection_function), nb_factors-1)
     assert all(
         len({"split", "finetune"}.difference(dct.keys())) == 0 for dct in
         lst_dct_projection_function)

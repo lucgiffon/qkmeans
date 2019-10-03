@@ -148,6 +148,9 @@ class SparseFactors(LinearOperator):
         else:
             return self._lst_factors[index]
 
+    def __getitem__(self, item):
+        return self.get_factor(item, copy=True)
+
     def get_list_of_factors(self, copy=False):
         if copy:
             return [x.copy() for x in self._lst_factors]

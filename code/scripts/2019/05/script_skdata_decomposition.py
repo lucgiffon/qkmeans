@@ -14,8 +14,7 @@ from numpy.linalg import norm
 from sklearn import datasets
 
 from qkmeans.palm.palm import hierarchical_palm4msa
-from qkmeans.test.test_qalm import visual_evaluation_palm4msa
-
+from qkmeans.utils import visual_evaluation_palm4msa
 
 daiquiri.setup(level=logging.INFO)
 

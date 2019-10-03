@@ -93,14 +93,18 @@ def assign_points_to_clusters(X, centroids, X_norms=None):
 
 def build_constraint_set_smart(left_dim, right_dim, nb_factors, sparsity_factor, residual_on_right, fast_unstable_proj=False):
     """
+    Create the dictionnary of constraint sets for Hierarchical-palm4msa for use in qkmeans.
+    The first factor will be a constant factor.
 
-    :param left_dim:
-    :param right_dim:
+    :param left_dim: The number of lines in the target
+    :param right_dim: The number of columns in the target
     :param nb_factors: the number of total factors, including the extra diagonal of sqrt(count).
-    :param sparsity_factor:
-    :param residual_on_right:
+    :param sparsity_factor: The number of at least values by each line and column in the sparse factors
+    :param residual_on_right: Tells if the residual should be on right at each iteration.
     :return:
     """
+
+    # todo make the presence of the constant factor parametrizable (True/False)
     def build_lst_constraint_from_values(lst_values):
         local_lst_constraints = []
         for val in lst_values:
