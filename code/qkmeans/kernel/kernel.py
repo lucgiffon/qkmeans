@@ -6,9 +6,11 @@ import numpy as np
 from qkmeans.data_structures import SparseFactors
 from qkmeans.core.utils import get_squared_froebenius_norm_line_wise
 from qkmeans.utils import logger
+from sklearn.utils import check_array
+from sklearn.utils.extmath import row_norms
 
 
-def special_rbf_kernel(X, Y, gamma, norm_X, norm_Y, exp_outside=True):
+def special_rbf_kernel(X, Y, gamma, norm_X=None, norm_Y=None, exp_outside=True):
     """
     Rbf kernel expressed under the form f(x)f(u)f(xy^T)
 
@@ -16,14 +18,23 @@ def special_rbf_kernel(X, Y, gamma, norm_X, norm_Y, exp_outside=True):
 
     :param X: n x d matrix
     :param Y: n x d matrix
+    :param gamma:
+    :param norm_X: nx1 matrix
+    :param norm_Y: 1xn matrix
+    :param exp_outside: Tells if the exponential should be computed just once. Numerical instability may arise if False.
     :return:
     """
     assert len(X.shape) == len(Y.shape) == 2
 
     if norm_X is None:
-        norm_X = get_squared_froebenius_norm_line_wise(X)
+        norm_X = row_norms(X, squared=True)[:, np.newaxis]
+    else:
+        norm_X = check_array(norm_X)
+
     if norm_Y is None:
-        norm_Y = get_squared_froebenius_norm_line_wise(Y)
+        norm_Y = row_norms(Y, squared=True)[np.newaxis, :]
+    else:
+        norm_Y = check_array(norm_Y)
 
     def f(norm_mat):
         return np.exp(-gamma * norm_mat)
@@ -41,12 +52,16 @@ def special_rbf_kernel(X, Y, gamma, norm_X, norm_Y, exp_outside=True):
         xyt = X @ Y.transpose()
 
     if not exp_outside:
-        return f(norm_X).reshape(-1, 1) * g(xyt) * f(norm_Y).reshape(1, -1)
+        return f(norm_X) * g(xyt) * f(norm_Y)
     else:
-        distance = (norm_X.reshape(-1, 1)) + (norm_Y.reshape(1, -1)) - (2 * xyt)
+        distance = -2 * xyt
+        distance += norm_X
+        distance += norm_Y
+        # distance = norm_X + norm_Y - (2 * xyt)
         np.maximum(distance, 0, out=distance)
         if X is Y:
             np.fill_diagonal(distance, 0)
+
         in_exp = -gamma * distance
         return np.exp(in_exp)
 
@@ -61,7 +76,7 @@ def prepare_nystrom(landmarks, landmarks_norm, gamma):
     :param gamma: The gamma value to use in the rbf kernel.
     :return:
     """
-    basis_kernel_W = special_rbf_kernel(landmarks, landmarks, gamma, landmarks_norm, landmarks_norm)
+    basis_kernel_W = special_rbf_kernel(landmarks, landmarks, gamma, landmarks_norm, landmarks_norm.T)
     U, S, V = np.linalg.svd(basis_kernel_W)
     Sprim =  np.maximum(S, 1e-12)
     if (Sprim != S).any():

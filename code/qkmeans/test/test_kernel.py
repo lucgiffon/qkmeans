@@ -6,8 +6,10 @@ from qkmeans.core.utils import get_squared_froebenius_norm_line_wise
 from qkmeans.utils import compute_euristic_gamma, mnist_dataset, fashion_mnist_dataset, caltech_dataset
 from sklearn.kernel_approximation import Nystroem
 from sklearn.metrics.pairwise import rbf_kernel
+from sklearn.utils.extmath import row_norms
 
-class MyTestCase(unittest.TestCase):
+
+class TestKernel(unittest.TestCase):
     def setUp(self):
         self.n_features = 2000
         self.n_data = 100
@@ -27,9 +29,9 @@ class MyTestCase(unittest.TestCase):
 
         self.gamma = compute_euristic_gamma(self.data)
         self.random_data = np.random.rand(self.n_data, self.n_features)
-        self.mnist = mnist_dataset()["x_train"]
-        self.fashionmnist = fashion_mnist_dataset()["x_train"]
-        self.caltech = caltech_dataset(28)["x_train"]
+        self.mnist = mnist_dataset()["x_train"].astype(np.float64)
+        self.fashionmnist = fashion_mnist_dataset()["x_train"].astype(np.float64)
+        self.caltech = caltech_dataset(28)["x_train"].astype(np.float64)
 
 
         self.pairs_data = {
@@ -46,17 +48,17 @@ class MyTestCase(unittest.TestCase):
         }
 
         self.norm_data = {
-            "notSparse": get_squared_froebenius_norm_line_wise(self.pairs_data["notSparse"]),
-            "mnist": get_squared_froebenius_norm_line_wise(self.pairs_data["mnist"]),
-            "caltech": get_squared_froebenius_norm_line_wise(self.pairs_data["caltech"]),
-            "fashmnist": get_squared_froebenius_norm_line_wise(self.pairs_data["fashmnist"]),
+            "notSparse": row_norms(self.pairs_data["notSparse"], squared=True)[:, np.newaxis],
+            "mnist": get_squared_froebenius_norm_line_wise(self.pairs_data["mnist"])[:, np.newaxis],
+            "caltech": row_norms(self.pairs_data["caltech"], squared=True)[:, np.newaxis],
+            "fashmnist": row_norms(self.pairs_data["fashmnist"], squared=True)[:, np.newaxis],
         }
 
         self.norm_example_data = {
-            "notSparse": get_squared_froebenius_norm_line_wise(self.example_data["notSparse"]),
+            "notSparse": row_norms(self.example_data["notSparse"], squared=True)[:, np.newaxis],
             "mnist": get_squared_froebenius_norm_line_wise(self.example_data["mnist"]),
-            "caltech": get_squared_froebenius_norm_line_wise(self.example_data["caltech"]),
-            "fashmnist": get_squared_froebenius_norm_line_wise(self.example_data["fashmnist"]),
+            "caltech": row_norms(self.example_data["caltech"], squared=True)[:, np.newaxis],
+            "fashmnist": row_norms(self.example_data["fashmnist"], squared=True)[:, np.newaxis],
         }
 
         self.gamma_data = {
@@ -82,10 +84,13 @@ class MyTestCase(unittest.TestCase):
         for name_pair, pair in self.pairs_data.items():
             data_norm = self.norm_data[name_pair]
             gamma = self.gamma_data[name_pair]
-            sklearn_kernel = rbf_kernel(pair, pair, gamma)
+            sklearn_kernel = rbf_kernel(pair, pair, gamma=gamma)
 
-            special_kernel = special_rbf_kernel(pair, pair, gamma, data_norm, data_norm, exp_outside=False)
-            special_kernel_flag = special_rbf_kernel(pair, pair, gamma, data_norm, data_norm, exp_outside=True)
+            special_kernel = special_rbf_kernel(pair, pair, gamma=gamma, norm_X=data_norm, norm_Y=data_norm.T, exp_outside=False)
+            special_kernel_flag = special_rbf_kernel(pair, pair, gamma=gamma, norm_X=data_norm, norm_Y=data_norm.T, exp_outside=True)
+            special_kernel[special_kernel <1e-12] = 0
+            special_kernel_flag[special_kernel_flag <1e-12] = 0
+            sklearn_kernel[sklearn_kernel < 1e-12] = 0
 
             equality = np.allclose(sklearn_kernel, special_kernel)
             equality_flag = np.allclose(sklearn_kernel, special_kernel_flag)
@@ -103,37 +108,43 @@ class MyTestCase(unittest.TestCase):
 
     def test_nystrom(self):
 
+        for name_pair, pair in self.pairs_data.items():
+            gamma = self.gamma_data[name_pair]
+            data_norm = self.norm_data[name_pair]
 
-        lst_fail = []
-        for name_pair, pair in pairs_data.items():
+            print(name_pair)
+            sklearn_nystrom = Nystroem(gamma=gamma, n_components=self.n_data)
+            sklearn_transformation = sklearn_nystrom.fit_transform(pair)
+            # sklearn_transformation_example = sklearn_nystrom.transform(example_data[name_pair])
+
+            special_metric = prepare_nystrom(pair, data_norm, gamma=gamma)
+            special_transformation = nystrom_transformation(pair, pair, special_metric, data_norm, data_norm.T, gamma)
+            # special_transformation_example = nystrom_transformation(example_data[name_pair], pair, special_metric, data_norm, norm_example_data[name_pair], gamma)
+
+            sklearn_mat = sklearn_transformation @ sklearn_transformation.T
+            special_mat = special_transformation @ special_transformation.T
+
+
+            equality = np.allclose(sklearn_mat, special_mat)
             try:
-                gamma = gamma_data[name_pair]
-                print(name_pair)
-                sklearn_nystrom = Nystroem(gamma=gamma, n_components=self.n_data)
-                sklearn_transformation = sklearn_nystrom.fit_transform(pair)
-                sklearn_transformation_example = sklearn_nystrom.transform(example_data[name_pair])
+                self.assertTrue(equality, msg="Sklearn nystrom approximatio is different for data {}".format(name_pair))
+            except Exception as e:
+                real_matrix = rbf_kernel(pair, gamma=gamma)
 
-                special_metric = prepare_nystrom(pair, norm_data[name_pair], gamma=gamma)
-                special_transformation = nystrom_transformation(pair, pair, special_metric, norm_data[name_pair], norm_data[name_pair], gamma)
-                special_transformation_example = nystrom_transformation(example_data[name_pair], pair, special_metric, norm_data[name_pair], norm_example_data[name_pair], gamma)
+                delta_sk_real = np.linalg.norm(sklearn_mat - real_matrix)
+                delta_spec_real = np.linalg.norm(special_mat - real_matrix)
 
-                sklearn_mat = sklearn_transformation @ sklearn_transformation.T
-                special_mat = special_transformation @ special_transformation.T
+                if not np.allclose(delta_sk_real, delta_spec_real):
+                    raise Exception("Exception 1: {}. Exception 2: They are not even equally distant from real matrix".format(str(e)))
+                raise e
 
-                equality = np.allclose(sklearn_mat, special_mat)
-                self.assertTrue(equality, msg=name_pair)
+            # sklearn_mat_example = sklearn_transformation_example @ sklearn_transformation_example.T
+            # special_mat_example = special_transformation_example @ special_transformation_example.T
 
-                sklearn_mat_example = sklearn_transformation_example @ sklearn_transformation_example.T
-                special_mat_example = special_transformation_example @ special_transformation_example.T
-
-                equality = np.allclose(sklearn_mat_example, special_mat_example)
-                self.assertTrue(equality, msg="example " + name_pair)
-            except AssertionError:
-                lst_fail.append(name_pair)
+            # equality = np.allclose(sklearn_mat_example, special_mat_example)
+            # self.assertTrue(equality, msg="example " + name_pair)
 
 
-        if len(lst_fail):
-            raise AssertionError(lst_fail)
 
 if __name__ == '__main__':
     unittest.main()
