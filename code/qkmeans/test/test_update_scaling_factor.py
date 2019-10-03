@@ -2,6 +2,10 @@ import unittest
 import numpy as np
 from qkmeans.palm.utils import update_scaling_factor
 
+import logging
+from qkmeans.utils import logger
+logger.setLevel(logging.INFO)
+
 
 class TestUpdateScalingFactor(unittest.TestCase):
     def test_equality_with_trace_computation(self):

@@ -3,6 +3,10 @@ import unittest
 import numpy as np
 from qkmeans.palm.projection_operators import projection_operator, inplace_hardthreshold, prox_splincol
 
+import logging
+from qkmeans.utils import logger
+logger.setLevel(logging.INFO)
+
 
 class TestProjectionOperators(unittest.TestCase):
     def setUp(self):

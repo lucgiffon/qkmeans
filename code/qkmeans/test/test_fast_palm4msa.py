@@ -1,12 +1,14 @@
 import unittest
 import numpy as np
 from scipy.linalg import hadamard
-from qkmeans.palm.palm import palm4msa as palm4msa_fast0
 from qkmeans.palm.palm import hierarchical_palm4msa as hierarchical_palm4msa_slow
-from qkmeans.palm.palm_fast import palm4msa_fast4
 from qkmeans.palm.palm_fast import hierarchical_palm4msa as \
     hierarchical_palm4msa_fast
 from qkmeans.utils import get_lambda_proxsplincol
+
+import logging
+from qkmeans.utils import logger
+logger.setLevel(logging.INFO)
 
 
 class TestPalm4Msa(unittest.TestCase):

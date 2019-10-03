@@ -7,6 +7,11 @@ from qkmeans.core.qkmeans_naive import qmeans as qmeans_slow
 from qkmeans.core.utils import build_constraint_set_smart
 from qkmeans.core.qmeans_fast import qmeans as qmeans_fast
 
+import logging
+from qkmeans.utils import logger
+logger.setLevel(logging.INFO)
+
+
 
 class TestCompareQmeans(unittest.TestCase):
     def setUp(self):

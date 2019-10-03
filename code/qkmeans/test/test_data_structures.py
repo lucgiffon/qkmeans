@@ -2,7 +2,11 @@ import unittest
 import numpy as np
 
 from qkmeans.data_structures import SparseFactors
+import os
 
+import logging
+from qkmeans.utils import logger
+logger.setLevel(logging.INFO)
 
 class TestSparseFactors(unittest.TestCase):
 
@@ -70,6 +74,7 @@ class TestSparseFactors(unittest.TestCase):
         S_loaded = np.load('tmp.npy', allow_pickle=True)
         print(self.S)
         print(S_loaded)
+        os.remove("tmp.npy")
         # TODO test equality
 
     def test_apply_L(self):

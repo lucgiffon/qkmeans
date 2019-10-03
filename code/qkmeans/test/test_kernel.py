@@ -8,6 +8,10 @@ from sklearn.kernel_approximation import Nystroem
 from sklearn.metrics.pairwise import rbf_kernel
 from sklearn.utils.extmath import row_norms
 
+import logging
+from qkmeans.utils import logger
+logger.setLevel(logging.INFO)
+
 
 class TestKernel(unittest.TestCase):
     def setUp(self):

@@ -84,7 +84,9 @@ clean:
 # PROJECT RULES                                                                 #
 #################################################################################
 
-
+## Run unittests in project
+test:
+	$(PYTHON_INTERPRETER) -m unittest discover code
 
 #################################################################################
 # Self Documenting Commands                                                     #
