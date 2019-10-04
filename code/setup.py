@@ -2,6 +2,7 @@
 import os
 from setuptools import setup, find_packages
 import sys
+from pathlib import Path
 
 NAME = 'qkmeans'
 DESCRIPTION = 'Clustering with learned fast transforms'
@@ -68,8 +69,8 @@ def setup_package():
     # set version
     VERSION = get_version()
 
-    here = os.path.abspath(os.path.dirname(__file__))
-    with open(os.path.join(here, 'README.rst'), encoding='utf-8') as f:
+    here = Path(os.path.abspath(os.path.dirname(__file__)))
+    with open(here.parent / 'README.rst', encoding='utf-8') as f:
         long_description = f.read()
 
     mod_dir = NAME
