@@ -21,7 +21,7 @@ endif
 
 ## Install Python Dependencies
 install:
-	$(PYTHON_INTERPRETER) -m pip install -e code/
+	$(PYTHON_INTERPRETER) -m pip install . --ignore-installed
 
 ## Make Dataset
 data: million
@@ -82,7 +82,7 @@ clean:
 
 ## Run unittests in project
 test:
-	$(PYTHON_INTERPRETER) -m unittest discover code
+	$(PYTHON_INTERPRETER) -m unittest discover code/test
 
 
 

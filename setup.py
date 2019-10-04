@@ -11,9 +11,10 @@ LICENSE = 'GNU General Public License v3 (GPLv3)'
 URL = 'https://gitlab.lis-lab.fr/qarma/qalm_qmeans'
 AUTHOR = 'Luc Giffon and Valentin Emiya'
 AUTHOR_EMAIL = ('valentin.emiya@lis-lab.fr, ichrak.toumi@lis-lab.fr')
-INSTALL_REQUIRES = ['numpy', 'daiquiri', 'matplotlib', 'pandas', 'keras',
-                    'docopt', 'pillow', 'scikit-learn', 'psutil', 'yafe',
-                    'xarray', 'line_profiler', "scikit-luc==2.0"]
+# INSTALL_REQUIRES = ['numpy', 'daiquiri', 'matplotlib', 'pandas', 'keras',
+#                     'docopt', 'pillow', 'scikit-learn', 'psutil', 'yafe',
+#                     'xarray', "scikit-luc==2.0", 'tensorflow']
+INSTALL_REQUIRES = []
 # TODO to be completed
 CLASSIFIERS = [
     # 'Development Status :: 5 - Production/Stable',
@@ -50,6 +51,7 @@ def get_version():
     v_text_formted = '{"' + v_text.replace('\n', '","').replace(':', '":"')
     v_text_formted += '"}'
     v_dict = eval(v_text_formted)
+    print(v_text, v_dict)
     return v_dict[NAME]
 
 
@@ -70,10 +72,10 @@ def setup_package():
     VERSION = get_version()
 
     here = Path(os.path.abspath(os.path.dirname(__file__)))
-    with open(here.parent / 'README.rst', encoding='utf-8') as f:
+    with open(here / 'README.rst', encoding='utf-8') as f:
         long_description = f.read()
 
-    mod_dir = NAME
+    mod_dir = Path("code") / NAME
     set_version(mod_dir, get_version())
     setup(name=NAME,
           version=VERSION,
@@ -85,7 +87,8 @@ def setup_package():
           license=LICENSE,
           classifiers=CLASSIFIERS,
           keywords=KEYWORDS,
-          packages=find_packages(exclude=['doc', 'dev']),
+          packages=find_packages(where="code", exclude=['doc', 'dev']),
+          package_dir={'': "code"},
           install_requires=INSTALL_REQUIRES,
           python_requires=PYTHON_REQUIRES,
           extras_require=EXTRAS_REQUIRE,

@@ -180,7 +180,7 @@ class SparseFactors(LinearOperator):
                 else:
                     a, init_vector_eigs_v0 = eigs(A=SS, k=1, return_eigenvectors=True, v0=init_vector_eigs_v0)
             except Exception as e:
-                warnings.warn(str(e))
+                warnings.warn("Eigs failed: " + str(e))
                 return np.linalg.norm(self.compute_product(), ord=2), init_vector_eigs_v0
                 # return self.compute_spectral_norm(method='svds')
             return np.sqrt(np.real(a[0])), init_vector_eigs_v0[:, 0]

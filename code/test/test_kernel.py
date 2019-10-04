@@ -3,7 +3,7 @@ import numpy as np
 from qkmeans.kernel.kernel import special_rbf_kernel, prepare_nystrom, nystrom_transformation
 from qkmeans.data_structures import create_sparse_factors
 from qkmeans.core.utils import get_squared_froebenius_norm_line_wise
-from qkmeans.utils import compute_euristic_gamma, mnist_dataset, fashion_mnist_dataset, caltech_dataset
+from qkmeans.utils import compute_euristic_gamma, mnist_dataset, fashion_mnist_dataset
 from sklearn.kernel_approximation import Nystroem
 from sklearn.metrics.pairwise import rbf_kernel
 from sklearn.utils.extmath import row_norms
@@ -35,40 +35,40 @@ class TestKernel(unittest.TestCase):
         self.random_data = np.random.rand(self.n_data, self.n_features)
         self.mnist = mnist_dataset()["x_train"].astype(np.float64)
         self.fashionmnist = fashion_mnist_dataset()["x_train"].astype(np.float64)
-        self.caltech = caltech_dataset(28)["x_train"].astype(np.float64)
+        # self.caltech = caltech_dataset(28)["x_train"].astype(np.float64)
 
 
         self.pairs_data = {
             "notSparse": self.data[:self.n_data],
             "mnist": self.mnist[:self.n_data],
-            "caltech": self.caltech[:self.n_data],
+            # "caltech": self.caltech[:self.n_data],
             "fashmnist": self.fashionmnist[:self.n_data],
         }
         self.example_data = {
             "notSparse": self.data[self.n_data:self.n_data*2],
             "mnist": self.mnist[self.n_data:self.n_data*2],
-            "caltech": self.caltech[self.n_data:self.n_data*2],
+            # "caltech": self.caltech[self.n_data:self.n_data*2],
             "fashmnist": self.fashionmnist[self.n_data:self.n_data*2]
         }
 
         self.norm_data = {
             "notSparse": row_norms(self.pairs_data["notSparse"], squared=True)[:, np.newaxis],
             "mnist": get_squared_froebenius_norm_line_wise(self.pairs_data["mnist"])[:, np.newaxis],
-            "caltech": row_norms(self.pairs_data["caltech"], squared=True)[:, np.newaxis],
+            # "caltech": row_norms(self.pairs_data["caltech"], squared=True)[:, np.newaxis],
             "fashmnist": row_norms(self.pairs_data["fashmnist"], squared=True)[:, np.newaxis],
         }
 
         self.norm_example_data = {
             "notSparse": row_norms(self.example_data["notSparse"], squared=True)[:, np.newaxis],
             "mnist": get_squared_froebenius_norm_line_wise(self.example_data["mnist"]),
-            "caltech": row_norms(self.example_data["caltech"], squared=True)[:, np.newaxis],
+            # "caltech": row_norms(self.example_data["caltech"], squared=True)[:, np.newaxis],
             "fashmnist": row_norms(self.example_data["fashmnist"], squared=True)[:, np.newaxis],
         }
 
         self.gamma_data = {
             "notSparse": compute_euristic_gamma(self.pairs_data["notSparse"]),
             "mnist": compute_euristic_gamma(self.pairs_data["mnist"]),
-            "caltech": compute_euristic_gamma(self.pairs_data["caltech"]),
+            # "caltech": compute_euristic_gamma(self.pairs_data["caltech"]),
             "fashmnist": compute_euristic_gamma(self.pairs_data["fashmnist"]),
         }
 
