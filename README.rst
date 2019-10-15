@@ -26,7 +26,9 @@ have any question, please raise an issue.
 Installation
 ------------
 
-To install the package, simply go in the `code` directory and install using pip:
+For this installation procedure, we assume you have a fresh Python environment activated.
+
+To install the package, simply type:
 
 	make install
 
@@ -37,11 +39,12 @@ To verify that everything is working, you can use the test rule from the root di
 Minimum working example
 -----------------------
 
-Under the `scripts/examples` directory, you will find 2 minimum working examples:
+Under the `code/scripts/examples` directory, you will find 2 minimum working examples:
 
 - `example_hierarchical_palm4msa.py` shows how the heirarchical-palm4msa function can be called
 - `example_qkmeans.py` show how the qkmeans function can be called
 
+These scripts can be run directly and shouldn't raise any error.
 
 Experiments
 -----------

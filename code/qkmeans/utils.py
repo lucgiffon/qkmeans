@@ -541,7 +541,7 @@ if __name__ == "__main__":
 
 def visual_evaluation_palm4msa(target, init_factors, final_factors, result):
     nb_factors = len(init_factors)
-    plt.figure(figsize=(10, 10))
+    f = plt.figure(figsize=(10, 10))
     plt.subplot(3, 2, 1)
     plt.title("Objective")
     plt.imshow(target)
@@ -552,9 +552,18 @@ def visual_evaluation_palm4msa(target, init_factors, final_factors, result):
     plt.colorbar()
     for i in range(nb_factors):
         plt.subplot(3, nb_factors, nb_factors + (i+1))
+        if i == 0:
+            plt.ylabel("Final\nfactors", size='large')
         plt.title("$\mathbf{S}_" + str(nb_factors-i) + "^{final}$")
+        plt.xticks([])
+        plt.yticks([])
         plt.imshow(final_factors[i].todense() if isinstance(final_factors[i], scipy.sparse.csr.csr_matrix) else final_factors[i])
         plt.subplot(3, nb_factors, nb_factors + nb_factors + (i+1))
+        if i == 0:
+            plt.ylabel("Init\nfactors", size='large')
+        plt.xticks([])
+        plt.yticks([])
         plt.title("$\mathbf{S}_" + str(nb_factors - i) + "^{init}$")
         plt.imshow(init_factors[i])
+
     plt.show()

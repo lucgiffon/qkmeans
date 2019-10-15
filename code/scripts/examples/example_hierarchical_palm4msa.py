@@ -8,7 +8,7 @@ import logging
 import daiquiri
 import pprint
 import numpy as np
-from core.utils import build_constraint_set_smart
+from qkmeans.core.utils import build_constraint_set_smart
 from qkmeans.utils import logger
 from scipy.linalg import hadamard
 from numpy.linalg import norm
