@@ -90,6 +90,11 @@ Launch experiments
 
 You can use the scripts `code/scripts/2019/08/3_4_qmeans_minibatch_hierarchical_init.py` with any
 combination of the previously generated parameters. Find the usage help on top of the script, in the dosctring.
+For example you can do:
+
+	cd code/scripts/2019/08
+	python 3_4_qmeans_minibatch_hierarchical_init.py qmeans --sparsity-factor 2 --seed 0 --nystrom 5000 --assignation-time 5000 --batch-assignation-time 5000 --1-nn --initialization uniform_sampling --nb-iteration 10 --nb-cluster 128 --caltech 28
+
 
 Vizualize results
 +++++++++++++++++
