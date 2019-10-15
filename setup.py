@@ -10,11 +10,11 @@ LICENSE = 'GNU General Public License v3 (GPLv3)'
 # URL = 'https://gitlab.lis-lab.fr/qarma/{}'.format(NAME)
 URL = 'https://gitlab.lis-lab.fr/qarma/qalm_qmeans'
 AUTHOR = 'Luc Giffon and Valentin Emiya'
-AUTHOR_EMAIL = ('valentin.emiya@lis-lab.fr, ichrak.toumi@lis-lab.fr')
-# INSTALL_REQUIRES = ['numpy', 'daiquiri', 'matplotlib', 'pandas', 'keras',
-#                     'docopt', 'pillow', 'scikit-learn', 'psutil', 'yafe',
-#                     'xarray', "scikit-luc==2.0", 'tensorflow']
-INSTALL_REQUIRES = []
+AUTHOR_EMAIL = ('valentin.emiya@lis-lab.fr, luc.giffon@lis-lab.fr')
+INSTALL_REQUIRES = ['numpy', 'daiquiri', 'matplotlib', 'pandas', 'keras',
+                    'docopt', 'pillow', 'scikit-learn', 'psutil', 'yafe',
+                    'xarray', 'tensorflow', 'scipy==1.2.1']
+# INSTALL_REQUIRES = []
 # TODO to be completed
 CLASSIFIERS = [
     # 'Development Status :: 5 - Production/Stable',
