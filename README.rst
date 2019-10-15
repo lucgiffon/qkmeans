@@ -14,12 +14,11 @@ You can find:
 - the vizualization scripts used to generate figures.
 
 
-**Note:** This is a view of the developpement repository. It doesn't contain Work In progress.
-We have tried to make it as clear as possible in order to help the reader to reproduce results.
+**Note:** This is a view of the developpement repository. We have tried to make it as clear as possible in order to help the reader to reproduce results.
 If you have any question or need any clearance on the repository content, do not hesitate to
 raise an issue.
 
-**Note 2:** Everything isn't clean and tidy everywhere. We have let the code in the `if __name__ == "__main__"` blocks
+**Note 2:** Everything isn't clean and tidy everywhere. We have left the code in the `if __name__ == "__main__"` blocks
 in each module so that you can inspire yourself from them but they are not guaranteed to work. There is certainly
 a lot of non-working code but we choose to remain transparent in case it would be of any use to any one. If you
 have any question, please raise an issue.
