@@ -12,7 +12,7 @@ URL = 'https://gitlab.lis-lab.fr/qarma/qalm_qmeans'
 AUTHOR = 'Luc Giffon and Valentin Emiya'
 AUTHOR_EMAIL = ('valentin.emiya@lis-lab.fr, luc.giffon@lis-lab.fr')
 INSTALL_REQUIRES = ['numpy', 'daiquiri', 'matplotlib', 'pandas', 'keras',
-                    'docopt', 'pillow', 'scikit-learn', 'psutil', 'yafe',
+                    'docopt', 'pillow', 'scikit-learn', 'psutil', 'yafe', 'python-dotenv', 'click',
                     'xarray', 'tensorflow', 'scipy==1.2.1', 'scikit-luc==2']
 # INSTALL_REQUIRES = []
 # TODO to be completed

@@ -27,9 +27,9 @@ install:
 data: million
 	$(PYTHON_INTERPRETER) code/data/make_dataset.py all data/external
 
-kddcup: data/external/kddcup.npz
-data/external/kddcup.npz:
-	$(PYTHON_INTERPRETER) code/data/make_dataset.py kddcup data/external
+kddcup04: data/external/kddcup04.dat data/external/kddcup04.lab
+data/external/kddcup04.dat data/external/kddcup04.lab:
+	$(PYTHON_INTERPRETER) code/data/make_dataset.py kddcup04 data/external
 
 census: data/external/census.npz
 data/external/census.npz:

@@ -1,0 +1,31 @@
+all:
+  qmeans_kddcup:
+  kmeans_kddcup:
+
+base:
+  seed: {"--seed": "range(5)"}
+  nystrom: {"--nystrom": ["5000"]}
+  assignation: {"--assignation-time": ["5000"]}
+  batch_assignation: {"--batch-assignation-time": ["5000"]}
+  1nn: ["--1-nn"]
+  initialisation: {--initialization: ["uniform_sampling"]}
+  iterations: {--nb-iteration: ["10"]}
+
+kddcup:
+  base:
+  nb_clusters: {"--nb-cluster": ["64", "128", "256", "512"]}
+  minibatch: {"--minibatch": ["1000"]}
+  dataset: ["--kddcup04"]
+
+palm:
+  sparsity_factor: {"--sparsity-factor": ["2", "3", "5"]}
+  hierarchical: ["--hierarchical-init"]
+
+qmeans_kddcup:
+  qmeans: ["qmeans"]
+  palm:
+  kddcup:
+
+kmeans_kddcup:
+  kmeans: ["kmeans"]
+  kddcup:

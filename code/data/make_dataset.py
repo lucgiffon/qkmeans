@@ -21,7 +21,7 @@ from qkmeans.utils import download_data, logger
 import cv2
 
 
-def load_kddcup04bio():
+def load_kddcup04bio_no_classif():
     data_url = "http://cs.joensuu.fi/sipu/datasets/KDDCUP04Bio.txt"
 
     with tempfile.TemporaryDirectory() as d_tmp:
@@ -30,6 +30,14 @@ def load_kddcup04bio():
         data = pandas.read_csv(matfile_path, delim_whitespace=True)
 
     return data.values
+
+def load_kddcup04bio():
+    input_path = project_dir / "data/raw" / "data_kddcup04" / "bio_train.dat"
+    data = pandas.read_csv(input_path, header=None, delim_whitespace=True)
+    X = data.values[:, 3:]
+    y = data.values[:, 2]
+    return X, y
+
 
 def load_census1990():
     data_url = "https://archive.ics.uci.edu/ml/machine-learning-databases/census1990-mld/USCensus1990.data.txt"
@@ -101,7 +109,6 @@ def load_caltech(final_size):
 
     return (X_train, y_train), (X_test, y_test)
 
-
 def load_plants():
     data_url = "https://archive.ics.uci.edu/ml/machine-learning-databases/plants/plants.data"
 
@@ -131,21 +138,59 @@ def load_plants():
 
     return arr_lst_plants
 
+def generator_blobs_data(data_size, size_batch, nb_features, nb_centers):
+    total_nb_chunks = int(data_size // size_batch)
+    init_centers = np.random.uniform(-10.0, 10.0, (nb_centers, nb_features))
+    for i in range(total_nb_chunks):
+        logger.info("Chunk {}/{}".format(i + 1, total_nb_chunks))
+        X, y = make_blobs(size_batch, n_features=nb_features, centers=init_centers, cluster_std=12.)
+        yield X, y
 
+def generator_kddcup04_data(size_batch=10000):
+    X, y = load_kddcup04bio()
+    data_size = X.shape[0]
+    total_nb_chunks = int(data_size // size_batch)
+    remaining = int(data_size % size_batch)
+    for i in range(total_nb_chunks):
+        logger.info("Chunk {}/{}".format(i + 1, total_nb_chunks))
+        yield X[i*size_batch: (i+1)*size_batch], y[i*size_batch: (i+1)*size_batch]
+    if remaining > 0:
+        yield X[(i+1)*size_batch: ], y[(i+1)*size_batch: ]
 
+def save_memmap_data(output_dirpath, dataname, data_size, nb_features, Xy_gen):
+    output_path_obs = project_dir / output_dirpath / (dataname + ".dat")
+    output_path_labels = project_dir / output_dirpath / (dataname + ".lab")
+    fp_obs = np.memmap(output_path_obs, dtype='float32', mode='w+', shape=(data_size, nb_features))
+    fp_labels = np.memmap(output_path_labels, mode='w+', shape=(data_size,))
 
-MAP_NAME_DATASET = {
-    "kddcup": load_kddcup04bio,
-    "census": load_census1990,
+    logger.info("{} Data will be created in file: {}; labels stored in file: {}".format(dataname, output_path_obs, output_path_labels))
+    logger.info("About to create {}: Total {} examples.".format(dataname, data_size))
+
+    curr_idx = 0
+    for i, (batch_X, batch_y) in enumerate(Xy_gen):
+        curr_batch_size = batch_X.shape[0]
+        fp_obs[curr_idx:curr_idx + curr_batch_size] = batch_X
+        if batch_y is not None:
+            fp_labels[curr_idx:curr_idx + curr_batch_size] = batch_y
+        curr_idx += curr_batch_size
+
+    if batch_y is None:
+        os.remove(str(output_path_labels))
+
+MAP_NAME_DATASET_DD = {
+    "kddcup04": lambda p_output_dirpath : save_memmap_data(p_output_dirpath, "kddcup04", 145751, 74, generator_kddcup04_data())
+    # "census": load_census1990,
+}
+
+MAP_NAME_DATASET_RAM = {
+
     "plants": load_plants,
     "caltech256_50": lambda: load_caltech(50),
     "caltech256_32": lambda: load_caltech(32),
     "caltech256_28": lambda: load_caltech(28)
 }
 
-MAP_NAME_CLASSES_PRESENCE = {
-    "kddcup": False,
-    "census": False,
+MAP_NAME_CLASSES_PRESENCE_RAM = {
     "plants": False,
     "caltech256_50": True,
     "caltech256_32": True,
@@ -153,42 +198,36 @@ MAP_NAME_CLASSES_PRESENCE = {
 }
 
 def _download_all_data(output_dirpath):
-    for key, _ in MAP_NAME_DATASET.items():
+    for key in list(MAP_NAME_DATASET_RAM.keys()) + list(MAP_NAME_DATASET_DD.keys()):
         _download_single_dataset(output_dirpath, key)
+
+
 
 def _download_single_dataset(output_dirpath, dataname):
     regex_million = re.compile(r"blobs_(\d+)_million")
     match = regex_million.match(dataname)
     if match:
-        output_path_obs = project_dir / output_dirpath / (dataname + ".dat")
-        output_path_labels = project_dir / output_dirpath / (dataname + ".lab")
         size_batch = 10000
         data_size = int(1e6) * int(match.group(1))
         nb_features = 2000
         nb_centers = 1000
-        fp_obs = np.memmap(output_path_obs, dtype='float32', mode='w+', shape=(data_size, nb_features))
-        fp_labels = np.memmap(output_path_labels, mode='w+', shape=(data_size,))
 
-        total_nb_chunks = int(data_size // size_batch)
-        logger.info("blobs_1_billion Data created in file: {}; labels stored in file: {}".format(output_path_obs, output_path_labels))
-        logger.info("About to create 1 billion blobs dataset: {} chunks of {} examples dim {}. Total {} examples.".format(total_nb_chunks, size_batch, nb_features, data_size))
-        init_centers = np.random.uniform(-10.0, 10.0, (nb_centers, nb_features))
-        for i in range(total_nb_chunks):
-            logger.info("Chunk {}/{}".format(i+1, total_nb_chunks))
-            X, y = make_blobs(size_batch, n_features=nb_features, centers=init_centers, cluster_std=12.)
-            fp_obs[i * size_batch:(i + 1) * size_batch] = X
-            fp_labels[i * size_batch:(i + 1) * size_batch] = y
+        save_memmap_data(output_dirpath, dataname, data_size, nb_features, generator_blobs_data(data_size, size_batch, nb_features, nb_centers))
 
     else:
-        if MAP_NAME_CLASSES_PRESENCE[dataname]:
-            (x_train, y_train), (x_test, y_test) = MAP_NAME_DATASET[dataname]()
+        if dataname in MAP_NAME_DATASET_DD.keys():
+            MAP_NAME_DATASET_DD[dataname](output_dirpath)
+            return
+
+        elif MAP_NAME_CLASSES_PRESENCE_RAM[dataname]:
+            (x_train, y_train), (x_test, y_test) = MAP_NAME_DATASET_RAM[dataname]()
             map_savez = {"x_train": x_train,
                          "y_train": y_train,
                          "x_test": x_test,
                          "y_test": y_test
                          }
         else:
-            X = MAP_NAME_DATASET[dataname]()
+            X = MAP_NAME_DATASET_RAM[dataname]()
             map_savez = {"x_train": X}
 
         output_path = project_dir / output_dirpath / dataname

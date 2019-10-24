@@ -283,8 +283,8 @@ class ParameterManager(dict):
             return caltech_dataset(caltech_size)
         elif self["--census"]:
             return census_dataset()
-        elif self["--kddcup"]:
-            return kddcup_dataset()
+        elif self["--kddcup04"]:
+            return kddcup04_dataset()
         elif self["--plants"]:
             return plants_dataset()
         elif self["--mnist"]:
@@ -373,11 +373,20 @@ def census_dataset():
     return {"x_train": loaded_npz["x_train"]}
 
 
-def kddcup_dataset():
-    data_dir = project_dir / "data/external" / "kddcup.npz"
-    loaded_npz = np.load(data_dir)
-    return {"x_train": loaded_npz["x_train"]}
-
+def kddcup04_dataset():
+    data_dir_obs = project_dir / "data/external" / "kddcup04.dat"
+    data_dir_labels = project_dir / "data/external" / "kddcup04.lab"
+    X = np.memmap(data_dir_obs, mode="r", dtype="float32", shape=(145751, 74))
+    y = np.memmap(data_dir_labels, mode="r", shape=(145751,))
+    test_size = 5000
+    X_train, X_test = X[:-test_size], X[-test_size:]
+    y_train, y_test = y[:-test_size], y[-test_size:]
+    return {
+        "x_train": X_train,
+        "y_train": y_train,
+        "x_test": X_test,
+        "y_test": y_test
+    }
 
 def plants_dataset():
     data_dir = project_dir / "data/external" / "plants.npz"
