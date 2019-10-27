@@ -38,8 +38,13 @@ def load_kddcup04bio():
     y = data.values[:, 2]
     return X, y
 
-
 def load_census1990():
+    """
+    Meek, Thiesson, and Heckerman (2001), "The Learning Curve Method Applied to Clustering", to appear in The Journal of Machine Learning Research.
+
+    Number of clusters: 25, 50, 100
+    :return:
+    """
     data_url = "https://archive.ics.uci.edu/ml/machine-learning-databases/census1990-mld/USCensus1990.data.txt"
 
     with tempfile.TemporaryDirectory() as d_tmp:
@@ -157,6 +162,17 @@ def generator_kddcup04_data(size_batch=10000):
     if remaining > 0:
         yield X[(i+1)*size_batch: ], y[(i+1)*size_batch: ]
 
+def generator_census1990_data(size_batch=10000):
+    X = load_census1990()
+    data_size = X.shape[0]
+    total_nb_chunks = int(data_size // size_batch)
+    remaining = int(data_size % size_batch)
+    for i in range(total_nb_chunks):
+        logger.info("Chunk {}/{}".format(i + 1, total_nb_chunks))
+        yield X[i*size_batch: (i+1)*size_batch], None
+    if remaining > 0:
+        yield X[(i+1)*size_batch: ], None
+
 def save_memmap_data(output_dirpath, dataname, data_size, nb_features, Xy_gen):
     output_path_obs = project_dir / output_dirpath / (dataname + ".dat")
     output_path_labels = project_dir / output_dirpath / (dataname + ".lab")
@@ -178,8 +194,8 @@ def save_memmap_data(output_dirpath, dataname, data_size, nb_features, Xy_gen):
         os.remove(str(output_path_labels))
 
 MAP_NAME_DATASET_DD = {
-    "kddcup04": lambda p_output_dirpath : save_memmap_data(p_output_dirpath, "kddcup04", 145751, 74, generator_kddcup04_data())
-    # "census": load_census1990,
+    "kddcup04": lambda p_output_dirpath : save_memmap_data(p_output_dirpath, "kddcup04", 145751, 74, generator_kddcup04_data()),
+    "census": lambda p_output_dirpath : save_memmap_data(p_output_dirpath, "census", 2458285, 69, generator_census1990_data())
 }
 
 MAP_NAME_DATASET_RAM = {

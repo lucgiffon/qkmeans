@@ -368,9 +368,11 @@ def blobs_dataset(blob_size, blob_features, blob_centers):
 
 
 def census_dataset():
-    data_dir = project_dir / "data/external" / "census.npz"
-    loaded_npz = np.load(data_dir)
-    return {"x_train": loaded_npz["x_train"]}
+    data_dir_obs = project_dir / "data/external" / "census.dat"
+    X = np.memmap(data_dir_obs, mode="r", dtype="float32", shape=(2458285, 69))
+    return {
+        "x_train": X
+    }
 
 
 def kddcup04_dataset():
