@@ -15,7 +15,7 @@ import tarfile
 import re
 from sklearn import preprocessing
 import matplotlib.pyplot as plt
-from sklearn.datasets import make_blobs, fetch_kddcup99
+from sklearn.datasets import make_blobs, fetch_kddcup99, fetch_covtype
 from sklearn.model_selection import train_test_split
 from qkmeans.utils import download_data, logger
 import cv2
@@ -43,6 +43,12 @@ def load_kddcup99():
     X, y = fetch_kddcup99(shuffle=True, return_X_y=True)
     df_X = pd.DataFrame(X)
     X = pd.get_dummies(df_X, columns=[1, 2, 3], prefix=['protocol_type', "service", "flag"]).values
+    label_encoder = preprocessing.LabelEncoder()
+    y = label_encoder.fit_transform(y.reshape(-1, 1))
+    return X, y
+
+def load_covtype():
+    X, y = fetch_covtype(shuffle=True, return_X_y=True)
     label_encoder = preprocessing.LabelEncoder()
     y = label_encoder.fit_transform(y.reshape(-1, 1))
     return X, y
@@ -209,7 +215,8 @@ def save_memmap_data(output_dirpath, dataname, data_size, nb_features, Xy_gen):
 MAP_NAME_DATASET_DD = {
     "kddcup04": lambda p_output_dirpath : save_memmap_data(p_output_dirpath, "kddcup04", 145751, 74, generator_data(load_kddcup04bio)),
     "kddcup99": lambda p_output_dirpath : save_memmap_data(p_output_dirpath, "kddcup99", 494021, 118, generator_data(load_kddcup99)),
-    "census": lambda p_output_dirpath : save_memmap_data(p_output_dirpath, "census", 2458285, 68, generator_data(load_census1990))
+    "census": lambda p_output_dirpath : save_memmap_data(p_output_dirpath, "census", 2458285, 68, generator_data(load_census1990)),
+    "covtype": lambda p_output_dirpath : save_memmap_data(p_output_dirpath, "covtype", 581012, 54, generator_data(load_covtype))
 }
 
 MAP_NAME_DATASET_RAM = {

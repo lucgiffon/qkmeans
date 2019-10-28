@@ -291,6 +291,8 @@ class ParameterManager(dict):
             return plants_dataset()
         elif self["--breast-cancer"]:
             return breast_cancer_dataset()
+        elif self["--covtype"]:
+            return covtype_dataset()
         elif self["--mnist"]:
             return mnist_dataset()
         elif self["--fashion-mnist"]:
@@ -436,6 +438,22 @@ def breast_cancer_dataset():
         "x_train": X_train.reshape(X_train.shape[0], -1),
         "y_train": y_train,
         "x_test": X_test.reshape(X_test.shape[0], -1),
+        "y_test": y_test
+    }
+
+
+def covtype_dataset():
+    data_dir_obs = project_dir / "data/external" / "covtype.dat"
+    data_dir_labels = project_dir / "data/external" / "covtype.lab"
+    X = np.memmap(data_dir_obs, mode="r", dtype="float32", shape=(581012, 54))
+    y = np.memmap(data_dir_labels, mode="r", shape=(581012,))
+    test_size = 5000
+    X_train, X_test = X[:-test_size], X[-test_size:]
+    y_train, y_test = y[:-test_size], y[-test_size:]
+    return {
+        "x_train": X_train,
+        "y_train": y_train,
+        "x_test": X_test,
         "y_test": y_test
     }
 
