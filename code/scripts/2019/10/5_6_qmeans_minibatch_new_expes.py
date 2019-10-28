@@ -3,9 +3,9 @@ Analysis of objective function during qmeans execution. This script is derived f
 and change in nystrom evaluation that is now normalized.
 
 Usage:
-  qmeans_objective_function_analysis kmeans [-h] [-v|-vv] [--seed=int] (--blobs str|--light-blobs|--census|--kddcup04|--kddcup99|--plants|--mnist|--fashion-mnist|--lfw|--caltech256 int|--million-blobs int) --nb-cluster=int --initialization=str [--nb-iteration=int] [--assignation-time=int] [--1-nn] [--nystrom=int] [--batch-assignation-time=int] [--minibatch int] [--max-eval-train-size int]
-  qmeans_objective_function_analysis kmeans palm [-v|-vv] [-v] [--seed=int] (--blobs str|--light-blobs|--census|--kddcup04|--kddcup99|--plants|--mnist|--fashion-mnist|--lfw|--caltech256 int|--million-blobs int) --nb-cluster=int --initialization=str [--nb-iteration=int] [--assignation-time=int] [--1-nn] [--nystrom=int] [--batch-assignation-time=int] [--nb-iteration-palm=int] [--nb-factors=int] --sparsity-factor=int [--hierarchical] [--delta-threshold float] [--minibatch int] [--max-eval-train-size int] [--hierarchical-init]
-  qmeans_objective_function_analysis qmeans [-h] [-v|-vv] [--seed=int] (--blobs str|--light-blobs|--census|--kddcup04|--kddcup99|--plants|--mnist|--fashion-mnist|--lfw|--caltech256 int|--million-blobs int) --nb-cluster=int --initialization=str [--nb-factors=int] --sparsity-factor=int [--hierarchical] [--nb-iteration=int] [--nb-iteration-palm=int] [--assignation-time=int] [--1-nn] [--nystrom=int] [--batch-assignation-time=int] [--delta-threshold float] [--minibatch int] [--max-eval-train-size int] [--hierarchical-init]
+  qmeans_objective_function_analysis kmeans [-h] [-v|-vv] [--seed=int] (--blobs str|--light-blobs|--breast-cancer|--census|--kddcup04|--kddcup99|--plants|--mnist|--fashion-mnist|--lfw|--caltech256 int|--million-blobs int) --nb-cluster=int --initialization=str [--nb-iteration=int] [--assignation-time=int] [--1-nn] [--nystrom=int] [--batch-assignation-time=int] [--minibatch int] [--max-eval-train-size int]
+  qmeans_objective_function_analysis kmeans palm [-v|-vv] [-v] [--seed=int] (--blobs str|--light-blobs|--breast-cancer|--census|--kddcup04|--kddcup99|--plants|--mnist|--fashion-mnist|--lfw|--caltech256 int|--million-blobs int) --nb-cluster=int --initialization=str [--nb-iteration=int] [--assignation-time=int] [--1-nn] [--nystrom=int] [--batch-assignation-time=int] [--nb-iteration-palm=int] [--nb-factors=int] --sparsity-factor=int [--hierarchical] [--delta-threshold float] [--minibatch int] [--max-eval-train-size int] [--hierarchical-init]
+  qmeans_objective_function_analysis qmeans [-h] [-v|-vv] [--seed=int] (--blobs str|--light-blobs|--breast-cancer|--census|--kddcup04|--kddcup99|--plants|--mnist|--fashion-mnist|--lfw|--caltech256 int|--million-blobs int) --nb-cluster=int --initialization=str [--nb-factors=int] --sparsity-factor=int [--hierarchical] [--nb-iteration=int] [--nb-iteration-palm=int] [--assignation-time=int] [--1-nn] [--nystrom=int] [--batch-assignation-time=int] [--delta-threshold float] [--minibatch int] [--max-eval-train-size int] [--hierarchical-init]
 
 Options:
   -h --help                             Show this screen.
@@ -24,7 +24,8 @@ Dataset:
   --fashion-mnist                       Use fasion-mnist dataset.
   --lfw                                 Use Labeled Faces in the Wild dataset.
   --caltech256 int                      Use caltech256 dataset with square images of size int.
-  --million-blobs int                 Use the million blobs dataset with int million.
+  --million-blobs int                   Use the million blobs dataset with int million.
+  --breast-cancer                       Use breast cancer dataset from sklearn.
 
 
 Tasks:

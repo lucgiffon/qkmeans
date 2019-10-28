@@ -23,7 +23,7 @@ from numpy.linalg import multi_dot
 import daiquiri
 from qkmeans.palm.projection_operators import prox_splincol
 from qkmeans import project_dir
-from sklearn.datasets import fetch_lfw_people
+from sklearn.datasets import fetch_lfw_people, load_breast_cancer
 from sklearn.model_selection import train_test_split
 import keras
 
@@ -289,6 +289,8 @@ class ParameterManager(dict):
             return kddcup99_dataset()
         elif self["--plants"]:
             return plants_dataset()
+        elif self["--breast-cancer"]:
+            return breast_cancer_dataset()
         elif self["--mnist"]:
             return mnist_dataset()
         elif self["--fashion-mnist"]:
@@ -415,6 +417,21 @@ def plants_dataset():
 
 def mnist_dataset():
     (X_train, y_train), (X_test, y_test) = mnist.load_data()
+    return {
+        "x_train": X_train.reshape(X_train.shape[0], -1),
+        "y_train": y_train,
+        "x_test": X_test.reshape(X_test.shape[0], -1),
+        "y_test": y_test
+    }
+
+
+def breast_cancer_dataset():
+    X, y = load_breast_cancer(return_X_y=True)
+    shuffled_indices = np.random.permutation(X.shape[0])
+    X, y = X[shuffled_indices], y[shuffled_indices]
+    test_size = 100
+    X_train, X_test = X[:-test_size], X[-test_size:]
+    y_train, y_test = y[:-test_size], y[-test_size:]
     return {
         "x_train": X_train.reshape(X_train.shape[0], -1),
         "y_train": y_train,
