@@ -15,10 +15,11 @@ import tarfile
 import re
 from sklearn import preprocessing
 import matplotlib.pyplot as plt
-from sklearn.datasets import make_blobs
+from sklearn.datasets import make_blobs, fetch_kddcup99
 from sklearn.model_selection import train_test_split
 from qkmeans.utils import download_data, logger
 import cv2
+import pandas as pd
 
 
 def load_kddcup04bio_no_classif():
@@ -38,6 +39,15 @@ def load_kddcup04bio():
     y = data.values[:, 2]
     return X, y
 
+def load_kddcup99():
+    X, y = fetch_kddcup99(shuffle=True, return_X_y=True)
+    df_X = pd.DataFrame(X)
+    X = pd.get_dummies(df_X, columns=[1, 2, 3], prefix=['protocol_type', "service", "flag"]).values
+    label_encoder = preprocessing.LabelEncoder()
+    y = label_encoder.fit_transform(y.reshape(-1, 1))
+    return X, y
+
+
 def load_census1990():
     """
     Meek, Thiesson, and Heckerman (2001), "The Learning Curve Method Applied to Clustering", to appear in The Journal of Machine Learning Research.
@@ -52,7 +62,7 @@ def load_census1990():
         matfile_path = download_data(data_url, d_tmp)
         data = pandas.read_csv(matfile_path)
 
-    return data.values[:, 1:] # remove the `caseId` attribute
+    return data.values[:, 1:], None # remove the `caseId` attribute
 
 def crop_center(img, bounding):
     start = tuple(map(lambda a, da: a // 2 - da // 2, img.shape, bounding))
@@ -129,6 +139,7 @@ def load_plants():
         with open(file_path, 'r', encoding="ISO-8859-15") as f:
             plants = f.readlines()
 
+    # get all the features in a set
     set_plants_attributes = set()
     lst_plants = []
     for plant_line in plants:
@@ -136,10 +147,12 @@ def load_plants():
         lst_plants.append(plant_line_no_name)
         set_plants_attributes.update(plant_line_no_name)
 
+    # give a code to each feature in a 1-hot fashion
     arr_plants_attributes = np.array([v for v in set_plants_attributes])
     onehot_encoder = preprocessing.OneHotEncoder(sparse=False)
     onehot_encoder.fit(arr_plants_attributes.reshape(-1, 1))
 
+    # transform each plant with their code
     for i, plant_line_no_name in enumerate(lst_plants):
         plant_line_oh = np.sum(onehot_encoder.transform(np.array(plant_line_no_name).reshape(-1, 1)), axis=0)
         lst_plants[i] = plant_line_oh
@@ -156,27 +169,22 @@ def generator_blobs_data(data_size, size_batch, nb_features, nb_centers):
         X, y = make_blobs(size_batch, n_features=nb_features, centers=init_centers, cluster_std=12.)
         yield X, y
 
-def generator_kddcup04_data(size_batch=10000):
-    X, y = load_kddcup04bio()
+def generator_data(data_load_func, size_batch=10000):
+    X, y = data_load_func()
     data_size = X.shape[0]
     total_nb_chunks = int(data_size // size_batch)
     remaining = int(data_size % size_batch)
     for i in range(total_nb_chunks):
         logger.info("Chunk {}/{}".format(i + 1, total_nb_chunks))
-        yield X[i*size_batch: (i+1)*size_batch], y[i*size_batch: (i+1)*size_batch]
+        if y is None:
+            yield X[i*size_batch: (i+1)*size_batch], None
+        else:
+            yield X[i * size_batch: (i + 1) * size_batch], y[i * size_batch: (i + 1) * size_batch]
     if remaining > 0:
-        yield X[(i+1)*size_batch: ], y[(i+1)*size_batch: ]
-
-def generator_census1990_data(size_batch=10000):
-    X = load_census1990()
-    data_size = X.shape[0]
-    total_nb_chunks = int(data_size // size_batch)
-    remaining = int(data_size % size_batch)
-    for i in range(total_nb_chunks):
-        logger.info("Chunk {}/{}".format(i + 1, total_nb_chunks))
-        yield X[i*size_batch: (i+1)*size_batch], None
-    if remaining > 0:
-        yield X[(i+1)*size_batch: ], None
+        if y is None:
+            yield X[(i+1)*size_batch: ], None
+        else:
+            yield X[(i + 1) * size_batch:], y[(i + 1) * size_batch:]
 
 def save_memmap_data(output_dirpath, dataname, data_size, nb_features, Xy_gen):
     output_path_obs = project_dir / output_dirpath / (dataname + ".dat")
@@ -199,8 +207,9 @@ def save_memmap_data(output_dirpath, dataname, data_size, nb_features, Xy_gen):
         os.remove(str(output_path_labels))
 
 MAP_NAME_DATASET_DD = {
-    "kddcup04": lambda p_output_dirpath : save_memmap_data(p_output_dirpath, "kddcup04", 145751, 74, generator_kddcup04_data()),
-    "census": lambda p_output_dirpath : save_memmap_data(p_output_dirpath, "census", 2458285, 68, generator_census1990_data())
+    "kddcup04": lambda p_output_dirpath : save_memmap_data(p_output_dirpath, "kddcup04", 145751, 74, generator_data(load_kddcup04bio)),
+    "kddcup99": lambda p_output_dirpath : save_memmap_data(p_output_dirpath, "kddcup99", 494021, 118, generator_data(load_kddcup99)),
+    "census": lambda p_output_dirpath : save_memmap_data(p_output_dirpath, "census", 2458285, 68, generator_data(load_census1990))
 }
 
 MAP_NAME_DATASET_RAM = {
