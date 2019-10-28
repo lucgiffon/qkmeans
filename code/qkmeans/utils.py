@@ -369,7 +369,7 @@ def blobs_dataset(blob_size, blob_features, blob_centers):
 
 def census_dataset():
     data_dir_obs = project_dir / "data/external" / "census.dat"
-    X = np.memmap(data_dir_obs, mode="r", dtype="float32", shape=(2458285, 69))
+    X = np.memmap(data_dir_obs, mode="r", dtype="float32", shape=(2458285, 68))
     return {
         "x_train": X
     }

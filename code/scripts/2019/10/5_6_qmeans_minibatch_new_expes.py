@@ -682,11 +682,18 @@ if __name__ == "__main__":
 
         if paraman["--nystrom"] is not None:
             logger.info("Start Nyström reconstruction evaluation with {} samples".format(paraman["--nystrom"]))
-            make_nystrom_evaluation(x_train= dataset["x_train"][train_indexes],
-                                y_train= dataset["y_train"][train_indexes],
-                                x_test=dataset["x_test"],
-                                y_test=dataset["y_test"],
-                                U_centroids=U_final)
+            if "x_test" in dataset.keys():
+                make_nystrom_evaluation(x_train= dataset["x_train"][train_indexes],
+                                    y_train= dataset["y_train"][train_indexes],
+                                    x_test=dataset["x_test"],
+                                    y_test=dataset["y_test"],
+                                    U_centroids=U_final)
+            else:
+                make_nystrom_evaluation(x_train=dataset["x_train"][train_indexes],
+                                        y_train=None,
+                                        x_test=None,
+                                        y_test=None,
+                                        U_centroids=U_final)
     except Exception as e:
         has_failed = True
         failure_dict = {

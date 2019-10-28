@@ -52,7 +52,7 @@ def load_census1990():
         matfile_path = download_data(data_url, d_tmp)
         data = pandas.read_csv(matfile_path)
 
-    return data.values[1:] # remove the `caseId` attribute
+    return data.values[:, 1:] # remove the `caseId` attribute
 
 def crop_center(img, bounding):
     start = tuple(map(lambda a, da: a // 2 - da // 2, img.shape, bounding))
@@ -115,6 +115,11 @@ def load_caltech(final_size):
     return (X_train, y_train), (X_test, y_test)
 
 def load_plants():
+    """
+    USDA, NRCS. 2008. The PLANTS Database ([Web Link], 31 December 2008). National Plant Data Center, Baton Rouge, LA 70874-4490 USA.
+
+    :return:
+    """
     data_url = "https://archive.ics.uci.edu/ml/machine-learning-databases/plants/plants.data"
 
     with tempfile.TemporaryDirectory() as d_tmp:
@@ -195,7 +200,7 @@ def save_memmap_data(output_dirpath, dataname, data_size, nb_features, Xy_gen):
 
 MAP_NAME_DATASET_DD = {
     "kddcup04": lambda p_output_dirpath : save_memmap_data(p_output_dirpath, "kddcup04", 145751, 74, generator_kddcup04_data()),
-    "census": lambda p_output_dirpath : save_memmap_data(p_output_dirpath, "census", 2458285, 69, generator_census1990_data())
+    "census": lambda p_output_dirpath : save_memmap_data(p_output_dirpath, "census", 2458285, 68, generator_census1990_data())
 }
 
 MAP_NAME_DATASET_RAM = {
