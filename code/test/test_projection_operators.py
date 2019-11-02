@@ -1,6 +1,7 @@
 import unittest
 
 import numpy as np
+from qkmeans.core.utils import build_constraint_set_smart
 from qkmeans.palm.projection_operators import projection_operator, inplace_hardthreshold, prox_splincol
 
 import logging
@@ -60,6 +61,20 @@ class TestProjectionOperators(unittest.TestCase):
         self.assert_keep_coeffs_are_greater_in_line(projected_matrix)
         self.assert_keep_coeffs_are_greater_in_line(projected_matrix.T, transpose=True)
 
+    def test_build_constraint_set(self):
+        left_dim = 10
+        right_dim = 32
+        nb_fac= 4
+        sparsity_factor = 2
+        residual_on_right = False
 
+        lst_constraints, lst_constraints_vals = build_constraint_set_smart(
+            left_dim, right_dim, nb_fac,
+            sparsity_factor=sparsity_factor,
+            residual_on_right=residual_on_right,
+            constant_first=True,
+            hierarchical=False)
+
+        print(lst_constraints_vals)
 if __name__ == "__main__":
     unittest.main()

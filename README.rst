@@ -26,7 +26,7 @@ have any question, please raise an issue.
 Installation
 ------------
 
-For this installation procedure, we assume you have a fresh Python environment activated.
+For this installation procedure, we assume you have a fresh Python environment activated. Python version should be 3.7.
 
 Before installing, you have to make sure that `opencv` is installed in your envorionment so that `python  -c "import cv2; print(cv2.__version__)"` doesn't crash.
 
@@ -72,9 +72,13 @@ create all datasets at once using the following command but this will take a lot
 a lot of space on your disk. Be carefull then. The data will be stored under the `data/external`
 directory.
 
-To prepare all the data type the following (make sure you have downloaded the `kddcup04` dataset for that, see after):
+To prepare all the data (including synthetic data, which is long) type the following (make sure you have downloaded the `kddcup04` dataset for that, see after):
 
 	make data
+
+To prepare all the data but __NOT__ the synthetic data type the following (make sure you have downloaded the `kddcup04` dataset for that, see after):
+
+	make data_no_million
 
 To download the `kddcup04` dataset, you must go [here](http://osmot.cs.cornell.edu/kddcup/datasets.html) and subscribe then
 download the datasets using your credentials. Once it is done, extract it into `data/raw` so that `data/raw/data_kddcup04/bio_train.dat`

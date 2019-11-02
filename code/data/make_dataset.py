@@ -42,7 +42,11 @@ def load_kddcup04bio():
 def load_kddcup99():
     X, y = fetch_kddcup99(shuffle=True, return_X_y=True)
     df_X = pd.DataFrame(X)
-    X = pd.get_dummies(df_X, columns=[1, 2, 3], prefix=['protocol_type', "service", "flag"]).values
+    X = pd.get_dummies(df_X, columns=[1, 2, 3], prefix=['protocol_type', "service", "flag"]).values.astype(np.float32)
+    max_by_col = np.max(X, axis=0)
+    min_by_col = np.min(X, axis=0)
+    X = (X - min_by_col) / (max_by_col - min_by_col)
+    X = X[:,~np.any(np.isnan(X), axis=0)]
     label_encoder = preprocessing.LabelEncoder()
     y = label_encoder.fit_transform(y.reshape(-1, 1))
     return X, y
@@ -214,7 +218,7 @@ def save_memmap_data(output_dirpath, dataname, data_size, nb_features, Xy_gen):
 
 MAP_NAME_DATASET_DD = {
     "kddcup04": lambda p_output_dirpath : save_memmap_data(p_output_dirpath, "kddcup04", 145751, 74, generator_data(load_kddcup04bio)),
-    "kddcup99": lambda p_output_dirpath : save_memmap_data(p_output_dirpath, "kddcup99", 494021, 118, generator_data(load_kddcup99)),
+    "kddcup99": lambda p_output_dirpath : save_memmap_data(p_output_dirpath, "kddcup99", 494021, 116, generator_data(load_kddcup99)),
     "census": lambda p_output_dirpath : save_memmap_data(p_output_dirpath, "census", 2458285, 68, generator_data(load_census1990)),
     "covtype": lambda p_output_dirpath : save_memmap_data(p_output_dirpath, "covtype", 581012, 54, generator_data(load_covtype))
 }

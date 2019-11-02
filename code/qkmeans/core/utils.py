@@ -91,7 +91,7 @@ def assign_points_to_clusters(X, centroids, X_norms=None):
     return indicator_vector, distances
 
 
-def build_constraint_set_smart(left_dim, right_dim, nb_factors, sparsity_factor, residual_on_right, fast_unstable_proj=False):
+def build_constraint_set_smart(left_dim, right_dim, nb_factors, sparsity_factor, residual_on_right, fast_unstable_proj=False, constant_first=True, hierarchical=True):
     """
     Create the dictionnary of constraint sets for Hierarchical-palm4msa for use in qkmeans.
     The first factor will be a constant factor.
@@ -104,7 +104,6 @@ def build_constraint_set_smart(left_dim, right_dim, nb_factors, sparsity_factor,
     :return:
     """
 
-    # todo make the presence of the constant factor parametrizable (True/False)
     def build_lst_constraint_from_values(lst_values):
         local_lst_constraints = []
         for val in lst_values:
@@ -122,18 +121,32 @@ def build_constraint_set_smart(left_dim, right_dim, nb_factors, sparsity_factor,
         return  local_lst_constraints
 
     def build_constraint_split(p_nb_keep_values, p_nb_keep_values_residual, p_index, p_nb_keep_values_left_most, p_nb_keep_values_right_most):
+        """
+        Build the number of values (or id) for each factor during the split step of hierarchical palm4msa.
+
+        :param p_nb_keep_values: Number of value in the inner factors of the decomposition
+        :param p_nb_keep_values_residual: Number of value for the residual at this index
+        :param p_index: The index of the current split in the whole algorithm
+        :param p_nb_keep_values_left_most: The number of value in the left most factor of the decomposition
+        :param p_nb_keep_values_right_most: The number of value in the right most factor of the decomposition
+        :return:
+        """
         if residual_on_right:
-            if p_index == 0:
+            if p_index == 0 and constant_first:
+                # the first factor of the decomposition may be constant in special cases
                 lst_values = ["constant_proj", "ident"]
-            elif p_index == 1:
+            elif (p_index == 1 and constant_first) or (p_index == 0 and not constant_first):
                 lst_values = [p_nb_keep_values_left_most, p_nb_keep_values_residual]
             elif p_index == nb_factors-2:
                 lst_values = [p_nb_keep_values_left_most, max(p_nb_keep_values_right_most, p_nb_keep_values_residual)]
             else:
                 lst_values = [p_nb_keep_values, p_nb_keep_values_residual]
         else:
-            if p_index == nb_factors-2:
+            if p_index == nb_factors-2 and constant_first:
                 lst_values = ["constant_proj"] + [p_nb_keep_values_left_most]
+            elif p_index == nb_factors-2 and not constant_first:
+                assert p_nb_keep_values_residual == p_nb_keep_values_left_most, "For last iteration, residual nb val should be equal to left most factor nb val when there is no constant factor"
+                lst_values = [p_nb_keep_values_residual, p_nb_keep_values]
             elif p_index == 0:
                 lst_values = [p_nb_keep_values_residual, p_nb_keep_values_right_most]
             else:
@@ -144,16 +157,31 @@ def build_constraint_set_smart(left_dim, right_dim, nb_factors, sparsity_factor,
     def build_constraint_finetune(p_nb_keep_values, p_nb_keep_values_residual, p_index, p_nb_keep_values_left_most, p_nb_keep_values_right_most):
         if residual_on_right:
             if p_index == 0:
-                lst_values = ["constant_proj", "ident"]
+                if constant_first:
+                    lst_values = ["constant_proj", "ident"]
+                else:
+                    lst_values = [p_nb_keep_values_left_most, p_nb_keep_values_residual]
             elif p_index == 1:
-                lst_values = ["constant_proj"] + [p_nb_keep_values_left_most, p_nb_keep_values_residual]
+                if constant_first:
+                    lst_values = ["constant_proj"] + [p_nb_keep_values_left_most, p_nb_keep_values_residual]
+                else:
+                    lst_values = [p_nb_keep_values_left_most, p_nb_keep_values, p_nb_keep_values_residual]
             elif p_index == nb_factors-2:
-                lst_values = ["constant_proj"] + [p_nb_keep_values_left_most] + [p_nb_keep_values] * (p_index-1) + [max(p_nb_keep_values_right_most, p_nb_keep_values_residual)]
+                if constant_first:
+                    lst_values = ["constant_proj"] + [p_nb_keep_values_left_most] + [p_nb_keep_values] * (p_index-1) + [max(p_nb_keep_values_right_most, p_nb_keep_values_residual)]
+                else:
+                    lst_values = [p_nb_keep_values_left_most] + [p_nb_keep_values] * p_index + [max(p_nb_keep_values_right_most, p_nb_keep_values_residual)]
             else:
-                lst_values = ["constant_proj"] + [p_nb_keep_values_left_most] + [p_nb_keep_values] * (p_index-1) + [p_nb_keep_values_residual]
+                if constant_first:
+                    lst_values = ["constant_proj"] + [p_nb_keep_values_left_most] + [p_nb_keep_values] * (p_index-1) + [p_nb_keep_values_residual]
+                else:
+                    lst_values = [p_nb_keep_values_left_most] + [p_nb_keep_values] * p_index + [p_nb_keep_values_residual]
         else:
             if p_index == nb_factors - 2:
-                lst_values = ["constant_proj"] + [p_nb_keep_values_left_most] + [p_nb_keep_values] * (p_index-1) + [p_nb_keep_values_right_most]
+                if constant_first:
+                    lst_values = ["constant_proj"] + [p_nb_keep_values_left_most] + [p_nb_keep_values] * (p_index-1) + [p_nb_keep_values_right_most]
+                else:
+                    lst_values = [p_nb_keep_values_left_most] + [p_nb_keep_values] * p_index + [p_nb_keep_values_right_most]
             elif p_index == 0:
                 lst_values = [p_nb_keep_values_residual, p_nb_keep_values_right_most]
             else:
@@ -166,16 +194,23 @@ def build_constraint_set_smart(left_dim, right_dim, nb_factors, sparsity_factor,
     lst_proj_op_by_fac_step = []
     lst_proj_op_desc_by_fac_step = []
 
+    # the number of value in each sparse factor inside the product
     nb_keep_values = sparsity_factor * inner_factor_dim
+    # the number of value in the left most and irght most sparse factor: this number of value should be of the same order of the size of the bigger dim of the factor
     nb_keep_values_left_most = int(nb_keep_values * left_dim / inner_factor_dim)
     nb_keep_values_right_most = int(nb_keep_values * right_dim / inner_factor_dim)
 
 
+    # iteration over hierarchy steps:
     for k in range(nb_factors - 1):
 
+        # the number of value in the residual decreases with the iteration step. At each iteration step, the number of value in the residual is halved
         if residual_on_right:
             # power k instead of (k+1) for the first, constant matrix
-            nb_values_residual = max(nb_keep_values, int(right_dim * inner_factor_dim / 2 ** (k)))
+            if constant_first:
+                nb_values_residual = max(nb_keep_values, int(right_dim * inner_factor_dim / 2 ** (k)))
+            else:
+                nb_values_residual = max(nb_keep_values, int(right_dim * inner_factor_dim / 2 ** (k+1)))
         else:
             nb_values_residual = max(nb_keep_values, int(left_dim * inner_factor_dim / 2 ** (k+1)))
 
@@ -195,7 +230,10 @@ def build_constraint_set_smart(left_dim, right_dim, nb_factors, sparsity_factor,
         lst_proj_op_by_fac_step.append(dct_step_lst_proj_op)
         lst_proj_op_desc_by_fac_step.append(dct_step_lst_nb_keep_values)
 
-    return lst_proj_op_by_fac_step, lst_proj_op_desc_by_fac_step
+    if hierarchical:
+        return lst_proj_op_by_fac_step, lst_proj_op_desc_by_fac_step
+    else:
+        return lst_proj_op_by_fac_step[-1]["finetune"], lst_proj_op_desc_by_fac_step[-1]["finetune"]
 
 
 def build_constraint_sets(left_dim, right_dim, nb_factors, sparsity_factor):

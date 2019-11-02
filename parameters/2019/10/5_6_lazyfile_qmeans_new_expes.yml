@@ -1,0 +1,56 @@
+all:
+  qmeans_small_dataset:
+  kmeans_small_dataset:
+  qmeans_big_dataset:
+  kmeans_big_dataset:
+
+base:
+  seed: {"--seed": "range(5)"}
+  nystrom: {"--nystrom": ["5000"]}
+  assignation: {"--assignation-time": ["5000"]}
+  batch_assignation: {"--batch-assignation-time": ["5000"]}
+  1nn: ["--1-nn"]
+  initialisation: {--initialization: ["uniform_sampling"]}
+  iterations: {--nb-iteration: ["20"]}
+
+cluster_log2search:
+  nb_clusters: {"--nb-cluster": ["8", "16", "32", "64", "128", "256", "512"]}
+
+cluster_log2search_small:
+  nb_clusters: {"--nb-cluster": ["8", "16", "32", "64"]}
+
+mnibatch_size:
+  minibatch: {"--minibatch": ["1000"]}
+
+small_datasets:
+  base:
+  cluster_log2search_small:
+  dataset: ["--breast-cancer", "--plants"]
+
+big_datasets:
+  base:
+  cluster_log2search:
+  mnibatch_size:
+  dataset: ["--kddcup99", "--kddcup04", "--census", "--covtype"]
+
+palm:
+  sparsity_factor: {"--sparsity-factor": ["2", "3", "5"]}
+  hierarchical: ["--hierarchical-init"]
+
+qmeans_small_dataset:
+  qmeans: ["qmeans"]
+  palm:
+  small_datasets:
+
+qmeans_big_dataset:
+  qmeans: ["qmeans"]
+  palm:
+  big_datasets:
+
+kmeans_small_dataset:
+  qmeans: ["kmeans"]
+  small_datasets:
+
+kmeans_big_dataset:
+  qmeans: ["kmeans"]
+  big_datasets:

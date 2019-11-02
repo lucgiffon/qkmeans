@@ -399,7 +399,7 @@ def kddcup04_dataset():
 def kddcup99_dataset():
     data_dir_obs = project_dir / "data/external" / "kddcup99.dat"
     data_dir_labels = project_dir / "data/external" / "kddcup99.lab"
-    X = np.memmap(data_dir_obs, mode="r", dtype="float32", shape=(494021, 118))
+    X = np.memmap(data_dir_obs, mode="r", dtype="float32", shape=(494021, 116))
     y = np.memmap(data_dir_labels, mode="r", shape=(494021,))
     test_size = 5000
     X_train, X_test = X[:-test_size], X[-test_size:]

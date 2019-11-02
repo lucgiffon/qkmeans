@@ -7,7 +7,7 @@ from qkmeans.data_structures import SparseFactors
 from qkmeans.utils import logger
 from sklearn.utils import check_array
 from sklearn.utils.extmath import row_norms
-
+import scipy
 
 def special_rbf_kernel(X, Y, gamma, norm_X=None, norm_Y=None, exp_outside=True):
     """
@@ -76,7 +76,7 @@ def prepare_nystrom(landmarks, landmarks_norm, gamma):
     :return:
     """
     basis_kernel_W = special_rbf_kernel(landmarks, landmarks, gamma, landmarks_norm, landmarks_norm.T)
-    U, S, V = np.linalg.svd(basis_kernel_W)
+    U, S, V = scipy.linalg.svd(basis_kernel_W)
     Sprim =  np.maximum(S, 1e-12)
     if (Sprim != S).any():
         logger.warning("One value of S in singular decomposition of W was lower than 1e-12")

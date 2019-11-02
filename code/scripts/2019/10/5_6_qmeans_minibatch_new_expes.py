@@ -634,7 +634,7 @@ if __name__ == "__main__":
             dct_nb_param = {"nb_param_centroids": U_final.size}
             if paraman["palm"]:
                 if paraman["--nb-factors"] is None:
-                    paraman["--nb-factors"] = int(np.log2(min(U_init.shape)))
+                    paraman["--nb-factors"] = int(np.log2(max(U_init.shape)))
                 paraman["--residual-on-right"] = True if U_init.shape[1] >= U_init.shape[0] else False
 
                 U_final = process_palm_on_top_of_kmeans(U_final)
@@ -646,7 +646,7 @@ if __name__ == "__main__":
             # paraman_q = ParameterManagerQmeans(arguments)
             # paraman.update(paraman_q)
             if paraman["--nb-factors"] is None:
-                paraman["--nb-factors"] = int(np.log2(min(U_init.shape)))
+                paraman["--nb-factors"] = int(np.log2(max(U_init.shape)))
             paraman["--residual-on-right"] = True if U_init.shape[1] >= U_init.shape[0] else False
             U_final, indicator_vector_final = main_qmeans(dataset["x_train"], U_init)
 
