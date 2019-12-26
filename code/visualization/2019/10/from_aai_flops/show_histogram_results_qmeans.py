@@ -10,6 +10,9 @@ from qkmeans.utils import logger
 from visualization.utils import get_dct_result_files_by_root, build_df
 from textwrap import wrap
 import matplotlib
+import logging
+mpl_logger = logging.getLogger('matplotlib')
+mpl_logger.setLevel(logging.WARNING)
 
 
 font = {'family' : 'normal',
@@ -102,19 +105,21 @@ if __name__ == "__main__":
     # nb_cluster_values = sorted(set(df_results_qmeans["--nb-cluster"]))
 
     tasks = [
-        "assignation_mean_time",
-        "1nn_kmean_inference_time",
-        "nystrom_build_time",
-        "nystrom_inference_time",
-        "nystrom_sampled_error_reconstruction",
-        "traintime",
-        "1nn_kmean_accuracy",
-        "batch_assignation_mean_time",
-        "1nn_get_distance_time",
-        "nystrom_svm_accuracy",
-        "nystrom_svm_time",
+        # "assignation_mean_time",
+        # "1nn_kmean_inference_time",
+        # "nystrom_build_time",
+        # "nystrom_inference_time",
+        "nb_flop_centroids",
         "nb_param_centroids",
-        "nb_flop_centroids"
+        "nystrom_sampled_error_reconstruction",
+        # "traintime",
+
+        # "batch_assignation_mean_time",
+        # "1nn_get_distance_time",
+        "nystrom_svm_accuracy",
+        "1nn_kmean_accuracy",
+        # "nystrom_svm_time",
+
     ]
 
 
@@ -147,7 +152,7 @@ if __name__ == "__main__":
         "1nn_get_distance_time": "time(s)",
         "nystrom_svm_accuracy": "accuracy",
         "nystrom_svm_time": "time(s)",
-        "nb_param_centroids": "# param",
+        "nb_param_centroids": "# non-zero values",
         "nb_flop_centroids": "# FLOP"
     }
 
@@ -170,6 +175,8 @@ if __name__ == "__main__":
     }
 
     for dataset_name in datasets:
+        print("\n\n")
+        print(dataset_name)
         datasets_col = datasets[dataset_name]
         if dataset_name in ("Fashion Mnist", "Mnist"):
             df_dataset_qmeans = df_results_qmeans[df_results_qmeans[datasets_col] != False]
@@ -181,9 +188,10 @@ if __name__ == "__main__":
         nb_cluster_values = dataset_nb_cluster_value[dataset_name]
         x_indices = np.arange(len(nb_cluster_values))
 
-        nb_factors = [min(int(np.log2(nb_cluster)), int(np.log2(dataset_dim[dataset_name]))) for nb_cluster in nb_cluster_values]
+        nb_factors = [max(int(np.log2(nb_cluster)), int(np.log2(dataset_dim[dataset_name]))) for nb_cluster in nb_cluster_values]
 
-        for hierarchical_value in [True, False]:
+        # for hierarchical_value in [True, False]:
+        for hierarchical_value in [True]:
             df_hierarchical = df_dataset_qmeans[df_dataset_qmeans["--hierarchical-init"] == hierarchical_value]
 
             # assignations_times_means_for_sparsity = []
@@ -197,6 +205,7 @@ if __name__ == "__main__":
             #             rotation='vertical')
 
             for str_task in tasks:
+                print(str_task)
                 nb_kmeans_palm = len(sparsity_values) * 2
                 # extra_bars = 1 + nb_kmeans_palm if "1nn_kmean" not in str_task else 3 + nb_kmeans_palm # for 1nn there are also the other methods (ball_tree, kd_tree, to plot)
                 if "1nn_kmean" in str_task:
@@ -225,8 +234,11 @@ if __name__ == "__main__":
                     else:
                         task_values = [df_sparsy_val[df_sparsy_val["--nb-cluster"] == clust_nbr][str_task] for clust_nbr in nb_cluster_values]
 
-                    mean_task_values = [d.convert_objects(convert_numeric=True).dropna().mean() for d in task_values]
-                    std_task_values = [d.convert_objects(convert_numeric=True).dropna().std() for d in task_values]
+                    mean_task_values = [pd.to_numeric(d).dropna().mean() for d in task_values]
+                    std_task_values = [pd.to_numeric(d).dropna().std() for d in task_values]
+                    if sparsy_val == 3:
+                        print("qkmeans; sparsity {}; clusternbr {}".format(sparsy_val, nb_cluster_values[-1]))
+                        print(mean_task_values[-1])
                     # assignations_times_means_for_sparsity.append(mean_time_values)
                     # assignations_times_std_for_sparsity.append(std_time_values)
                     bars.append(ax.bar(x_indices + bar_width * idx_sparsy_val, mean_task_values, bar_width, yerr=std_task_values,
@@ -254,6 +266,8 @@ if __name__ == "__main__":
                 else:
                     task_values_kmeans = [df_dataset_kmeans[df_dataset_kmeans["--nb-cluster"] == clust_nbr][str_task] for clust_nbr in nb_cluster_values]
                 mean_task_values_kmeans = [d.mean() for d in task_values_kmeans]
+                print("kmeans; clusternbr {}".format(nb_cluster_values[-1]))
+                print(mean_task_values_kmeans[-1])
                 std_task_values_kmeans = [d.std() for d in task_values_kmeans]
                 offset_from_qmeans = 1  # offset from qmeans = 1 because directly after
                 bars.append(ax.bar(x_indices + bar_width * (len(sparsity_values)-1+offset_from_qmeans), mean_task_values_kmeans, bar_width, yerr=std_task_values_kmeans,
@@ -277,7 +291,9 @@ if __name__ == "__main__":
                         task_values_kmeans = [pd.to_numeric(df_dataset_kmeans[df_dataset_kmeans["--nb-cluster"] == clust_nbr][str_task_special_1nn], errors="coerce") for clust_nbr in nb_cluster_values]
                         mean_task_values_kmeans = [d.mean() for d in task_values_kmeans]
                         std_task_values_kmeans = [d.std() for d in task_values_kmeans]
-
+                        if len(mean_task_values_kmeans):
+                            print("str_other_1nn")
+                            print(mean_task_values_kmeans[-1])
                         bars.append(ax.bar(x_indices + bar_width * (len(sparsity_values) + offset_from_qmeans + idx_other_1nn), mean_task_values_kmeans, bar_width, yerr=std_task_values_kmeans,
                                            label=other_1nn_methods_names[str_other_1nn], zorder=10))
 
@@ -295,7 +311,8 @@ if __name__ == "__main__":
                     task_values_nystrom_uniform = [pd.to_numeric(df_dataset_kmeans[df_dataset_kmeans["--nb-cluster"] == clust_nbr][str_task_special_1nn], errors="coerce") for clust_nbr in nb_cluster_values]
                     mean_task_values_nystrom_uniform = [d.mean() for d in task_values_nystrom_uniform]
                     std_task_values_nystrom_uniform = [d.std() for d in task_values_nystrom_uniform]
-
+                    print("uniform sampling")
+                    print(mean_task_values_nystrom_uniform[-1])
                     bars.append(ax.bar(x_indices + bar_width * (len(sparsity_values) + offset_from_qmeans), mean_task_values_nystrom_uniform, bar_width, yerr=std_task_values_nystrom_uniform,
                                        label="Uniform sampling", zorder=10, color="m"))
 
@@ -326,12 +343,12 @@ if __name__ == "__main__":
                 ax.set_ylim(top=max_value_in_plot * (1+1./2.8))
 
                 ax.set_ylabel(y_axis_label_by_task[str_task])
-                ax.set_xlabel('Number of clusters K')
+                ax.set_xlabel('Number of clusters K (number of factors)')
 
                 # ax.set_title("\n".join(wrap(title, 30)))
                 ax.set_xticks(x_indices)
 
-                xtick_labels = [str(nb_clust) + "({} factors)".format(nb_factors[idx_nb_clust]) for idx_nb_clust, nb_clust in enumerate(nb_cluster_values)]
+                xtick_labels = [str(nb_clust) + "({})".format(nb_factors[idx_nb_clust]) for idx_nb_clust, nb_clust in enumerate(nb_cluster_values)]
                 ax.set_xticklabels(xtick_labels)
                 handles, labels = plt.gca().get_legend_handles_labels()
                 ncol = len(labels) // 3

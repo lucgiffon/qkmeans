@@ -10,7 +10,9 @@ from qkmeans.utils import logger
 from visualization.utils import get_dct_result_files_by_root, build_df
 from textwrap import wrap
 import matplotlib
-
+import logging
+mpl_logger = logging.getLogger('matplotlib')
+mpl_logger.setLevel(logging.WARNING)
 
 font = {'family' : 'normal',
         # 'weight' : 'bold',
@@ -42,9 +44,9 @@ if __name__ == "__main__":
 
 
 
-    output_dir = "/home/luc/PycharmProjects/qalm_qmeans/reports/figures/"+ suf_path + "/histogrammes"
-    output_dir = pathlib.Path(output_dir)
-    output_dir.mkdir(parents=True, exist_ok=True)
+    # output_dir = "/home/luc/PycharmProjects/qalm_qmeans/reports/figures/"+ suf_path + "/histogrammes"
+    # output_dir = pathlib.Path(output_dir)
+    # output_dir.mkdir(parents=True, exist_ok=True)
 
 
     df_results = get_df(input_dir)
@@ -101,22 +103,15 @@ if __name__ == "__main__":
 
     sparsity_values = sorted(set(df_results_qmeans["--sparsity-factor"]))
     # nb_cluster_values = sorted(set(df_results_qmeans["--nb-cluster"]))
-
     tasks = [
-        "assignation_mean_time",
-        "1nn_kmean_inference_time",
-        "nystrom_build_time",
-        "nystrom_inference_time",
-        "nystrom_sampled_error_reconstruction",
-        "traintime",
-        "1nn_kmean_accuracy",
-        "batch_assignation_mean_time",
-        "1nn_get_distance_time",
-        "nystrom_svm_accuracy",
-        "nystrom_svm_time",
+        "nb_flop_centroids",
         "nb_param_centroids",
-        "nb_flop_centroids"
+        "nystrom_sampled_error_reconstruction",
+        "nystrom_svm_accuracy",
+        "1nn_kmean_accuracy",
+
     ]
+
 
 
     y_axis_scale_by_task = {
@@ -148,7 +143,7 @@ if __name__ == "__main__":
         "1nn_get_distance_time": "time(s)",
         "nystrom_svm_accuracy": "accuracy",
         "nystrom_svm_time": "time(s)",
-        "nb_param_centroids": "# non-zero values",
+        "nb_param_centroids": "# param",
         "nb_flop_centroids": "# FLOP"
     }
 
@@ -171,6 +166,8 @@ if __name__ == "__main__":
     }
 
     for dataset_name in datasets:
+        print("\n\n")
+        print(dataset_name)
         datasets_col = datasets[dataset_name]
         if dataset_name in ("Fashion Mnist", "Mnist", "Kddcup04", "Kddcup99", "Census", "Coverage Type", "Plants", "Breast Cancer"):
             df_dataset_qmeans = df_results_qmeans[df_results_qmeans[datasets_col] != False]
@@ -190,17 +187,8 @@ if __name__ == "__main__":
         for hierarchical_value in [True]:
             df_hierarchical = df_dataset_qmeans[df_dataset_qmeans["--hierarchical-init"] == hierarchical_value]
 
-            # assignations_times_means_for_sparsity = []
-            # assignations_times_std_for_sparsity = []
-            # for idx_sparsy_val, sparsy_val in enumerate(sparsity_values):
-            #     df_sparsy_val = df_hierarchical[df_hierarchical["--sparsity-factor"] == sparsy_val]
-            #     nb_param = df_sparsy_val[df_sparsy_val["--nb-cluster"] == nb_cluster_values[idx_bar]]["nb_param_centroids"].mean()
-            #     ax.text(xcoor, mean_task_values[idx_bar] + std_task_values[idx_bar], ' {}'.format(int(round(nb_param))),
-            #             horizontalalignment='center',
-            #             verticalalignment='bottom',
-            #             rotation='vertical')
-
             for str_task in tasks:
+                print(str_task)
                 nb_kmeans_palm = len(sparsity_values) * 2
                 # extra_bars = 1 + nb_kmeans_palm if "1nn_kmean" not in str_task else 3 + nb_kmeans_palm # for 1nn there are also the other methods (ball_tree, kd_tree, to plot)
                 if "1nn_kmean" in str_task:
@@ -235,6 +223,10 @@ if __name__ == "__main__":
 
                     try:
                         mean_task_values = [pd.to_numeric(d).dropna().mean() for d in task_values]
+                        if sparsy_val == 3:
+                            print("qkmeans; sparsity {}; clusternbr {}".format(sparsy_val, nb_cluster_values[-1]))
+                            print(mean_task_values[-1])
+
                     except Exception as e:
                         raise e
                     std_task_values = [pd.to_numeric(d).dropna().std() for d in task_values]
@@ -243,6 +235,7 @@ if __name__ == "__main__":
                     bars.append(ax.bar(x_indices + bar_width * idx_sparsy_val, mean_task_values, bar_width, yerr=std_task_values,
                                        label='QK-means sparsity {}'.format(sparsy_val), zorder=10, color=color_by_sparsity[sparsy_val]))
                     max_value_in_plot = max(max_value_in_plot, max((np.array(mean_task_values) + np.array(std_task_values))))
+
 
                     # display number of parameters
                     for idx_bar, xcoor in enumerate(x_indices + bar_width * idx_sparsy_val):
@@ -269,6 +262,8 @@ if __name__ == "__main__":
                 except Exception as e:
                     raise e
                 std_task_values_kmeans = [d.std() for d in task_values_kmeans]
+                print("kmeans; clusternbr {}".format(nb_cluster_values[-1]))
+                print(mean_task_values_kmeans[-1])
                 offset_from_qmeans = 1  # offset from qmeans = 1 because directly after
                 bars.append(ax.bar(x_indices + bar_width * (len(sparsity_values)-1+offset_from_qmeans), mean_task_values_kmeans, bar_width, yerr=std_task_values_kmeans,
                                    label='Kmeans', zorder=10, color="r"))
@@ -291,7 +286,9 @@ if __name__ == "__main__":
                         task_values_kmeans = [pd.to_numeric(df_dataset_kmeans[df_dataset_kmeans["--nb-cluster"] == clust_nbr][str_task_special_1nn], errors="coerce") for clust_nbr in nb_cluster_values]
                         mean_task_values_kmeans = [d.mean() for d in task_values_kmeans]
                         std_task_values_kmeans = [d.std() for d in task_values_kmeans]
-
+                        if len(mean_task_values_kmeans):
+                            print("str_other_1nn")
+                            print(mean_task_values_kmeans[-1])
                         bars.append(ax.bar(x_indices + bar_width * (len(sparsity_values) + offset_from_qmeans + idx_other_1nn), mean_task_values_kmeans, bar_width, yerr=std_task_values_kmeans,
                                            label=other_1nn_methods_names[str_other_1nn], zorder=10))
 
@@ -309,7 +306,8 @@ if __name__ == "__main__":
                     task_values_nystrom_uniform = [pd.to_numeric(df_dataset_kmeans[df_dataset_kmeans["--nb-cluster"] == clust_nbr][str_task_special_1nn], errors="coerce") for clust_nbr in nb_cluster_values]
                     mean_task_values_nystrom_uniform = [d.mean() for d in task_values_nystrom_uniform]
                     std_task_values_nystrom_uniform = [d.std() for d in task_values_nystrom_uniform]
-
+                    print("uniform sampling")
+                    print(mean_task_values_nystrom_uniform[-1])
                     bars.append(ax.bar(x_indices + bar_width * (len(sparsity_values) + offset_from_qmeans), mean_task_values_nystrom_uniform, bar_width, yerr=std_task_values_nystrom_uniform,
                                        label="Uniform sampling", zorder=10, color="m"))
 
@@ -354,4 +352,4 @@ if __name__ == "__main__":
                 fig.set_size_inches(8, 6)
                 fig.tight_layout()
                 # plt.show()
-                plt.savefig(output_dir / title.replace(" ", "_").replace(":", ""))
+                # plt.savefig(output_dir / title.replace(" ", "_").replace(":", ""))

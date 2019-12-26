@@ -630,3 +630,7 @@ def visual_evaluation_palm4msa(target, init_factors, final_factors, result):
         plt.imshow(init_factors[i])
 
     plt.show()
+
+if __name__ == "__main__":
+    a = plants_dataset()
+    b=1

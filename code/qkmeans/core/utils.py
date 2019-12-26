@@ -201,40 +201,47 @@ def build_constraint_set_smart(left_dim, right_dim, nb_factors, sparsity_factor,
     nb_keep_values_right_most = int(nb_keep_values * right_dim / inner_factor_dim)
 
 
-    # iteration over hierarchy steps:
-    for k in range(nb_factors - 1):
-
-        # the number of value in the residual decreases with the iteration step. At each iteration step, the number of value in the residual is halved
-        if residual_on_right:
-            # power k instead of (k+1) for the first, constant matrix
-            if constant_first:
-                nb_values_residual = max(nb_keep_values, int(right_dim * inner_factor_dim / 2 ** (k)))
-            else:
-                nb_values_residual = max(nb_keep_values, int(right_dim * inner_factor_dim / 2 ** (k+1)))
-        else:
-            nb_values_residual = max(nb_keep_values, int(left_dim * inner_factor_dim / 2 ** (k+1)))
-
-        constraints_split, constraints_split_desc = build_constraint_split(nb_keep_values, nb_values_residual, k, nb_keep_values_left_most, nb_keep_values_right_most)
-        constraints_finetune, constraints_finetune_desc = build_constraint_finetune(nb_keep_values, nb_values_residual, k, nb_keep_values_left_most, nb_keep_values_right_most)
-
-        dct_step_lst_proj_op = {
-            "split": constraints_split,
-            "finetune": constraints_finetune
-        }
-
-        dct_step_lst_nb_keep_values = {
-            "split": constraints_split_desc,
-            "finetune": constraints_finetune_desc
-        }
-
-        lst_proj_op_by_fac_step.append(dct_step_lst_proj_op)
-        lst_proj_op_desc_by_fac_step.append(dct_step_lst_nb_keep_values)
-
     if hierarchical:
-        return lst_proj_op_by_fac_step, lst_proj_op_desc_by_fac_step
-    else:
-        return lst_proj_op_by_fac_step[-1]["finetune"], lst_proj_op_desc_by_fac_step[-1]["finetune"]
+        # iteration over hierarchy steps: (n_fac - 1 hierarchy steps)
+        for k in range(nb_factors - 1):
 
+            # the number of value in the residual decreases with the iteration step.
+            # At each iteration step, the number of value in the residual is halved
+            if residual_on_right:
+                # power k instead of (k+1) for the first, constant matrix
+                if constant_first:
+                    nb_values_residual = max(nb_keep_values, int(right_dim * inner_factor_dim / 2 ** (k)))
+                else:
+                    nb_values_residual = max(nb_keep_values, int(right_dim * inner_factor_dim / 2 ** (k+1)))
+            else:
+                nb_values_residual = max(nb_keep_values, int(left_dim * inner_factor_dim / 2 ** (k+1)))
+
+            constraints_split, constraints_split_desc = build_constraint_split(nb_keep_values, nb_values_residual, k, nb_keep_values_left_most, nb_keep_values_right_most)
+            constraints_finetune, constraints_finetune_desc = build_constraint_finetune(nb_keep_values, nb_values_residual, k, nb_keep_values_left_most, nb_keep_values_right_most)
+
+            dct_step_lst_proj_op = {
+                "split": constraints_split,
+                "finetune": constraints_finetune
+            }
+
+            dct_step_lst_nb_keep_values = {
+                "split": constraints_split_desc,
+                "finetune": constraints_finetune_desc
+            }
+
+            lst_proj_op_by_fac_step.append(dct_step_lst_proj_op)
+            lst_proj_op_desc_by_fac_step.append(dct_step_lst_nb_keep_values)
+
+        return lst_proj_op_by_fac_step, lst_proj_op_desc_by_fac_step
+
+    else:
+        if constant_first:
+            # -3 for the constant factor + leftmost + right most
+            lst_values = ["constant_proj"] + [nb_keep_values_left_most] + [nb_keep_values] * (nb_factors-3) + [nb_keep_values_right_most]
+        else:
+            lst_values = [nb_keep_values_left_most] + [nb_keep_values] * (nb_factors - 2) + [nb_keep_values_right_most]
+
+        return build_lst_constraint_from_values(lst_values), lst_values
 
 def build_constraint_sets(left_dim, right_dim, nb_factors, sparsity_factor):
     """
