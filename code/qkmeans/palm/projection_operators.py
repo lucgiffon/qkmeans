@@ -23,8 +23,8 @@ def get_unraveled_indexes_from_index_array(index_arr, shape, order='C'):
 
     return np.unravel_index(
         index_arr,
-        shape=shape,
-        order=order)
+        shape,
+        order)
 
 
 def projection_operator(input_arr, nb_keep_values):

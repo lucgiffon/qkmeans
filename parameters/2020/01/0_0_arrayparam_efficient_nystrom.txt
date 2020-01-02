@@ -1,0 +1,255 @@
+ --seed 0 --nystrom 5000 -vv --nb-landmarks 8 --breast-cancer
+ --seed 0 --nystrom 5000 -vv --nb-landmarks 8 --plants
+ --seed 0 --nystrom 5000 -vv --nb-landmarks 8 --mnist
+ --seed 0 --nystrom 5000 -vv --nb-landmarks 8 --fashion-mnist
+ --seed 0 --nystrom 5000 -vv --nb-landmarks 16 --breast-cancer
+ --seed 0 --nystrom 5000 -vv --nb-landmarks 16 --plants
+ --seed 0 --nystrom 5000 -vv --nb-landmarks 16 --mnist
+ --seed 0 --nystrom 5000 -vv --nb-landmarks 16 --fashion-mnist
+ --seed 0 --nystrom 5000 -vv --nb-landmarks 32 --breast-cancer
+ --seed 0 --nystrom 5000 -vv --nb-landmarks 32 --plants
+ --seed 0 --nystrom 5000 -vv --nb-landmarks 32 --mnist
+ --seed 0 --nystrom 5000 -vv --nb-landmarks 32 --fashion-mnist
+ --seed 0 --nystrom 5000 -vv --nb-landmarks 64 --breast-cancer
+ --seed 0 --nystrom 5000 -vv --nb-landmarks 64 --plants
+ --seed 0 --nystrom 5000 -vv --nb-landmarks 64 --mnist
+ --seed 0 --nystrom 5000 -vv --nb-landmarks 64 --fashion-mnist
+ --seed 1 --nystrom 5000 -vv --nb-landmarks 8 --breast-cancer
+ --seed 1 --nystrom 5000 -vv --nb-landmarks 8 --plants
+ --seed 1 --nystrom 5000 -vv --nb-landmarks 8 --mnist
+ --seed 1 --nystrom 5000 -vv --nb-landmarks 8 --fashion-mnist
+ --seed 1 --nystrom 5000 -vv --nb-landmarks 16 --breast-cancer
+ --seed 1 --nystrom 5000 -vv --nb-landmarks 16 --plants
+ --seed 1 --nystrom 5000 -vv --nb-landmarks 16 --mnist
+ --seed 1 --nystrom 5000 -vv --nb-landmarks 16 --fashion-mnist
+ --seed 1 --nystrom 5000 -vv --nb-landmarks 32 --breast-cancer
+ --seed 1 --nystrom 5000 -vv --nb-landmarks 32 --plants
+ --seed 1 --nystrom 5000 -vv --nb-landmarks 32 --mnist
+ --seed 1 --nystrom 5000 -vv --nb-landmarks 32 --fashion-mnist
+ --seed 1 --nystrom 5000 -vv --nb-landmarks 64 --breast-cancer
+ --seed 1 --nystrom 5000 -vv --nb-landmarks 64 --plants
+ --seed 1 --nystrom 5000 -vv --nb-landmarks 64 --mnist
+ --seed 1 --nystrom 5000 -vv --nb-landmarks 64 --fashion-mnist
+ --seed 2 --nystrom 5000 -vv --nb-landmarks 8 --breast-cancer
+ --seed 2 --nystrom 5000 -vv --nb-landmarks 8 --plants
+ --seed 2 --nystrom 5000 -vv --nb-landmarks 8 --mnist
+ --seed 2 --nystrom 5000 -vv --nb-landmarks 8 --fashion-mnist
+ --seed 2 --nystrom 5000 -vv --nb-landmarks 16 --breast-cancer
+ --seed 2 --nystrom 5000 -vv --nb-landmarks 16 --plants
+ --seed 2 --nystrom 5000 -vv --nb-landmarks 16 --mnist
+ --seed 2 --nystrom 5000 -vv --nb-landmarks 16 --fashion-mnist
+ --seed 2 --nystrom 5000 -vv --nb-landmarks 32 --breast-cancer
+ --seed 2 --nystrom 5000 -vv --nb-landmarks 32 --plants
+ --seed 2 --nystrom 5000 -vv --nb-landmarks 32 --mnist
+ --seed 2 --nystrom 5000 -vv --nb-landmarks 32 --fashion-mnist
+ --seed 2 --nystrom 5000 -vv --nb-landmarks 64 --breast-cancer
+ --seed 2 --nystrom 5000 -vv --nb-landmarks 64 --plants
+ --seed 2 --nystrom 5000 -vv --nb-landmarks 64 --mnist
+ --seed 2 --nystrom 5000 -vv --nb-landmarks 64 --fashion-mnist
+ --seed 3 --nystrom 5000 -vv --nb-landmarks 8 --breast-cancer
+ --seed 3 --nystrom 5000 -vv --nb-landmarks 8 --plants
+ --seed 3 --nystrom 5000 -vv --nb-landmarks 8 --mnist
+ --seed 3 --nystrom 5000 -vv --nb-landmarks 8 --fashion-mnist
+ --seed 3 --nystrom 5000 -vv --nb-landmarks 16 --breast-cancer
+ --seed 3 --nystrom 5000 -vv --nb-landmarks 16 --plants
+ --seed 3 --nystrom 5000 -vv --nb-landmarks 16 --mnist
+ --seed 3 --nystrom 5000 -vv --nb-landmarks 16 --fashion-mnist
+ --seed 3 --nystrom 5000 -vv --nb-landmarks 32 --breast-cancer
+ --seed 3 --nystrom 5000 -vv --nb-landmarks 32 --plants
+ --seed 3 --nystrom 5000 -vv --nb-landmarks 32 --mnist
+ --seed 3 --nystrom 5000 -vv --nb-landmarks 32 --fashion-mnist
+ --seed 3 --nystrom 5000 -vv --nb-landmarks 64 --breast-cancer
+ --seed 3 --nystrom 5000 -vv --nb-landmarks 64 --plants
+ --seed 3 --nystrom 5000 -vv --nb-landmarks 64 --mnist
+ --seed 3 --nystrom 5000 -vv --nb-landmarks 64 --fashion-mnist
+ --seed 4 --nystrom 5000 -vv --nb-landmarks 8 --breast-cancer
+ --seed 4 --nystrom 5000 -vv --nb-landmarks 8 --plants
+ --seed 4 --nystrom 5000 -vv --nb-landmarks 8 --mnist
+ --seed 4 --nystrom 5000 -vv --nb-landmarks 8 --fashion-mnist
+ --seed 4 --nystrom 5000 -vv --nb-landmarks 16 --breast-cancer
+ --seed 4 --nystrom 5000 -vv --nb-landmarks 16 --plants
+ --seed 4 --nystrom 5000 -vv --nb-landmarks 16 --mnist
+ --seed 4 --nystrom 5000 -vv --nb-landmarks 16 --fashion-mnist
+ --seed 4 --nystrom 5000 -vv --nb-landmarks 32 --breast-cancer
+ --seed 4 --nystrom 5000 -vv --nb-landmarks 32 --plants
+ --seed 4 --nystrom 5000 -vv --nb-landmarks 32 --mnist
+ --seed 4 --nystrom 5000 -vv --nb-landmarks 32 --fashion-mnist
+ --seed 4 --nystrom 5000 -vv --nb-landmarks 64 --breast-cancer
+ --seed 4 --nystrom 5000 -vv --nb-landmarks 64 --plants
+ --seed 4 --nystrom 5000 -vv --nb-landmarks 64 --mnist
+ --seed 4 --nystrom 5000 -vv --nb-landmarks 64 --fashion-mnist
+ --seed 0 --nystrom 5000 -vv --nb-landmarks 8 --kddcup99
+ --seed 0 --nystrom 5000 -vv --nb-landmarks 8 --kddcup04
+ --seed 0 --nystrom 5000 -vv --nb-landmarks 8 --census
+ --seed 0 --nystrom 5000 -vv --nb-landmarks 8 --covtype
+ --seed 0 --nystrom 5000 -vv --nb-landmarks 8 --caltech256 32
+ --seed 0 --nystrom 5000 -vv --nb-landmarks 16 --kddcup99
+ --seed 0 --nystrom 5000 -vv --nb-landmarks 16 --kddcup04
+ --seed 0 --nystrom 5000 -vv --nb-landmarks 16 --census
+ --seed 0 --nystrom 5000 -vv --nb-landmarks 16 --covtype
+ --seed 0 --nystrom 5000 -vv --nb-landmarks 16 --caltech256 32
+ --seed 0 --nystrom 5000 -vv --nb-landmarks 32 --kddcup99
+ --seed 0 --nystrom 5000 -vv --nb-landmarks 32 --kddcup04
+ --seed 0 --nystrom 5000 -vv --nb-landmarks 32 --census
+ --seed 0 --nystrom 5000 -vv --nb-landmarks 32 --covtype
+ --seed 0 --nystrom 5000 -vv --nb-landmarks 32 --caltech256 32
+ --seed 0 --nystrom 5000 -vv --nb-landmarks 64 --kddcup99
+ --seed 0 --nystrom 5000 -vv --nb-landmarks 64 --kddcup04
+ --seed 0 --nystrom 5000 -vv --nb-landmarks 64 --census
+ --seed 0 --nystrom 5000 -vv --nb-landmarks 64 --covtype
+ --seed 0 --nystrom 5000 -vv --nb-landmarks 64 --caltech256 32
+ --seed 0 --nystrom 5000 -vv --nb-landmarks 128 --kddcup99
+ --seed 0 --nystrom 5000 -vv --nb-landmarks 128 --kddcup04
+ --seed 0 --nystrom 5000 -vv --nb-landmarks 128 --census
+ --seed 0 --nystrom 5000 -vv --nb-landmarks 128 --covtype
+ --seed 0 --nystrom 5000 -vv --nb-landmarks 128 --caltech256 32
+ --seed 0 --nystrom 5000 -vv --nb-landmarks 256 --kddcup99
+ --seed 0 --nystrom 5000 -vv --nb-landmarks 256 --kddcup04
+ --seed 0 --nystrom 5000 -vv --nb-landmarks 256 --census
+ --seed 0 --nystrom 5000 -vv --nb-landmarks 256 --covtype
+ --seed 0 --nystrom 5000 -vv --nb-landmarks 256 --caltech256 32
+ --seed 0 --nystrom 5000 -vv --nb-landmarks 512 --kddcup99
+ --seed 0 --nystrom 5000 -vv --nb-landmarks 512 --kddcup04
+ --seed 0 --nystrom 5000 -vv --nb-landmarks 512 --census
+ --seed 0 --nystrom 5000 -vv --nb-landmarks 512 --covtype
+ --seed 0 --nystrom 5000 -vv --nb-landmarks 512 --caltech256 32
+ --seed 1 --nystrom 5000 -vv --nb-landmarks 8 --kddcup99
+ --seed 1 --nystrom 5000 -vv --nb-landmarks 8 --kddcup04
+ --seed 1 --nystrom 5000 -vv --nb-landmarks 8 --census
+ --seed 1 --nystrom 5000 -vv --nb-landmarks 8 --covtype
+ --seed 1 --nystrom 5000 -vv --nb-landmarks 8 --caltech256 32
+ --seed 1 --nystrom 5000 -vv --nb-landmarks 16 --kddcup99
+ --seed 1 --nystrom 5000 -vv --nb-landmarks 16 --kddcup04
+ --seed 1 --nystrom 5000 -vv --nb-landmarks 16 --census
+ --seed 1 --nystrom 5000 -vv --nb-landmarks 16 --covtype
+ --seed 1 --nystrom 5000 -vv --nb-landmarks 16 --caltech256 32
+ --seed 1 --nystrom 5000 -vv --nb-landmarks 32 --kddcup99
+ --seed 1 --nystrom 5000 -vv --nb-landmarks 32 --kddcup04
+ --seed 1 --nystrom 5000 -vv --nb-landmarks 32 --census
+ --seed 1 --nystrom 5000 -vv --nb-landmarks 32 --covtype
+ --seed 1 --nystrom 5000 -vv --nb-landmarks 32 --caltech256 32
+ --seed 1 --nystrom 5000 -vv --nb-landmarks 64 --kddcup99
+ --seed 1 --nystrom 5000 -vv --nb-landmarks 64 --kddcup04
+ --seed 1 --nystrom 5000 -vv --nb-landmarks 64 --census
+ --seed 1 --nystrom 5000 -vv --nb-landmarks 64 --covtype
+ --seed 1 --nystrom 5000 -vv --nb-landmarks 64 --caltech256 32
+ --seed 1 --nystrom 5000 -vv --nb-landmarks 128 --kddcup99
+ --seed 1 --nystrom 5000 -vv --nb-landmarks 128 --kddcup04
+ --seed 1 --nystrom 5000 -vv --nb-landmarks 128 --census
+ --seed 1 --nystrom 5000 -vv --nb-landmarks 128 --covtype
+ --seed 1 --nystrom 5000 -vv --nb-landmarks 128 --caltech256 32
+ --seed 1 --nystrom 5000 -vv --nb-landmarks 256 --kddcup99
+ --seed 1 --nystrom 5000 -vv --nb-landmarks 256 --kddcup04
+ --seed 1 --nystrom 5000 -vv --nb-landmarks 256 --census
+ --seed 1 --nystrom 5000 -vv --nb-landmarks 256 --covtype
+ --seed 1 --nystrom 5000 -vv --nb-landmarks 256 --caltech256 32
+ --seed 1 --nystrom 5000 -vv --nb-landmarks 512 --kddcup99
+ --seed 1 --nystrom 5000 -vv --nb-landmarks 512 --kddcup04
+ --seed 1 --nystrom 5000 -vv --nb-landmarks 512 --census
+ --seed 1 --nystrom 5000 -vv --nb-landmarks 512 --covtype
+ --seed 1 --nystrom 5000 -vv --nb-landmarks 512 --caltech256 32
+ --seed 2 --nystrom 5000 -vv --nb-landmarks 8 --kddcup99
+ --seed 2 --nystrom 5000 -vv --nb-landmarks 8 --kddcup04
+ --seed 2 --nystrom 5000 -vv --nb-landmarks 8 --census
+ --seed 2 --nystrom 5000 -vv --nb-landmarks 8 --covtype
+ --seed 2 --nystrom 5000 -vv --nb-landmarks 8 --caltech256 32
+ --seed 2 --nystrom 5000 -vv --nb-landmarks 16 --kddcup99
+ --seed 2 --nystrom 5000 -vv --nb-landmarks 16 --kddcup04
+ --seed 2 --nystrom 5000 -vv --nb-landmarks 16 --census
+ --seed 2 --nystrom 5000 -vv --nb-landmarks 16 --covtype
+ --seed 2 --nystrom 5000 -vv --nb-landmarks 16 --caltech256 32
+ --seed 2 --nystrom 5000 -vv --nb-landmarks 32 --kddcup99
+ --seed 2 --nystrom 5000 -vv --nb-landmarks 32 --kddcup04
+ --seed 2 --nystrom 5000 -vv --nb-landmarks 32 --census
+ --seed 2 --nystrom 5000 -vv --nb-landmarks 32 --covtype
+ --seed 2 --nystrom 5000 -vv --nb-landmarks 32 --caltech256 32
+ --seed 2 --nystrom 5000 -vv --nb-landmarks 64 --kddcup99
+ --seed 2 --nystrom 5000 -vv --nb-landmarks 64 --kddcup04
+ --seed 2 --nystrom 5000 -vv --nb-landmarks 64 --census
+ --seed 2 --nystrom 5000 -vv --nb-landmarks 64 --covtype
+ --seed 2 --nystrom 5000 -vv --nb-landmarks 64 --caltech256 32
+ --seed 2 --nystrom 5000 -vv --nb-landmarks 128 --kddcup99
+ --seed 2 --nystrom 5000 -vv --nb-landmarks 128 --kddcup04
+ --seed 2 --nystrom 5000 -vv --nb-landmarks 128 --census
+ --seed 2 --nystrom 5000 -vv --nb-landmarks 128 --covtype
+ --seed 2 --nystrom 5000 -vv --nb-landmarks 128 --caltech256 32
+ --seed 2 --nystrom 5000 -vv --nb-landmarks 256 --kddcup99
+ --seed 2 --nystrom 5000 -vv --nb-landmarks 256 --kddcup04
+ --seed 2 --nystrom 5000 -vv --nb-landmarks 256 --census
+ --seed 2 --nystrom 5000 -vv --nb-landmarks 256 --covtype
+ --seed 2 --nystrom 5000 -vv --nb-landmarks 256 --caltech256 32
+ --seed 2 --nystrom 5000 -vv --nb-landmarks 512 --kddcup99
+ --seed 2 --nystrom 5000 -vv --nb-landmarks 512 --kddcup04
+ --seed 2 --nystrom 5000 -vv --nb-landmarks 512 --census
+ --seed 2 --nystrom 5000 -vv --nb-landmarks 512 --covtype
+ --seed 2 --nystrom 5000 -vv --nb-landmarks 512 --caltech256 32
+ --seed 3 --nystrom 5000 -vv --nb-landmarks 8 --kddcup99
+ --seed 3 --nystrom 5000 -vv --nb-landmarks 8 --kddcup04
+ --seed 3 --nystrom 5000 -vv --nb-landmarks 8 --census
+ --seed 3 --nystrom 5000 -vv --nb-landmarks 8 --covtype
+ --seed 3 --nystrom 5000 -vv --nb-landmarks 8 --caltech256 32
+ --seed 3 --nystrom 5000 -vv --nb-landmarks 16 --kddcup99
+ --seed 3 --nystrom 5000 -vv --nb-landmarks 16 --kddcup04
+ --seed 3 --nystrom 5000 -vv --nb-landmarks 16 --census
+ --seed 3 --nystrom 5000 -vv --nb-landmarks 16 --covtype
+ --seed 3 --nystrom 5000 -vv --nb-landmarks 16 --caltech256 32
+ --seed 3 --nystrom 5000 -vv --nb-landmarks 32 --kddcup99
+ --seed 3 --nystrom 5000 -vv --nb-landmarks 32 --kddcup04
+ --seed 3 --nystrom 5000 -vv --nb-landmarks 32 --census
+ --seed 3 --nystrom 5000 -vv --nb-landmarks 32 --covtype
+ --seed 3 --nystrom 5000 -vv --nb-landmarks 32 --caltech256 32
+ --seed 3 --nystrom 5000 -vv --nb-landmarks 64 --kddcup99
+ --seed 3 --nystrom 5000 -vv --nb-landmarks 64 --kddcup04
+ --seed 3 --nystrom 5000 -vv --nb-landmarks 64 --census
+ --seed 3 --nystrom 5000 -vv --nb-landmarks 64 --covtype
+ --seed 3 --nystrom 5000 -vv --nb-landmarks 64 --caltech256 32
+ --seed 3 --nystrom 5000 -vv --nb-landmarks 128 --kddcup99
+ --seed 3 --nystrom 5000 -vv --nb-landmarks 128 --kddcup04
+ --seed 3 --nystrom 5000 -vv --nb-landmarks 128 --census
+ --seed 3 --nystrom 5000 -vv --nb-landmarks 128 --covtype
+ --seed 3 --nystrom 5000 -vv --nb-landmarks 128 --caltech256 32
+ --seed 3 --nystrom 5000 -vv --nb-landmarks 256 --kddcup99
+ --seed 3 --nystrom 5000 -vv --nb-landmarks 256 --kddcup04
+ --seed 3 --nystrom 5000 -vv --nb-landmarks 256 --census
+ --seed 3 --nystrom 5000 -vv --nb-landmarks 256 --covtype
+ --seed 3 --nystrom 5000 -vv --nb-landmarks 256 --caltech256 32
+ --seed 3 --nystrom 5000 -vv --nb-landmarks 512 --kddcup99
+ --seed 3 --nystrom 5000 -vv --nb-landmarks 512 --kddcup04
+ --seed 3 --nystrom 5000 -vv --nb-landmarks 512 --census
+ --seed 3 --nystrom 5000 -vv --nb-landmarks 512 --covtype
+ --seed 3 --nystrom 5000 -vv --nb-landmarks 512 --caltech256 32
+ --seed 4 --nystrom 5000 -vv --nb-landmarks 8 --kddcup99
+ --seed 4 --nystrom 5000 -vv --nb-landmarks 8 --kddcup04
+ --seed 4 --nystrom 5000 -vv --nb-landmarks 8 --census
+ --seed 4 --nystrom 5000 -vv --nb-landmarks 8 --covtype
+ --seed 4 --nystrom 5000 -vv --nb-landmarks 8 --caltech256 32
+ --seed 4 --nystrom 5000 -vv --nb-landmarks 16 --kddcup99
+ --seed 4 --nystrom 5000 -vv --nb-landmarks 16 --kddcup04
+ --seed 4 --nystrom 5000 -vv --nb-landmarks 16 --census
+ --seed 4 --nystrom 5000 -vv --nb-landmarks 16 --covtype
+ --seed 4 --nystrom 5000 -vv --nb-landmarks 16 --caltech256 32
+ --seed 4 --nystrom 5000 -vv --nb-landmarks 32 --kddcup99
+ --seed 4 --nystrom 5000 -vv --nb-landmarks 32 --kddcup04
+ --seed 4 --nystrom 5000 -vv --nb-landmarks 32 --census
+ --seed 4 --nystrom 5000 -vv --nb-landmarks 32 --covtype
+ --seed 4 --nystrom 5000 -vv --nb-landmarks 32 --caltech256 32
+ --seed 4 --nystrom 5000 -vv --nb-landmarks 64 --kddcup99
+ --seed 4 --nystrom 5000 -vv --nb-landmarks 64 --kddcup04
+ --seed 4 --nystrom 5000 -vv --nb-landmarks 64 --census
+ --seed 4 --nystrom 5000 -vv --nb-landmarks 64 --covtype
+ --seed 4 --nystrom 5000 -vv --nb-landmarks 64 --caltech256 32
+ --seed 4 --nystrom 5000 -vv --nb-landmarks 128 --kddcup99
+ --seed 4 --nystrom 5000 -vv --nb-landmarks 128 --kddcup04
+ --seed 4 --nystrom 5000 -vv --nb-landmarks 128 --census
+ --seed 4 --nystrom 5000 -vv --nb-landmarks 128 --covtype
+ --seed 4 --nystrom 5000 -vv --nb-landmarks 128 --caltech256 32
+ --seed 4 --nystrom 5000 -vv --nb-landmarks 256 --kddcup99
+ --seed 4 --nystrom 5000 -vv --nb-landmarks 256 --kddcup04
+ --seed 4 --nystrom 5000 -vv --nb-landmarks 256 --census
+ --seed 4 --nystrom 5000 -vv --nb-landmarks 256 --covtype
+ --seed 4 --nystrom 5000 -vv --nb-landmarks 256 --caltech256 32
+ --seed 4 --nystrom 5000 -vv --nb-landmarks 512 --kddcup99
+ --seed 4 --nystrom 5000 -vv --nb-landmarks 512 --kddcup04
+ --seed 4 --nystrom 5000 -vv --nb-landmarks 512 --census
+ --seed 4 --nystrom 5000 -vv --nb-landmarks 512 --covtype
+ --seed 4 --nystrom 5000 -vv --nb-landmarks 512 --caltech256 32

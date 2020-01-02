@@ -9,7 +9,9 @@ import numpy as np
 from scipy.sparse.linalg import LinearOperator
 from scipy.sparse import csr_matrix
 from scipy.sparse.linalg import eigs, svds
-from scipy.linalg import toeplitz
+from scipy.linalg import toeplitz, hadamard
+
+from qkmeans.FWHT import FWHT
 
 
 class SparseFactors(LinearOperator):
@@ -430,3 +432,23 @@ def create_sparse_factors(shape, n_factors=None, sparsity_level=2):
 
     S = SparseFactors(factors)
     return S
+
+class UfastOperator(LinearOperator):
+    """
+    Will be used as a set of landmark points for the nystrom approximation.
+    """
+    def __init__(self, seeds_vec, fast_op=FWHT):
+        self.fast_op = fast_op
+        self.seeds = seeds_vec # represents the diagonals: \in R^{s x d}
+        super().__init__(shape=(self.seeds.shape[0] * self.seeds.shape[1], self.seeds.shape[1]), dtype=self.seeds.dtype)
+
+    def _matvec(self, x):
+        # \in R^{sd}
+        seed_products = self.seeds * x # represents all the vector obtained after multiplying the inputs by the diagonals: \in R^{s x d}
+        result = np.vstack([self.fast_op(v) for v in seed_products])
+        return result
+
+    def toarray(self):
+        # \in R^{sd x d}
+        result = np.hstack([v[:, np.newaxis] * hadamard(v.size).T for v in self.seeds]).T
+        return result

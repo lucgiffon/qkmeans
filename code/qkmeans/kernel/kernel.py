@@ -75,7 +75,8 @@ def prepare_nystrom(landmarks, landmarks_norm, gamma):
     :param gamma: The gamma value to use in the rbf kernel.
     :return:
     """
-    basis_kernel_W = special_rbf_kernel(landmarks, landmarks, gamma, landmarks_norm, landmarks_norm.T)
+    landmarks_norm = landmarks_norm.T if hasattr(landmarks_norm, "T") else None
+    basis_kernel_W = special_rbf_kernel(landmarks, landmarks, gamma, landmarks_norm, landmarks_norm)
     U, S, V = scipy.linalg.svd(basis_kernel_W)
     Sprim =  np.maximum(S, 1e-12)
     if (Sprim != S).any():

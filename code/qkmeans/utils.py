@@ -322,6 +322,98 @@ class ParameterManager(dict):
             raise NotImplementedError("Unknown initialization.")
 
 
+class ParameterManagerEfficientNystrom(dict):
+    def __init__(self, dct_params, **kwargs):
+        super().__init__(self, **dct_params, **kwargs)
+        self["--nb-landmarks"] = int(self["--nb-landmarks"])
+        self["--nystrom"] = int(self["--nystrom"])
+        self["--max-eval-train-size"] = int(self["--max-eval-train-size"]) if self["--max-eval-train-size"] is not None else None
+
+        self["--nb-iteration"] = 20
+        self["--minibatch"] = None
+        self.__init_output_file()
+        self.__init_seed()
+        self.__init_dataset()
+
+    def __init_dataset(self):
+        if self["--blobs"] is not None:
+            size_dim_clust = self["--blobs"].split("-")
+            try:
+                size_dim_clust = [int(elm) for elm in size_dim_clust]
+                if len(size_dim_clust) != 3:
+                    raise ValueError
+            except ValueError:
+                raise ValueError("Blobs chain malformed: {}. should be like 'size-dim-clusters'".format(self["--blobs"]))
+
+            self["blobs_size"] = size_dim_clust[0]
+            self["blobs_dim"] = size_dim_clust[1]
+            self["blobs_clusters"] = size_dim_clust[2]
+
+
+    def __init_output_file(self):
+        out_file = get_random()
+        self["--output-file"] = out_file
+        if out_file is not None and len(out_file.split(".")) > 1:
+            raise ValueError("Output file name should be given without any extension (no `.` in the string)")
+        if out_file is not None:
+            self["--output-file_resprinter"] = Path(out_file + "_results.csv")
+
+    def __init_seed(self):
+        self["--seed"] = int(self["--seed"]) if self["--seed"] is not None else None
+        if self["--seed"] is not None:
+            np.random.seed(self["--seed"])
+
+    def get_dataset(self):
+        """
+        Return dataset in shape n x d.
+
+        n: number of observations.
+        d: dimensionality of observations.
+
+        :return:
+        """
+        if self["--blobs"] is not None:
+            blob_size = self["blobs_size"]
+            blob_features = self["blobs_dim"]
+            blob_centers = self["blobs_clusters"]
+            return blobs_dataset(blob_size, blob_features, blob_centers)
+        elif self["--caltech256"] is not None:
+            caltech_size = int(self["--caltech256"])
+            return caltech_dataset(caltech_size)
+        elif self["--census"]:
+            self["--minibatch"] = 1000
+            return census_dataset()
+        elif self["--kddcup04"]:
+            self["--minibatch"] = 1000
+            return kddcup04_dataset()
+        elif self["--kddcup99"]:
+            self["--minibatch"] = 1000
+            return kddcup99_dataset()
+        elif self["--plants"]:
+            return plants_dataset()
+        elif self["--breast-cancer"]:
+            return breast_cancer_dataset()
+        elif self["--covtype"]:
+            self["--minibatch"] = 1000
+            return covtype_dataset()
+        elif self["--mnist"]:
+            return mnist_dataset()
+        elif self["--fashion-mnist"]:
+            return fashion_mnist_dataset()
+        elif self["--light-blobs"]:
+            blob_size = 5000
+            blob_features = 784
+            blob_centers = 50
+            return blobs_dataset(blob_size, blob_features, blob_centers)
+        elif self["--lfw"]:
+            return lfw_dataset(self["--seed"])
+        elif self["--million-blobs"] is not None:
+            self["--minibatch"] = 1000
+            return million_blobs_dataset(int(self["--million-blobs"]))
+        else:
+            raise NotImplementedError("Unknown dataset.")
+
+
 def compute_euristic_gamma(dataset_full, slice_size=1000):
     """
     Given a dataset, return the gamma that should be used (euristically) when using a rbf kernel on this dataset.
@@ -494,6 +586,9 @@ def million_blobs_dataset(nb_million):
         "y_test": y_test
     }
 
+def next_power_of_two(number):
+    # Returns next power of two following 'number'
+    return int(np.ceil(np.log2(number)))
 
 
 def create_directory(_dir, parents=True, exist_ok=True):

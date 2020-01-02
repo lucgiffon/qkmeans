@@ -329,7 +329,7 @@ def make_1nn_evaluation(x_train, y_train, x_test, y_test, U_centroids, indicator
                 indices_no_train_obs_in_cluster.append(i)
                 lst_clf_by_cluster.append(None)
 
-        # lst_clf_by_cluster = [ for i in range(U_centroids.shape[0])]
+        # lst_clf_by_cluster = [ for i in range(landmarks.shape[0])]
         log_memory_usage("Memory after definition of neighbors classifiers in kmean_tree_evaluation of make_1nn_evaluation")
         precomputed_centroid_norms = get_squared_froebenius_norm_line_wise(U_centroids)
         # precomputed_centroid_norms = None

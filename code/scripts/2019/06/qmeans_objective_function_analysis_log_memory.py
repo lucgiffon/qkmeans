@@ -263,7 +263,7 @@ def make_1nn_evaluation(x_train, y_train, x_test, y_test, U_centroids, indicator
         # for each cluster, there is a sub nearest neighbor classifier for points in that cluster.
         lst_clf_by_cluster = [KNeighborsClassifier(n_neighbors=1, algorithm="brute").fit(x_train[indicator_vector == i], y_train[indicator_vector == i]) for i in range(U_centroids.shape[0])]
         log_memory_usage("Memory after definition of neighbors classifiers in kmean_tree_evaluation of make_1nn_evaluation")
-        # precomputed_centroid_norms = get_squared_froebenius_norm(U_centroids)
+        # precomputed_centroid_norms = get_squared_froebenius_norm(landmarks)
         precomputed_centroid_norms = None
         start_inference_time = time.time()
         distances = get_distances(x_test, U_centroids, precomputed_centroids_norm=precomputed_centroid_norms)
@@ -361,7 +361,7 @@ def make_nystrom_evaluation(x_train, U_centroids):
     gamma = compute_euristic_gamma(x_train)
     log_memory_usage("Memory after euristic gamma computation in make_nystrom_evaluation")
     # precompute the centroids norm for later use (optimization)
-    # centroids_norm = get_squared_froebenius_norm(U_centroids)
+    # centroids_norm = get_squared_froebenius_norm(landmarks)
     centroids_norm = None
 
     ## TIME: nystrom build time
