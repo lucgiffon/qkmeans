@@ -3,7 +3,7 @@ Analysis of objective function during qmeans execution. This script is derived f
 and change in nystrom evaluation that is now normalized.
 
 Usage:
-  efficient_nystrom [-h] [-v|-vv] [--seed=int] (--blobs str|--light-blobs|--covtype|--breast-cancer|--census|--kddcup04|--kddcup99|--plants|--mnist|--fashion-mnist|--lfw|--caltech256 int|--million-blobs int) --nb-landmarks=int [--max-eval-train-size=init] --nystrom=int
+  efficient_nystrom [-h] [-v|-vv] [--seed=int] (--blobs str|--light-blobs|--covtype|--breast-cancer|--census|--kddcup04|--kddcup99|--plants|--mnist|--fashion-mnist|--lfw|--caltech256 int|--million-blobs int) --nb-landmarks=int [--max-eval-train-size=init] --nystrom=int [--standardize-std]
 
 Options:
   -h --help                             Show this screen.
@@ -30,6 +30,7 @@ Non-specific options:
   --nb-landmarks=int                    Number of landmark points in the final approximation.
   --max-eval-train-size=int             Max size of train for evaluation
   --nystrom=int                         Size of evaluation set for nystrom
+  --standardize-std                     Apply normalization of variance to 1 of dataset
 """
 import signal
 import docopt
@@ -205,13 +206,14 @@ if __name__ == "__main__":
         logger.info("Train size: {}".format(train_indexes.size))
 
 
-        scaler = StandardScaler(with_std=False)
+        scaler = StandardScaler(with_std=paraman["--standardize-std"])
         data_train = dataset["x_train"][train_indexes]
         data_train = scaler.fit_transform(data_train)
         deficit_dim_before_power_of_two = 2**next_power_of_two(data_train.shape[1]) - data_train.shape[1]
         data_train = np.pad(data_train, [(0, 0), (0, deficit_dim_before_power_of_two)], 'constant')
 
         gamma = compute_euristic_gamma(data_train)
+        # gamma = 2**-10
 
         logger.info("Start Nyström reconstruction evaluation".format(paraman["--nystrom"]))
         if "x_test" in dataset.keys():
@@ -251,10 +253,10 @@ if __name__ == "__main__":
         if paraman["--nb-landmarks"] < uop_arr_kmeans.shape[0]:
             uop_arr_kmeans = uop_arr_kmeans[:-(uop_arr_kmeans.shape[0] - paraman["--nb-landmarks"]), :]
 
+        reconstruction_error_nystrom_kmeans, accuracy_nystrom_svm_kmeans = nystrom_eval(kmeans_sample)
         reconstruction_error_nystrom_uniform, accuracy_nystrom_svm_uniform = nystrom_eval(uniform_sample)
         reconstruction_error_nystrom_uop, accuracy_nystrom_svm_uop = nystrom_eval(uop_arr)
         reconstruction_error_nystrom_seeds, accuracy_nystrom_svm_seeds = nystrom_eval(seeds)
-        reconstruction_error_nystrom_kmeans, accuracy_nystrom_svm_kmeans = nystrom_eval(kmeans_sample)
         reconstruction_error_nystrom_uop_kmeans, accuracy_nystrom_svm_uop_kmeans = nystrom_eval(uop_arr_kmeans)
 
         results = {

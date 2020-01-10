@@ -1,0 +1,46 @@
+all:
+  qmeans_big:
+  qmeans_small:
+  kmeans_big:
+  kmeans_small:
+
+base:
+  seed: {"--seed": "range(5)"}
+  nystrom: {"--nystrom": ["5000"]}
+  assignation: {"--assignation-time": ["5000"]}
+  batch_assignation: {"--batch-assignation-time": ["5000"]}
+  1nn: ["--1-nn"]
+  initialisation: {--initialization: ["uniform_sampling"]}
+  iterations: {--nb-iteration: ["10"]}
+
+base_small:
+  base:
+  nb_clusters: {"--nb-cluster": ["8", "16", "64"]}
+  dataset: ["--mnist", "--fashion-mnist"]
+
+base_big:
+  base:
+  nb_clusters: {"--nb-cluster": ["8", "16", "32", "64", "128", "256"]}
+  dataset: ["--caltech256 32"]
+
+palm:
+  sparsity_factor: {"--sparsity-factor": ["2", "3", "5"]}
+  hierarchical: ["--hierarchical-init"]
+
+qmeans_big:
+  qmeans: ["qmeans"]
+  palm:
+  base_big:
+
+kmeans_big:
+  kmeans: ["kmeans"]
+  base_big:
+
+qmeans_small:
+  qmeans: ["qmeans"]
+  palm:
+  base_small:
+
+kmeans_small:
+  kmeans: ["kmeans"]
+  base_small:

@@ -329,7 +329,7 @@ class ParameterManagerEfficientNystrom(dict):
         self["--nystrom"] = int(self["--nystrom"])
         self["--max-eval-train-size"] = int(self["--max-eval-train-size"]) if self["--max-eval-train-size"] is not None else None
 
-        self["--nb-iteration"] = 20
+        self["--nb-iteration"] = 10
         self["--minibatch"] = None
         self.__init_output_file()
         self.__init_seed()

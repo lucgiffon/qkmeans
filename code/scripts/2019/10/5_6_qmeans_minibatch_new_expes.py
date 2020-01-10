@@ -63,6 +63,8 @@ import time
 import numpy as np
 from sklearn.kernel_approximation import Nystroem
 from sklearn.metrics.pairwise import rbf_kernel
+from sklearn.preprocessing import StandardScaler
+
 from qkmeans.data_structures import SparseFactors
 from qkmeans.kernel.kernel import special_rbf_kernel, nystrom_transformation, prepare_nystrom
 from qkmeans.palm.palm_fast import hierarchical_palm4msa, palm4msa
@@ -610,11 +612,15 @@ if __name__ == "__main__":
             "size_train": dataset["x_train"].shape[0]
         }
 
+        scaler = StandardScaler(with_std=False)
+        dataset["x_train"] = scaler.fit_transform(dataset["x_train"])
+
         if "x_test" in dataset:
             if dataset["x_train"].dtype != np.float32:
                 dataset["x_test"] = dataset["x_test"].astype(np.float32)
                 dataset["y_test"] = dataset["y_test"].astype(np.float32)
                 dataset["y_train"] = dataset["y_train"].astype(np.float32)
+            dataset["x_test"] = scaler.transform(dataset["x_test"])
             sizes.update({
                 "size_test": dataset["x_test"].shape[0]
             })

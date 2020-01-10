@@ -29,11 +29,16 @@ def special_rbf_kernel(X, Y, gamma, norm_X=None, norm_Y=None, exp_outside=True):
         norm_X = row_norms(X, squared=True)[:, np.newaxis]
     else:
         norm_X = check_array(norm_X)
+        assert norm_X.shape[0] == X.shape[0], "nb line in X and norm X should be the same"
+        assert norm_X.shape[1] == 1, "norm X should be 1 dimensional array"
+
 
     if norm_Y is None:
         norm_Y = row_norms(Y, squared=True)[np.newaxis, :]
     else:
         norm_Y = check_array(norm_Y)
+        assert norm_Y.shape[1] == Y.shape[0], "nb line in Y and norm Y should be the same"
+        assert norm_Y.shape[0] == 1, "norm Y should be 1 dimensional array"
 
     def f(norm_mat):
         return np.exp(-gamma * norm_mat)
@@ -75,8 +80,8 @@ def prepare_nystrom(landmarks, landmarks_norm, gamma):
     :param gamma: The gamma value to use in the rbf kernel.
     :return:
     """
-    landmarks_norm = landmarks_norm.T if hasattr(landmarks_norm, "T") else None
-    basis_kernel_W = special_rbf_kernel(landmarks, landmarks, gamma, landmarks_norm, landmarks_norm)
+    landmarks_norm_T = landmarks_norm.T if hasattr(landmarks_norm, "T") else None
+    basis_kernel_W = special_rbf_kernel(landmarks, landmarks, gamma, landmarks_norm, landmarks_norm_T)
     U, S, V = scipy.linalg.svd(basis_kernel_W)
     Sprim =  np.maximum(S, 1e-12)
     if (Sprim != S).any():
