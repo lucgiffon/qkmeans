@@ -11,7 +11,7 @@
 The code has been written in Python, including the \palm algorithm.
 Running times are measured on a computer grid with 3.8GHz-CPUs (2.5GHz in Figure~\ref{fig:time_csr}).
 Fast operators $\rmV$ based on sparse matrices $\rmS_q$ are implemented with \texttt{csr\_matrix} objects from the \texttt{scipy.linalg} package. 
-While more efficient implementations may be beneficial for larger deployment, our implementation is sufficient as a proof of concept for assessing the performance of the proposed approach as illustrated by running times benchmarking in the Section~\ref{seq:sparse_factor_benchmarking} of supplementary material.
+While more efficient implementations may be beneficial for larger deployment, our implementation is sufficient as a proof of concept for assessing the performance of the proposed approach as illustrated by running times benchmarking in the Section~\ref{seq:sparse_factor_benchmarking} of supplementary material. \todo[inline]{a retirer si on ne parle plus de `temps` de calcul a proprement parler mais de flop}
 % In particular, the running times of fast operators of the form $\prod_{q\in\intint{\nfactors}}{\rmS_q}$ have been measured when applying to random vectors, for several sparsity levels: 
 % as shown in Figure~\ref{fig:time_csr}, they are significantly faster than dense operators -- implemented as a \texttt{numpy.ndarray} matrix --, especially when the data size is larger than $10^3$.
 
@@ -34,12 +34,12 @@ While more efficient implementations may be beneficial for larger deployment, ou
 \paragraph{Datasets.}
 We present results on real-world and toy datasets.
 Our experiments are conducted on synthetic and real-world data sets to show (i) --- quantitatively and qualitatively --- the good quality of the obtained centers when using our method on the \texttt{MNIST}~\cite{lecun-mnisthandwrittendigit-2010} and \texttt{Fashion-Mnist}~\cite{Pedregosa2011Scikit} %and \texttt{Labeled Faces in the Wild}~\cite{Huang07e.:labeled} (\texttt{LFW}) 
-($D=784$, $K=10$) datasets and (ii) the speed up offered by our method \qkmeans when the number of clusters and the dimensionality of the data are sufficiently large on the \texttt{blobs} synthetic dataset from \texttt{sklearn.dataset}  ($D=2000$, $K=1000$) and the \texttt{Caltech256}~\cite{griffin2007caltech} dataset ($D=2352$, $K=256$) (see supplementary material Section~\ref{supp:datasets} for compact statistics table).
+($D=784$, $K=10$) datasets and (ii) the speed up offered by our method \qkmeans when the number of clusters and the dimensionality of the data are sufficiently large on the \texttt{blobs} synthetic dataset from \texttt{sklearn.dataset}  ($D=2000$, $K=1000$) and the \texttt{Caltech256}~\cite{griffin2007caltech} dataset ($D=2352$, $K=256$) (see supplementary material Section~\ref{supp:datasets} for compact statistics table). \todo[inline]{ne plus faire la distinction entre les datasets pour speedup vs qualité -> retirer les références à blobs qui n'es tplus nécessaire dans ce cas}
 %The code of our method \qkmeans is available on request and will be available online soon. \addLG{je serais d'avis de ne pas dire ça mais soit de dire qu'il est déjà disponible, soit de ne rien dire. Sachant qu'on ne peut pas dire qu'il est déjà disponible en ligne avant le processus de reviewing}
 
 
 \paragraph{Algorithm settings.} 
-\qkmeans is used with $Q\eqdef\log_2\left (A\right )$ sparse factors, where  $A\eqdef\min\left (\nclusters, \datadim\right )$. 
+\qkmeans is used with $Q\eqdef\log_2\left (A\right )$ \todo[inline]{on devrait plutôt utiliser log B sparse factors pour être cohérents avec l'étude théorique -> expériences à re faire} sparse factors, where  $A\eqdef\min\left (\nclusters, \datadim\right )$. 
 All factors $\rmS_q$ are with shape $A \times A$ except, depending on the shape of $\rmA$, the leftmost one ($\nclusters\times A$) or the rightmost one ($A\times\datadim$). 
 The sparsity constraint of each factor $\rmS_q$ is set in $\mathcal{E}_q$ and is governed by a global parameter denoted as \textit{sparsity level}, which indicates the desired number of non-zero coefficients in each row and in each column of $\rmS_q$. 
 Since the projection onto this set of structured-sparsity constraints may be computationally expensive, this projection is relaxed in the implementation of \palm and only guarantees that the number of non-zero coefficients in each row and each column is at least the sparsity level, as in~\cite{LeMagoarou2016Flexible}.
@@ -119,6 +119,7 @@ Although some degradation may be observed in some images, one can note that each
 \paragraph{Clustering assignation times.}
 Higher dimensions are required to assess the computational benefits of the proposed approach, as shown here with the comparison between the \texttt{MNIST} dataset and the others: the \texttt{MNIST} dataset has low dimensionality and low cluster number then the vector assignation times are even worse due to the computational overload induced by our poor implementation. 
 Results reported in Table~\ref{tab:results} show that in this setting and with the current implementation, the computational advantage of \qkmeans is observed in high dimension, for $\nclusters=256$ and $\nclusters=512$ clusters. It is worth noticing that when $K$ increases, the running times are not affected that much for \qkmeans while it significantly grows for \kmeans. These trends are directly related to the number of model parameters that are reported in the figure. It can be noticed that these numbers of parameters doesn't necessarily grow with the number of clusters because each sparse factor must have \textit{at least} a given number of value for each line and each column of the sparse factor, in this case 2. 
+\todo[inline]{a retirer vu que les bénéfices en flop sont sensibles indépendamment de la dimension}
 
 
 %\todo[inline]{Montrer ensuite les temps d'assignation en mode batch 5000 sur blobs, cf. Figure~\ref{fig:clustering:blobs:assignation_time}. Objectif: montrer qu'à partir d'une certaine dimension, \qkmeans est plus rapide.}
@@ -139,12 +140,12 @@ The Nearest-neighbor search is a fundamental task that suffers from computationa
 Fast strategies have been proposed, e.g., using kd trees or ball trees.
 One may also use a clustering strategy to perform an approximate nearest-neighbor search: the query is first compared to $\nclusters$ centers computed beforehand by clustering the whole dataset, and the nearest neighbor search is then performed among a lower number of data points, within the related cluster.
 We compare this strategy using \kmeans and \qkmeans against the \texttt{scikit-learn} implementation~\cite{Pedregosa2011Scikit} of the nearest-neighbor search (brute force search, kd tree, ball tree).
-Inference time results and accuracy results are displayed in Table~\ref{tab:results}. 
+Inference time results \todo[inline]{pas de resultats de temps (ni de flop) dans ce cas, c'est moins intéressant}and accuracy results are displayed in Table~\ref{tab:results}. 
 % As shown in Figure~\ref{fig:nn:blobs:accuracy}, the accuracy of the approximate nearest neighbor search is above $0.99$ \todo{Accuracy $>0.99$ to be checked} for all the tested variants of \qkmeans, which is an solid evidence about the reliability of the approach.
 The results for the Brute Force Search, KD Tree and Ball Tree are not available for some dataset because they were longer than 10 times the \kmeans search version in the same setting.
 The running times reported in the table show a drastic advantage of using a clustering-based approximate search 
 %\todo{to be completed by reporting the actual acceleration ratio obtained by \qkmeans over the three sklearn options.} 
-and this advantage is even stronger with the clustering obtained by our \qkmeans method. We see that for the \texttt{Blobs} dataset, this speed-up comes at a cost as we can see a drop in classification performance but not for the other datasets. We believe our method is more sensible to the very noisy nature of the blobs dataset.
+and this advantage is even stronger with the clustering obtained by our \qkmeans method. We see that for the \texttt{Blobs} dataset, this speed-up comes at a cost as we can see a drop in classification performance but not for the other datasets. We believe our method is more sensible to the very noisy nature of the blobs dataset.\todo[inline]{retirer les résultats avec blobs et mettre l'accent sur le fait que les résultats obtenus sont tout aussi bons avec K-means que qk-means}
 % 
 % \begin{figure}[tbh]
 % \centering
@@ -224,30 +225,30 @@ Results of numerical experiments: average Nyström transformation time for a sam
 
 \subsection{Nyström approximation}
 
-In this sub-section, we show how we can take advantage of the fast-operator obtained as output of our \qkmeans algorithm in order to speed-up the computation in the Nyström approximation. 
-We start by giving background knowledge on the Nyström approximation then we present some recent work aiming at accelerating it using well know fast-transform method. 
-We finally stem on this work to present a novel approach based on our \qkmeans algorithm.
+In this sub-section, we show how we can take advantage of the fast-operator obtained as output of our \qkmeans algorithm in order to speed-up \todo[inline]{pas vraiment un speed-up: lighten plutot}the computation in the Nyström approximation. 
+We start by giving background knowledge on the Nyström approximation then we present some recent work aiming at accelerating it using well known fast-transform methods. 
+We finally stem on this work to present a novel approach based on our \qkmeans algorithm. \todo[inline]{pourquoi ne pas comparer la qualité dans les deux cas?}
 
 \subsubsection{Background on the Nyström approximation}
 
-Standard kernel machines are often impossible to use in large-scale applications because of their high computational cost associated with the kernel matrix $\rmK$ which has $O(n^2)$ storage and $O(n^2d)$ computational complexity: $\forall i,j \in\intint{\nexamples}, \rmK_{i,j} = k(\rvx_i, \rvx_j)$. A well-known strategy to overcome this problem is to use the Nyström method which computes a low-rank approximation of the kernel matrix on the basis of some pre-selected landmark points. 
+Standard kernel machines are often impossible to use in large-scale applications because of their high computational cost associated with the kernel matrix $\rmK$ which has $O(N^2)$ storage and $O(N^2D)$ computational complexity: $\forall i,j \in\intint{\nexamples}, \rmK_{i,j} = k(\rvx_i, \rvx_j)$. A well-known strategy to overcome this problem is to use the Nyström method which computes a low-rank approximation of the kernel matrix on the basis of some pre-selected landmark points. 
 
-Given $K \ll n$ landmark points $\{\rmU_i\}_{i=1}^{K}$, the Nyström method gives the following approximation of the full kernel matrix:
+Given $K \ll N$ landmark points $\{\rmU_i\}_{i=1}^{K}$, the Nyström method gives the following approximation of the full kernel matrix:
 %
 \begin{equation}
  \label{eq:nystrom}
  \rmK \approx \tilde\rmK = \rmC\rmW^\dagger\rmC^T,
 \end{equation}
 %
-with $\rmW \in \R^{K \times K}$ containing all the kernel values between landmarks: $\forall i,j \in [\![K]\!]~ \rmW_{i,j} = k(\rmU_i, \rmU_j)$; $\rmW^\dagger$ being the pseudo-inverse of $\rmW$ and $\rmC \in \R^{n \times K}$ containing the kernel values between landmark points and all data points: $\forall i \in [\![n]\!], \forall j \in [\![K]\!]~ \rmC_{i, j} = k(\rmX_i, \rmU_j)$.
+with $\rmW \in \R^{K \times K}$ containing all the kernel values between landmarks: $\forall i,j \in [\![K]\!]~ \rmW_{i,j} = k(\rmU_i, \rmU_j)$; $\rmW^\dagger$ being the pseudo-inverse of $\rmW$ and $\rmC \in \R^{N \times K}$ containing the kernel values between landmark points and all data points: $\forall i \in [\![N]\!], \forall j \in [\![K]\!]~ \rmC_{i, j} = k(\rmX_i, \rmU_j)$.
 
 \subsubsection{Efficient Nyström approximation}
 
 A substantial amount of research has been conducted toward landmark point selection methods for improved approximation accuracy \cite{kumar2012sampling} \cite{musco2017recursive}, but much less has been done to improve computation speed. In \cite{si2016computationally}, the authors propose an algorithm to learn the matrix of landmark points with some structure constraint, so that its utilisation is fast, taking advantage of fast-transforms. This results in an efficient Nyström approximation that is faster to use both in the training and testing phases of some ulterior machine learning application.
 
-Remarking that the main computation cost of the Nyström approximation comes from the computation of the kernel function between the train/test samples and the landmark points, \cite{si2016computationally} aim at accelerating this step. In particular, they focus on a family of kernel functions that has the form $k(\rvx_i, \rvx_j) = f(\rvx_i) f(\rvx_j) g(\rvx_i^T\rvx_j)$, where $f: \R^d \rightarrow \R$ and $g: \R \rightarrow \R$. They show that this family of functions contains some widely used kernels such as the Gaussian and the polynomial kernel. Given a set of $K$ landmark points $\rmU \in \R^{K \times d}$ and a sample $\rvx$, the computational time for computing the kernel between $\rvx$ and each row of $\rmU$ (necessary for the Nyström approximation) is bottlenecked by the computation of the product $\rmU\rvx$. They hence propose to write the $\rmU$ matrix as the concatenation of structured $s = K / d$ product of matrices such that $\rmU = \left[ \rmV_1 \rmH^T, \cdots, \rmV_s\rmH^T  \right]^T$, where the $\rmH$ is a $d \times d$ matrix associated with a fast transform such as the \textit{Haar} or \textit{Hadamard} matrix, and the $\rmV_i$s are some $d \times d$ diagonal matrices to be either chosen with a standard landmark selection method or learned using an algorithm they provide.
+Remarking that the main computation cost of the Nyström approximation comes from the computation of the kernel function between the train/test samples and the landmark points, \cite{si2016computationally} aim at accelerating this step. In particular, they focus on a family of kernel functions that has the form $k(\rvx_i, \rvx_j) = f(\rvx_i) f(\rvx_j) g(\rvx_i^T\rvx_j)$, where $f: \R^D \rightarrow \R$ and $g: \R \rightarrow \R$. They show that this family of functions contains some widely used kernels such as the Gaussian and the polynomial kernel. Given a set of $K$ landmark points $\rmU \in \R^{K \times D}$ and a sample $\rvx$, the computational time for computing the kernel between $\rvx$ and each row of $\rmU$ (necessary for the Nyström approximation) is bottlenecked by the computation of the product $\rmU\rvx$. They hence propose to write the $\rmU$ matrix as the concatenation of structured $S = K / D$ product of matrices such that $\rmU = \left[ \rmV_1 \rmH^T, \cdots, \rmV_S\rmH^T  \right]^T$, where the $\rmH$ is a $D \times D$ matrix associated with a fast transform such as the \textit{Haar} or \textit{Hadamard} matrix, and the $\rmV_i$s are some $D \times D$ diagonal matrices to be either chosen with a standard landmark selection method or learned using an algorithm they provide.
 
-Depending on the $\rmH$ matrix chosen, it is possible to improve the time complexity for the computation of $\rmU\rvx$ from $O(Kd)$ to $O(K \log{d})$ (\textit{Fast Hadamard transform}) or $O(K)$ (\textit{Fast Haar Transform}).
+Depending on the $\rmH$ matrix chosen, it is possible to improve the time complexity for the computation of $\rmU\rvx$ from $O(KD)$ to $O(K \log{D})$ (\textit{Fast Hadamard transform}) or $O(K)$ (\textit{Fast Haar Transform}).
 
 \subsubsection{\qkmeans in Nyström}
 
@@ -259,7 +260,7 @@ As shown in the next sub-section, our algorithm allows to obtain an efficient Ny
 
 The Table~\ref{tab:results} summarizes the results achieved in the Nyström approximation setting. An histogram representation and an evaluation for other sparsity factors are available in the supplementary material~Section~\ref{supp:nystrom}.
 
-The ``Nyström inference time'' displays the average time for computing one line of the approximated matrix in Equation~\ref{eq:nystrom}. For $K=512$, when the landmark matrix is big enough, we clearly see the speed-up offered using the \qkmeans method on the \texttt{Blobs} dataset. Intringingly, this speed-up is not sensible for the \texttt{Caltech} dataset even though the vector assignation time was still faster.
+The ``Nyström inference time'' displays the average time for computing one line of the approximated matrix in Equation~\ref{eq:nystrom}\todo[inline]{pas le temps mais les FLOP}. For $K=512$, when the landmark matrix is big enough, we clearly see the speed-up offered using the \qkmeans method on the \texttt{Blobs} dataset. Intringingly, this speed-up is not sensible for the \texttt{Caltech} dataset even though the vector assignation time was still faster.\todo[inline]{a retirer, le gain est toujours sensible}
 
 % The top part shows the approximation error of the Nyström approximation based on different sampling schemes w.r.t. the real kernel matrix. This error is computed by the Froebenius norm of the difference between the matrices and then normalized:
 % 
