@@ -5,7 +5,7 @@
 """
 
 import numpy as np
-from palm.projection_operators import _projection_max_by_col
+from qkmeans.palm.projection_operators import _projection_max_by_col
 from sklearn import datasets
 from pprint import pformat
 

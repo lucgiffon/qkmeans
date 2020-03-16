@@ -1,3 +1,6 @@
+*.whl
+*.sha256sum
+
 profiles
 !.gitkeep
 reports/cr/*

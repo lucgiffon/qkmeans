@@ -217,7 +217,8 @@ def palm4msa_fast4(arr_X_target: np.array,
     :param graphical_display: Make a graphical representation of results.
     :param track_objective: If true, the objective function is computed for each factor and not only at the end of each iteration.
     :param delta_objective_error_threshold: The normalized difference threshold between error at two successive iterations threshold below which the computation is stopped.
-    :return:
+
+    :return: the sparse factorization but careful: the final X isn't multiplyed by lambda
     """
     logger.debug('Norme de arr_X_target: {}'.format(np.linalg.norm(arr_X_target, ord='fro')))
     # initialization

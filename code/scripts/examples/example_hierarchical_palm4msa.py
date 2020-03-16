@@ -24,23 +24,24 @@ H = hadamard(d)
 
 # Parameters for palm
 nb_iter = 300
-nb_factors = 5
+nb_factors = int(np.log2(32))
 sparsity_factor = 2
 
 # Create init sparse factors as identity (the first sparse matrix will remain constant)
-lst_factors = [np.eye(d) for _ in range(nb_factors + 1)]
+lst_factors = [np.eye(d) for _ in range(nb_factors)]
 lst_factors[-1] = np.zeros((d, d))
 _lambda = 1.  # init the scaling factor at 1
 
 # Create the projection operators for each factor
 lst_proj_op_by_fac_step, lst_proj_op_by_fac_step_desc = build_constraint_set_smart(left_dim=d,
                                                      right_dim=d,
-                                                     nb_factors=nb_factors + 1,
+                                                     nb_factors=nb_factors,
                                                      sparsity_factor=sparsity_factor,
                                                      residual_on_right=True,
-                                                     fast_unstable_proj=False)
+                                                     fast_unstable_proj=False, constant_first=False)
 
 logger.info("Description of projection operators for each iteration of hierarchical_palm: \n{}".format(pprint.pformat(lst_proj_op_by_fac_step_desc)))
+print(np.__version__)
 
 # Call the algorithm
 final_lambda, final_factors, final_X, _, _ = hierarchical_palm4msa(
