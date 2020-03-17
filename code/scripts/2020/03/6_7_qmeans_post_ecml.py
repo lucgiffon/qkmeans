@@ -3,9 +3,9 @@ Analysis of objective function during qmeans execution. This script is derived f
 and change in nystrom evaluation that is now normalized.
 
 Usage:
-  qmeans_objective_function_analysis kmeans [-h] [-v|-vv] [--seed=int] (--coil20 int|--blobs str|--light-blobs|--covtype|--breast-cancer|--census|--kddcup04|--kddcup99|--plants|--mnist|--fashion-mnist|--lfw|--caltech256 int|--million-blobs int) --nb-cluster=int --initialization=str [--nb-iteration=int] [--assignation-time=int] [--1-nn] [--nystrom=int] [--batch-assignation-time=int] [--minibatch int] [--max-eval-train-size int]
-  qmeans_objective_function_analysis kmeans palm [-v|-vv] [-v] [--seed=int] (--coil20 int|--blobs str|--light-blobs|--covtype|--breast-cancer|--census|--kddcup04|--kddcup99|--plants|--mnist|--fashion-mnist|--lfw|--caltech256 int|--million-blobs int) --nb-cluster=int --initialization=str [--nb-iteration=int] [--assignation-time=int] [--1-nn] [--nystrom=int] [--batch-assignation-time=int] [--nb-iteration-palm=int] [--nb-factors=int] --sparsity-factor=int [--hierarchical] [--delta-threshold float] [--minibatch int] [--max-eval-train-size int] [--hierarchical-init]
-  qmeans_objective_function_analysis qmeans [-h] [-v|-vv] [--seed=int] (--coil20 int|--blobs str|--light-blobs|--covtype|--breast-cancer|--census|--kddcup04|--kddcup99|--plants|--mnist|--fashion-mnist|--lfw|--caltech256 int|--million-blobs int) --nb-cluster=int --initialization=str [--nb-factors=int] --sparsity-factor=int [--hierarchical] [--nb-iteration=int] [--nb-iteration-palm=int] [--assignation-time=int] [--1-nn] [--nystrom=int] [--batch-assignation-time=int] [--delta-threshold float] [--minibatch int] [--max-eval-train-size int] [--hierarchical-init]
+  qmeans_objective_function_analysis kmeans [-h] [-v|-vv] [--seed=int] [--ami] (--coil20 int|--blobs str|--light-blobs|--covtype|--breast-cancer|--census|--kddcup04|--kddcup99|--plants|--mnist|--fashion-mnist|--lfw|--caltech256 int|--million-blobs int) --nb-cluster=int --initialization=str [--nb-iteration=int] [--assignation-time=int] [--1-nn] [--nystrom=int] [--batch-assignation-time=int] [--minibatch int] [--max-eval-train-size int]
+  qmeans_objective_function_analysis kmeans palm [-v|-vv] [--seed=int] [--ami] (--coil20 int|--blobs str|--light-blobs|--covtype|--breast-cancer|--census|--kddcup04|--kddcup99|--plants|--mnist|--fashion-mnist|--lfw|--caltech256 int|--million-blobs int) --nb-cluster=int --initialization=str [--nb-iteration=int] [--assignation-time=int] [--1-nn] [--nystrom=int] [--batch-assignation-time=int] [--nb-iteration-palm=int] [--nb-factors=int] --sparsity-factor=int [--hierarchical] [--delta-threshold float] [--minibatch int] [--max-eval-train-size int] [--hierarchical-init]
+  qmeans_objective_function_analysis qmeans [-h] [-v|-vv] [--seed=int] [--ami] (--coil20 int|--blobs str|--light-blobs|--covtype|--breast-cancer|--census|--kddcup04|--kddcup99|--plants|--mnist|--fashion-mnist|--lfw|--caltech256 int|--million-blobs int) --nb-cluster=int --initialization=str [--nb-factors=int] --sparsity-factor=int [--hierarchical] [--nb-iteration=int] [--nb-iteration-palm=int] [--assignation-time=int] [--1-nn] [--nystrom=int] [--batch-assignation-time=int] [--delta-threshold float] [--minibatch int] [--max-eval-train-size int] [--hierarchical-init]
 
 Options:
   -h --help                             Show this screen.
@@ -35,11 +35,12 @@ Tasks:
   --batch-assignation-time=int          Evaluate assignation time for a matrix of points when clusters have been defined. The integer is the number of data points to be considered.
   --1-nn                                Evaluate inference time (by instance) and inference accuracy for 1-nn (available only for mnist and fashion-mnist datasets)
   --nystrom=int                         Evaluate reconstruction time and reconstruction accuracy for Nystrom approximation. The integer is the number of sample for which to compute the nystrom transformation.
+  --ami                                 Evaluate Adjusted Mutual Information of centroids.
 
 Non-specific options:
   --nb-cluster=int                      Number of cluster to look for.
   --nb-iteration=int                    Number of iterations in the main algorithm. [default: 20]
-  --initialization=str                  Desired type of initialization ('random', 'uniform_sampling'). For Qmeans, the initialized
+  --initialization=str                  Desired type of initialization ('random', 'uniform_sampling', 'kmeans++'). For Qmeans, the initialized
                                         centroids are approximated by some sparse factors first using the HierarchicalPalm4msa algorithm..
   --minibatch int                       Use minibatch version of Kmeans/QKmeans with batch size int.
   --max-eval-train-size int             Specify the maximum size for evaluation x_train.
@@ -63,8 +64,10 @@ import sys
 import time
 import numpy as np
 from sklearn.kernel_approximation import Nystroem
+from sklearn.metrics import adjusted_mutual_info_score
 from sklearn.metrics.pairwise import rbf_kernel
 from sklearn.preprocessing import StandardScaler
+from sklearn.utils.extmath import row_norms
 
 from qkmeans.data_structures import SparseFactors
 from qkmeans.kernel.kernel import special_rbf_kernel, nystrom_transformation, prepare_nystrom
@@ -74,7 +77,7 @@ from qkmeans.core.qmeans_minibatch import qkmeans_minibatch
 from qkmeans.utils import ResultPrinter, ParameterManager, ObjectiveFunctionPrinter, logger, timeout_signal_handler, compute_euristic_gamma, log_memory_usage
 # todo graphical evaluation option
 from qkmeans.core.qmeans_fast import qmeans, init_lst_factors
-from qkmeans.core.utils import build_constraint_set_smart, get_distances, get_squared_froebenius_norm_line_wise
+from qkmeans.core.utils import build_constraint_set_smart, get_distances, get_squared_froebenius_norm_line_wise, assign_points_to_clusters
 from qkmeans.core.kmeans import kmeans
 from sklearn.neighbors import KNeighborsClassifier
 from scipy.sparse.linalg import LinearOperator
@@ -99,7 +102,9 @@ lst_results_header = [
     "nb_param_centroids",
     "nystrom_svm_accuracy",
     "nystrom_sampled_error_reconstruction_uniform",
-    "nystrom_svm_time"
+    "nystrom_svm_time",
+    "train_ami",
+    "test_ami"
 ]
 
 def main_kmeans(X, U_init):
@@ -224,7 +229,6 @@ def make_assignation_evaluation(X, centroids):
         "assignation_mean_time": mean_time,
         "assignation_std_time": std_time
     })
-
 
 def make_batch_assignation_evaluation(X, centroids):
     """
@@ -388,7 +392,21 @@ def make_1nn_evaluation(x_train, y_train, x_test, y_test, U_centroids, indicator
                 logger.warning("Timeout during execution of 1-nn with {} version: {}".format(knn_type, te))
             signal.alarm(0)  # stop alarm for next evaluation
 
+def make_ami_evaluation(y_train, x_test, y_test, U_centroids, indicator_vector_train):
 
+    if isinstance(U_centroids, SparseFactors):
+        U_centroids = U_centroids.compute_product()
+    indicator_vector_test, _ = assign_points_to_clusters(x_test, U_centroids)
+
+    train_ami = adjusted_mutual_info_score(y_train, indicator_vector_train)
+    test_ami = adjusted_mutual_info_score(y_test, indicator_vector_test)
+
+    ami_results = {
+        "train_ami": train_ami,
+        "test_ami": test_ami,
+    }
+
+    resprinter.add(ami_results)
 
 def make_nystrom_evaluation(x_train, y_train, x_test, y_test, U_centroids):
     """
@@ -534,7 +552,6 @@ def make_nystrom_evaluation(x_train, y_train, x_test, y_test, U_centroids):
 
     resprinter.add(nystrom_results)
 
-
 def process_palm_on_top_of_kmeans(kmeans_centroids):
     lst_constraint_sets, lst_constraint_sets_desc = build_constraint_set_smart(left_dim=kmeans_centroids.shape[0],
                                                                                right_dim=kmeans_centroids.shape[1],
@@ -628,7 +645,7 @@ if __name__ == "__main__":
 
         resprinter.add(sizes)
 
-
+        logger.info("Make initialization of centroids: {}".format(paraman["--initialization"]))
         U_init = paraman.get_initialization_centroids(dataset["x_train"])
 
         log_memory_usage("Memory after loading dataset and initialization of centroids")
@@ -689,6 +706,14 @@ if __name__ == "__main__":
                                 y_test=dataset["y_test"],
                                 U_centroids=U_final,
                                 indicator_vector=indicator_vector_final[train_indexes])
+
+        if paraman["--ami"] and "x_test" in dataset.keys():
+            logger.info("Start Adjusted Mutual Information (AMI) evaluation")
+            make_ami_evaluation(y_train=dataset["y_train"][train_indexes],
+                                x_test=dataset["x_test"],
+                                y_test=dataset["y_test"],
+                                U_centroids=U_final,
+                                indicator_vector_train=indicator_vector_final[train_indexes])
 
         if paraman["--nystrom"] is not None:
             logger.info("Start Nyström reconstruction evaluation with {} samples".format(paraman["--nystrom"]))

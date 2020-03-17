@@ -132,9 +132,17 @@ def qmeans(X_data: np.ndarray,
         lst_factors_ = op_factors.get_list_of_factors()
         op_centroids = SparseFactors([lst_factors_[1] * _lambda] + lst_factors_[2:])
 
-        indicator_vector, distances = assign_points_to_clusters(X_data, op_centroids, X_norms=X_data_norms)
+        ###########################
+        # Cluster assignment step #
+        ###########################
 
+        indicator_vector, distances = assign_points_to_clusters(X_data, op_centroids, X_norms=X_data_norms)
         objective_function[i_iter] = compute_objective(X_data, op_centroids, indicator_vector)
+
+
+        #######################
+        # Cluster update step #
+        #######################
 
         # get the number of observation in each cluster
         cluster_names, counts = np.unique(indicator_vector, return_counts=True)
@@ -146,13 +154,18 @@ def qmeans(X_data: np.ndarray,
         # and change the object X_centroids_hat in place if some cluster have lost points (biggest cluster)
         counts, cluster_names_sorted = update_clusters_with_integrity_check(X_data,
                                                                             X_data_norms,
-                                                                            X_centroids_hat,
+                                                                            X_centroids_hat, # in place changes
                                                                             K_nb_cluster,
                                                                             counts,
                                                                             indicator_vector,
                                                                             distances,
                                                                             cluster_names,
                                                                             cluster_names_sorted)
+
+        #################
+        # PALM4MSA step #
+        #################
+
         # create the diagonal of the sqrt of those counts
         diag_counts_sqrt_normalized = csr_matrix(
             (np.sqrt(counts[cluster_names_sorted] / nb_examples),
@@ -201,7 +214,7 @@ def qmeans(X_data: np.ndarray,
 
         i_iter += 1
 
-
+    lst_factors_ = op_factors.get_list_of_factors()
     op_centroids = SparseFactors([lst_factors_[1] * _lambda] + lst_factors_[2:])
 
     return objective_function[:i_iter], op_centroids, indicator_vector, lst_all_objective_functions_palm

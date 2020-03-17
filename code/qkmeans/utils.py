@@ -26,7 +26,8 @@ from qkmeans import project_dir
 from sklearn.datasets import fetch_lfw_people, load_breast_cancer
 from sklearn.model_selection import train_test_split
 import keras
-
+from sklearn.cluster._kmeans import _k_init
+from sklearn.utils.extmath import row_norms
 
 daiquiri.setup(level=logging.DEBUG)
 logger = daiquiri.getLogger("pyqalm")
@@ -320,6 +321,11 @@ class ParameterManager(dict):
             return np.random.normal((self["--nb-cluster"], input_data.shape[1]))
         elif self["--initialization"] == "uniform_sampling":
             return input_data[np.random.permutation(input_data.shape[0])[:self["--nb-cluster"]]]
+        elif self["--initialization"] == "kmeans++":
+            seed = np.random.RandomState(self["--seed"])
+            x_squared_norms = row_norms(input_data, squared=True)
+            centers = _k_init(input_data, self["--nb-cluster"], x_squared_norms, random_state=seed)
+            return centers
         else:
             raise NotImplementedError("Unknown initialization.")
 
