@@ -15,11 +15,15 @@ import tarfile
 import re
 from sklearn import preprocessing
 import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
+
 from sklearn.datasets import make_blobs, fetch_kddcup99, fetch_covtype
 from sklearn.model_selection import train_test_split
 from qkmeans.utils import download_data, logger
 import cv2
 import pandas as pd
+import zipfile
+
 
 
 def load_kddcup04bio_no_classif():
@@ -134,6 +138,39 @@ def load_caltech(final_size):
 
     return (X_train, y_train), (X_test, y_test)
 
+def load_coil20(final_size):
+    data_url = "http://www.cs.columbia.edu/CAVE/databases/SLAM_coil-20_coil-100/coil-20/coil-20-proc.zip"
+    regex_file_names = re.compile(r'obj(\d+).+')
+
+    lst_images = []
+    lst_classes_idx = []
+    with tempfile.TemporaryDirectory() as d_tmp:
+        temp_dir = Path(d_tmp)
+        zipfile_path = Path(download_data(data_url, d_tmp))
+        # zipfile_path = "/home/luc/Téléchargements/coil-20-proc.zip"
+
+        zip_dir = temp_dir / "zip_extraction_dir"
+        with zipfile.ZipFile(zipfile_path, "r") as zip_ref:
+            zip_ref.extractall(zip_dir)
+        for root, dirs, files in os.walk(zip_dir):
+            for file_name in files:
+                path_file = temp_dir / root / file_name
+                img_class = int(regex_file_names.match(file_name).group(1)) - 1
+                img_array = plt.imread(str(path_file.absolute()))
+                aspect_ratio = max(final_size / img_array.shape[0], final_size / img_array.shape[1])
+                new_img_array = cv2.resize(img_array, dsize=(0, 0), fx=aspect_ratio, fy=aspect_ratio)
+
+                lst_images.append(new_img_array.flatten())
+                lst_classes_idx.append(img_class)
+
+    X = np.vstack(lst_images)
+    y = np.array(lst_classes_idx)
+
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=42, stratify=y)
+
+    return (X_train, y_train), (X_test, y_test)
+
+
 def load_plants():
     """
     USDA, NRCS. 2008. The PLANTS Database ([Web Link], 31 December 2008). National Plant Data Center, Baton Rouge, LA 70874-4490 USA.
@@ -224,11 +261,11 @@ MAP_NAME_DATASET_DD = {
 }
 
 MAP_NAME_DATASET_RAM = {
-
     "plants": load_plants,
     "caltech256_50": lambda: load_caltech(50),
     "caltech256_32": lambda: load_caltech(32),
-    "caltech256_28": lambda: load_caltech(28)
+    "caltech256_28": lambda: load_caltech(28),
+    "coil20_32": lambda: load_coil20(32)
 }
 
 MAP_NAME_CLASSES_PRESENCE_RAM = {
@@ -236,6 +273,7 @@ MAP_NAME_CLASSES_PRESENCE_RAM = {
     "caltech256_50": True,
     "caltech256_32": True,
     "caltech256_28": True,
+    "coil20_32": True
 }
 
 def _download_all_data(output_dirpath):

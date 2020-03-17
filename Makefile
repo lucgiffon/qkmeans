@@ -27,7 +27,7 @@ install:
 data: million
 	$(PYTHON_INTERPRETER) code/data/make_dataset.py all data/external
 
-data_no_million: covtype kddcup99 kddcup04 census plants
+data_no_million: covtype kddcup99 kddcup04 census plants coil20_32
 
 covtype: data/external/covtype.dat data/external/covtype.lab
 data/external/covtype.dat data/external/covtype.lab:
@@ -48,6 +48,10 @@ data/external/census.dat data/external/census.lab:
 plants: data/external/plants.npz
 data/external/plants.npz:
 	$(PYTHON_INTERPRETER) code/data/make_dataset.py plants data/external
+
+coil20_32: data/external/coil20_32.npz
+data/external/coil20_32.npz:
+	$(PYTHON_INTERPRETER) code/data/make_dataset.py coil20_32 data/external
 
 caltech256_50: data/external/caltech256_50.npz
 data/external/caltech256_50.npz:

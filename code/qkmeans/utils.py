@@ -306,6 +306,8 @@ class ParameterManager(dict):
             return lfw_dataset(self["--seed"])
         elif self["--million-blobs"] is not None:
             return million_blobs_dataset(int(self["--million-blobs"]))
+        elif self["--coil20"] is not None:
+            return coil20_dataset(int(self["--coil20"]))
         else:
             raise NotImplementedError("Unknown dataset.")
 
@@ -516,6 +518,16 @@ def mnist_dataset():
         "y_train": y_train,
         "x_test": X_test.reshape(X_test.shape[0], -1),
         "y_test": y_test
+    }
+
+def coil20_dataset(size):
+    data_dir = project_dir / "data/external" / "coil20_{}.npz".format(size)
+    loaded_npz = np.load(data_dir)
+    return {
+        "x_train": loaded_npz["x_train"],
+        "y_train": loaded_npz["y_train"],
+        "x_test": loaded_npz["x_test"],
+        "y_test": loaded_npz["y_test"],
     }
 
 
