@@ -3,9 +3,9 @@ Analysis of objective function during qmeans execution. This script is derived f
 and change in nystrom evaluation that is now normalized.
 
 Usage:
-  qmeans_objective_function_analysis kmeans [-h] [-v|-vv] [--seed=int] [--ami] (--coil20 int|--blobs str|--light-blobs|--covtype|--breast-cancer|--census|--kddcup04|--kddcup99|--plants|--mnist|--fashion-mnist|--lfw|--caltech256 int|--million-blobs int) --nb-cluster=int --initialization=str [--nb-iteration=int] [--assignation-time=int] [--1-nn] [--nystrom=int] [--batch-assignation-time=int] [--minibatch int] [--max-eval-train-size int]
-  qmeans_objective_function_analysis kmeans palm [-v|-vv] [--seed=int] [--ami] (--coil20 int|--blobs str|--light-blobs|--covtype|--breast-cancer|--census|--kddcup04|--kddcup99|--plants|--mnist|--fashion-mnist|--lfw|--caltech256 int|--million-blobs int) --nb-cluster=int --initialization=str [--nb-iteration=int] [--assignation-time=int] [--1-nn] [--nystrom=int] [--batch-assignation-time=int] [--nb-iteration-palm=int] [--nb-factors=int] --sparsity-factor=int [--hierarchical] [--delta-threshold float] [--minibatch int] [--max-eval-train-size int] [--hierarchical-init]
-  qmeans_objective_function_analysis qmeans [-h] [-v|-vv] [--seed=int] [--ami] (--coil20 int|--blobs str|--light-blobs|--covtype|--breast-cancer|--census|--kddcup04|--kddcup99|--plants|--mnist|--fashion-mnist|--lfw|--caltech256 int|--million-blobs int) --nb-cluster=int --initialization=str [--nb-factors=int] --sparsity-factor=int [--hierarchical] [--nb-iteration=int] [--nb-iteration-palm=int] [--assignation-time=int] [--1-nn] [--nystrom=int] [--batch-assignation-time=int] [--delta-threshold float] [--minibatch int] [--max-eval-train-size int] [--hierarchical-init]
+  qmeans_objective_function_analysis kmeans [-h] [-v|-vv] [--seed=int] [--ami int] (--coil20 int|--blobs str|--light-blobs|--covtype|--breast-cancer|--census|--kddcup04|--kddcup99|--plants|--mnist|--fashion-mnist|--lfw|--caltech256 int|--million-blobs int) --nb-cluster=int --initialization=str [--nb-iteration=int] [--assignation-time=int] [--1-nn] [--nystrom=int] [--batch-assignation-time=int] [--minibatch int] [--max-eval-train-size int]
+  qmeans_objective_function_analysis kmeans palm [-v|-vv] [--seed=int] [--ami int] (--coil20 int|--blobs str|--light-blobs|--covtype|--breast-cancer|--census|--kddcup04|--kddcup99|--plants|--mnist|--fashion-mnist|--lfw|--caltech256 int|--million-blobs int) --nb-cluster=int --initialization=str [--nb-iteration=int] [--assignation-time=int] [--1-nn] [--nystrom=int] [--batch-assignation-time=int] [--nb-iteration-palm=int] [--nb-factors=int] --sparsity-factor=int [--hierarchical] [--delta-threshold float] [--minibatch int] [--max-eval-train-size int] [--hierarchical-init]
+  qmeans_objective_function_analysis qmeans [-h] [-v|-vv] [--seed=int] [--ami int] (--coil20 int|--blobs str|--light-blobs|--covtype|--breast-cancer|--census|--kddcup04|--kddcup99|--plants|--mnist|--fashion-mnist|--lfw|--caltech256 int|--million-blobs int) --nb-cluster=int --initialization=str [--nb-factors=int] --sparsity-factor=int [--hierarchical] [--nb-iteration=int] [--nb-iteration-palm=int] [--assignation-time=int] [--1-nn] [--nystrom=int] [--batch-assignation-time=int] [--delta-threshold float] [--minibatch int] [--max-eval-train-size int] [--hierarchical-init]
 
 Options:
   -h --help                             Show this screen.
@@ -35,7 +35,7 @@ Tasks:
   --batch-assignation-time=int          Evaluate assignation time for a matrix of points when clusters have been defined. The integer is the number of data points to be considered.
   --1-nn                                Evaluate inference time (by instance) and inference accuracy for 1-nn (available only for mnist and fashion-mnist datasets)
   --nystrom=int                         Evaluate reconstruction time and reconstruction accuracy for Nystrom approximation. The integer is the number of sample for which to compute the nystrom transformation.
-  --ami                                 Evaluate Adjusted Mutual Information of centroids.
+  --ami=int                             Evaluate Adjusted Mutual Information of centroids.
 
 Non-specific options:
   --nb-cluster=int                      Number of cluster to look for.
@@ -393,6 +393,16 @@ def make_1nn_evaluation(x_train, y_train, x_test, y_test, U_centroids, indicator
             signal.alarm(0)  # stop alarm for next evaluation
 
 def make_ami_evaluation(y_train, x_test, y_test, U_centroids, indicator_vector_train):
+    n_sample = paraman["--ami"]
+    if n_sample > y_train.shape[0]:
+        logger.warning("Batch size for ami evaluation is bigger than data size. {} > {}. Using "
+                       "data size instead.".format(n_sample, y_train.shape[0]))
+        n_sample = y_train.shape[0]
+        paraman["--nystrom"] = n_sample
+
+    indexes_samples = np.random.permutation(y_train.shape[0])[:n_sample]
+    y_train = y_train[indexes_samples]
+    indicator_vector_train = indicator_vector_train[indexes_samples]
 
     if isinstance(U_centroids, SparseFactors):
         U_centroids = U_centroids.compute_product()
@@ -707,7 +717,7 @@ if __name__ == "__main__":
                                 U_centroids=U_final,
                                 indicator_vector=indicator_vector_final[train_indexes])
 
-        if paraman["--ami"] and "x_test" in dataset.keys():
+        if paraman["--ami"] is not None and "x_test" in dataset.keys():
             logger.info("Start Adjusted Mutual Information (AMI) evaluation")
             make_ami_evaluation(y_train=dataset["y_train"][train_indexes],
                                 x_test=dataset["x_test"],

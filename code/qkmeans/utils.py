@@ -218,6 +218,7 @@ class ParameterManager(dict):
         self["--batch-assignation-time"] = int(self["--batch-assignation-time"]) if self["--batch-assignation-time"] is not None else None
         self["--assignation-time"] = int(self["--assignation-time"]) if self["--assignation-time"] is not None else None
         self["--nystrom"] = int(self["--nystrom"]) if self["--nystrom"] is not None else None
+        self["--ami"] = int(self["--ami"]) if self["--ami"] is not None else None
 
         self["--delta-threshold"] = float(self["--delta-threshold"])
 
