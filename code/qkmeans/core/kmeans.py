@@ -38,7 +38,6 @@ def kmeans(X_data, K_nb_cluster, nb_iter, initialization,
 
         indicator_vector, distances = assign_points_to_clusters(X_data, U_centroids, X_norms=X_data_norms)
 
-        objective_function[i_iter,] = compute_objective(X_data, U_centroids, indicator_vector)
 
 
         cluster_names, counts = np.unique(indicator_vector, return_counts=True)
@@ -56,6 +55,8 @@ def kmeans(X_data, K_nb_cluster, nb_iter, initialization,
                                                                             cluster_names_sorted)
 
         U_centroids = U_centroids_hat
+
+        objective_function[i_iter,] = compute_objective(X_data, U_centroids, indicator_vector)
 
 
         if i_iter >= 1:

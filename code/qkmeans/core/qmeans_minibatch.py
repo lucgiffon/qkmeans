@@ -13,7 +13,7 @@ import copy
 
 import numpy as np
 from qkmeans.core.utils import compute_objective, assign_points_to_clusters, build_constraint_set_smart, get_squared_froebenius_norm_line_wise, update_clusters_with_integrity_check, \
-    get_squared_froebenius_norm_line_wise_batch_by_batch, update_clusters, check_cluster_integrity
+    get_squared_froebenius_norm_line_wise_batch_by_batch, update_clusters, check_cluster_integrity, compute_objective_by_batch
 from scipy.sparse import csr_matrix
 import matplotlib.pyplot as plt
 
@@ -149,7 +149,7 @@ def qkmeans_minibatch(X_data: np.ndarray,
         # Prepare next epoch
         full_count_vector = np.zeros(K_nb_cluster, dtype=int)
         full_indicator_vector = np.zeros(X_data.shape[0], dtype=int)
-        objective_value_so_far = 0
+
         X_centroids_hat = np.zeros_like(X_centroids_hat)
 
         for i_minibatch, example_batch_indexes in enumerate(DataGenerator(X_data, batch_size=batch_size, return_indexes=True)):
@@ -175,9 +175,8 @@ def qkmeans_minibatch(X_data: np.ndarray,
                                                 count_vector,
                                                 indicator_vector)
 
-            objective_value_so_far += np.sqrt(compute_objective(example_batch, op_centroids, indicator_vector))
 
-        objective_function[i_iter] = objective_value_so_far ** 2
+        objective_function[i_iter] = compute_objective_by_batch(X_data, op_centroids, full_indicator_vector, batch_size)
 
         # inplace modification of X_centrois_hat and full_count_vector and full_indicator_vector
         check_cluster_integrity(X_data, X_centroids_hat, K_nb_cluster, full_count_vector, full_indicator_vector)

@@ -30,6 +30,8 @@ For this installation procedure, we assume you have a fresh Python environment a
 
 Before installing, you have to make sure that `opencv` is installed in your envorionment so that `python  -c "import cv2; print(cv2.__version__)"` doesn't crash.
 
+Also install tensorflow version 1.13.1 separately.
+
 To install the package, simply type:
 
 	make install

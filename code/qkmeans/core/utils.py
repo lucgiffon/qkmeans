@@ -67,6 +67,16 @@ def compute_objective(X_data, centroids, indicator_vector):
         centroids = centroids.compute_product()
     return np.linalg.norm(X_data - centroids[indicator_vector, :]) ** 2
 
+def compute_objective_by_batch(X_data, op_centroids, indicator_vector, batch_size):
+    total_nb_of_minibatch = X_data.shape[0] // batch_size
+    objective_value_so_far = 0
+    for i_minibatch, example_batch_indexes in enumerate(DataGenerator(X_data, batch_size=batch_size, return_indexes=True)):
+        logger.info("Minibatch number {}/{};".format(i_minibatch, total_nb_of_minibatch))
+        example_batch = X_data[example_batch_indexes]
+        indicator_vector_batch = indicator_vector[example_batch_indexes]
+        objective_value_so_far += compute_objective(example_batch, op_centroids, indicator_vector_batch)
+    final_objective_value = objective_value_so_far
+    return final_objective_value
 
 def assign_points_to_clusters(X, centroids, X_norms=None):
     """

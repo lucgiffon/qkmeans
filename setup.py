@@ -13,7 +13,7 @@ AUTHOR = 'Luc Giffon and Valentin Emiya'
 AUTHOR_EMAIL = ('valentin.emiya@lis-lab.fr, luc.giffon@lis-lab.fr')
 INSTALL_REQUIRES = ['numpy', 'daiquiri', 'matplotlib', 'pandas', 'keras',
                     'docopt', 'pillow', 'scikit-learn==0.22.1', 'psutil', 'yafe', 'python-dotenv', 'click',
-                    'xarray', 'tensorflow==1.13.1', 'scipy==1.2.1', 'scikit-luc==2']
+                    'xarray', 'scipy==1.2.1', 'scikit-luc==2']
 # INSTALL_REQUIRES = []
 # TODO to be completed
 CLASSIFIERS = [

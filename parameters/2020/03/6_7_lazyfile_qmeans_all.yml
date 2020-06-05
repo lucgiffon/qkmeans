@@ -14,11 +14,11 @@ base:
   batch_assignation: {"--batch-assignation-time": ["5000"]}
   1nn: ["--1-nn"]
   ami: {"--ami": ["5000"]}
-  initialisation: {--initialization: ["uniform_sampling"]}
+  initialisation: {--initialization: ["uniform_sampling", "kmeans++"]}
   iterations: {--nb-iteration: ["20"]}
 
 cluster_log2search:
-  nb_clusters: {"--nb-cluster": ["8", "16", "32", "64", "128", "256", "512"]}
+  nb_clusters: {"--nb-cluster": ["8", "16", "32", "64", "128", "256"]}
 
 cluster_log2search_small:
   nb_clusters: {"--nb-cluster": ["8", "16", "32", "64"]}

@@ -689,7 +689,9 @@ class DataGenerator(keras.utils.Sequence):
         'Generates data containing batch_size samples' # X : (n_samples, *dim, n_channels)
         # Initialization
         X = np.empty((self.batch_size, *self.dim)).squeeze()
-        y = np.empty((self.batch_size), dtype=int)
+        if self.batch_size == 1:
+            X = np.reshape(X, (1, *X.shape))
+        y = np.empty((self.batch_size,), dtype=int)
 
 
         # Generate data

@@ -15,7 +15,7 @@ import copy
 
 import numpy as np
 from qkmeans.core.utils import compute_objective, assign_points_to_clusters, update_clusters, \
-    get_squared_froebenius_norm_line_wise_batch_by_batch
+    get_squared_froebenius_norm_line_wise_batch_by_batch, compute_objective_by_batch
 from qkmeans.utils import logger, DataGenerator
 
 
@@ -55,7 +55,7 @@ def kmeans_minibatch(X_data,
         full_count_vector = np.zeros(K_nb_cluster, dtype=int)
         full_indicator_vector = np.zeros(X_data.shape[0], dtype=int)
         U_centroids_before = np.copy(U_centroids)
-        objective_value_so_far  = 0
+
         U_centroids = np.zeros_like(U_centroids_before)
         for i_minibatch, example_batch_indexes in enumerate(DataGenerator(X_data, batch_size=batch_size, return_indexes=True)):
             logger.info("Minibatch number {}/{}; Iteration number {}/{}".format(i_minibatch, total_nb_of_minibatch, i_iter, nb_iter))
@@ -81,10 +81,8 @@ def kmeans_minibatch(X_data,
             # Update centroid location using the newly
             # assigned data point classes
 
-            objective_value_so_far += np.sqrt(compute_objective(example_batch, U_centroids, indicator_vector))
 
-
-        objective_function[i_iter,] = objective_value_so_far ** 2
+        objective_function[i_iter,] = compute_objective_by_batch(X_data, U_centroids, full_indicator_vector, batch_size)
 
         if i_iter >= 1:
             delta_objective_error = np.abs(objective_function[i_iter] - objective_function[i_iter-1]) / objective_function[i_iter-1] # todo vérifier que l'erreur absolue est plus petite que le threshold plusieurs fois d'affilée

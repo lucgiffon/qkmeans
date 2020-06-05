@@ -111,9 +111,8 @@ def hierarchical_palm4msa(arr_X_target: np.array,
 
         else:
             op_S_factors_init = SparseFactors(lst_S_init[:-nb_factors_so_far])
-            residual_init = op_S_factors_init.compute_product() # todo I think this product can be prepared before and save computation
-            lst_S_init_split_step = [residual_init,
-                                     lst_S_init[-nb_factors_so_far]]
+            residual_init = op_S_factors_init.compute_product()  # todo I think this product can be prepared before and save computation
+            lst_S_init_split_step = [residual_init, lst_S_init[-nb_factors_so_far]]
             f_lambda_prime, S_out, unscaled_residual_reconstruction, objective_palm_split, _ = \
                 func_split_step_palm4msa(lst_S_init=lst_S_init_split_step)
             new_residual = S_out.get_factor(0)

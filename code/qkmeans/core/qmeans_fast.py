@@ -24,7 +24,7 @@ from qkmeans.data_structures import SparseFactors
 from qkmeans.utils import logger
 
 
-def init_lst_factors(d_in, d_out, p_nb_factors):
+def init_lst_factors(d_in, d_out, p_nb_factors, first_square=True):
     """
     Return a simple initialization of a list of sparse factors in which all the factors are identity but the last one is zeros.
 
@@ -38,8 +38,11 @@ def init_lst_factors(d_in, d_out, p_nb_factors):
     lst_factors = [np.eye(min_K_d) for _ in range(p_nb_factors)]
 
     eye_norm = np.sqrt(d_in)
-    lst_factors[0] = np.eye(d_in) / eye_norm
-    lst_factors[1] = np.eye(d_in, min_K_d)
+    if first_square:
+        lst_factors[0] = np.eye(d_in) / eye_norm
+        lst_factors[1] = np.eye(d_in, min_K_d)
+    else:
+        lst_factors[0] = np.eye(d_in, min_K_d)
     lst_factors[-1] = np.zeros((min_K_d, d_out))
 
     return lst_factors
@@ -137,7 +140,7 @@ def qmeans(X_data: np.ndarray,
         ###########################
 
         indicator_vector, distances = assign_points_to_clusters(X_data, op_centroids, X_norms=X_data_norms)
-        objective_function[i_iter] = compute_objective(X_data, op_centroids, indicator_vector)
+
 
 
         #######################
@@ -207,6 +210,7 @@ def qmeans(X_data: np.ndarray,
 
         _lambda = _lambda_tmp / np.sqrt(nb_examples)
 
+        objective_function[i_iter] = compute_objective(X_data, op_centroids, indicator_vector)
         if i_iter >= 1:
             delta_objective_error = np.abs(objective_function[i_iter] - objective_function[i_iter-1]) / objective_function[i_iter-1]
 
