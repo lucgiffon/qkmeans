@@ -1,10 +1,10 @@
 all:
   kmeans_small_dataset:
-#  kmeans_big_dataset:
+  kmeans_big_dataset:
   kmeans_palm_small_dataset:
-#  kmeans_palm_big_dataset:
+  kmeans_palm_big_dataset:
   qmeans_small_dataset:
-#  qmeans_big_dataset:
+  qmeans_big_dataset:
 
 base:
   seed: {"--seed": "range(5)"}
@@ -13,6 +13,7 @@ base:
   assignation: {"--assignation-time": ["5000"]}
   batch_assignation: {"--batch-assignation-time": ["5000"]}
   1nn: ["--1-nn"]
+  obj_value: ["--get-objective-value"]
   ami: {"--ami": ["5000"]}
   initialisation: {--initialization: ["uniform_sampling", "kmeans++"]}
   iterations: {--nb-iteration: ["20"]}

@@ -216,7 +216,11 @@ if __name__ == "__main__":
         "nystrom_svm_accuracy_kmeans": "k"
     }
 
-
+    color_by_sparsity = {
+        2: "g",
+        3: "b",
+        5: "c"
+    }
 
     other_1nn_methods_names = {
         "brute": "Brute force search",

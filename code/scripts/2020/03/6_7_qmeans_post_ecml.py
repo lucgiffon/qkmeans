@@ -3,9 +3,9 @@ Analysis of objective function during qmeans execution. This script is derived f
 and change in nystrom evaluation that is now normalized.
 
 Usage:
-  qmeans_objective_function_analysis kmeans [-h] [-v|-vv] [--seed=int] [--ami int] (--coil20 int|--blobs str|--light-blobs|--covtype|--breast-cancer|--census|--kddcup04|--kddcup99|--plants|--mnist|--fashion-mnist|--lfw|--caltech256 int|--million-blobs int) --nb-cluster=int --initialization=str [--nb-iteration=int] [--assignation-time=int] [--1-nn] [--nystrom=int] [--batch-assignation-time=int] [--minibatch int] [--max-eval-train-size int]
-  qmeans_objective_function_analysis kmeans palm [-v|-vv] [--seed=int] [--ami int] (--coil20 int|--blobs str|--light-blobs|--covtype|--breast-cancer|--census|--kddcup04|--kddcup99|--plants|--mnist|--fashion-mnist|--lfw|--caltech256 int|--million-blobs int) --nb-cluster=int --initialization=str [--nb-iteration=int] [--assignation-time=int] [--1-nn] [--nystrom=int] [--batch-assignation-time=int] [--nb-iteration-palm=int] [--nb-factors=int] --sparsity-factor=int [--hierarchical] [--delta-threshold float] [--minibatch int] [--max-eval-train-size int] [--hierarchical-init]
-  qmeans_objective_function_analysis qmeans [-h] [-v|-vv] [--seed=int] [--ami int] (--coil20 int|--blobs str|--light-blobs|--covtype|--breast-cancer|--census|--kddcup04|--kddcup99|--plants|--mnist|--fashion-mnist|--lfw|--caltech256 int|--million-blobs int) --nb-cluster=int --initialization=str [--nb-factors=int] --sparsity-factor=int [--hierarchical] [--nb-iteration=int] [--nb-iteration-palm=int] [--assignation-time=int] [--1-nn] [--nystrom=int] [--batch-assignation-time=int] [--delta-threshold float] [--minibatch int] [--max-eval-train-size int] [--hierarchical-init]
+  qmeans_objective_function_analysis kmeans [-h] [-v|-vv] [--seed=int] [--ami int] [--get-objective-value] (--coil20 int|--blobs str|--light-blobs|--covtype|--breast-cancer|--census|--kddcup04|--kddcup99|--plants|--mnist|--fashion-mnist|--lfw|--caltech256 int|--million-blobs int) --nb-cluster=int --initialization=str [--nb-iteration=int] [--assignation-time=int] [--1-nn] [--nystrom=int] [--batch-assignation-time=int] [--minibatch int] [--max-eval-train-size int]
+  qmeans_objective_function_analysis kmeans palm [-v|-vv] [--seed=int] [--ami int] [--get-objective-value] (--coil20 int|--blobs str|--light-blobs|--covtype|--breast-cancer|--census|--kddcup04|--kddcup99|--plants|--mnist|--fashion-mnist|--lfw|--caltech256 int|--million-blobs int) --nb-cluster=int --initialization=str [--nb-iteration=int] [--assignation-time=int] [--1-nn] [--nystrom=int] [--batch-assignation-time=int] [--nb-iteration-palm=int] [--nb-factors=int] --sparsity-factor=int [--hierarchical] [--delta-threshold float] [--minibatch int] [--max-eval-train-size int] [--hierarchical-init]
+  qmeans_objective_function_analysis qmeans [-h] [-v|-vv] [--seed=int] [--ami int] [--get-objective-value] (--coil20 int|--blobs str|--light-blobs|--covtype|--breast-cancer|--census|--kddcup04|--kddcup99|--plants|--mnist|--fashion-mnist|--lfw|--caltech256 int|--million-blobs int) --nb-cluster=int --initialization=str [--nb-factors=int] --sparsity-factor=int [--hierarchical] [--nb-iteration=int] [--nb-iteration-palm=int] [--assignation-time=int] [--1-nn] [--nystrom=int] [--batch-assignation-time=int] [--delta-threshold float] [--minibatch int] [--max-eval-train-size int] [--hierarchical-init]
 
 Options:
   -h --help                             Show this screen.
@@ -36,6 +36,7 @@ Tasks:
   --1-nn                                Evaluate inference time (by instance) and inference accuracy for 1-nn (available only for mnist and fashion-mnist datasets)
   --nystrom=int                         Evaluate reconstruction time and reconstruction accuracy for Nystrom approximation. The integer is the number of sample for which to compute the nystrom transformation.
   --ami=int                             Evaluate Adjusted Mutual Information of centroids.
+  --get-objective-value                 Get the final objective value.
 
 Non-specific options:
   --nb-cluster=int                      Number of cluster to look for.
@@ -74,10 +75,10 @@ from qkmeans.kernel.kernel import special_rbf_kernel, nystrom_transformation, pr
 from qkmeans.palm.palm_fast import hierarchical_palm4msa, palm4msa
 from qkmeans.core.kmeans_minibatch import kmeans_minibatch
 from qkmeans.core.qmeans_minibatch import qkmeans_minibatch
-from qkmeans.utils import ResultPrinter, ParameterManager, ObjectiveFunctionPrinter, logger, timeout_signal_handler, compute_euristic_gamma, log_memory_usage
+from qkmeans.utils import ResultPrinter, ParameterManager, ObjectiveFunctionPrinter, logger, timeout_signal_handler, compute_euristic_gamma, log_memory_usage, DataGenerator
 # todo graphical evaluation option
 from qkmeans.core.qmeans_fast import qmeans, init_lst_factors
-from qkmeans.core.utils import build_constraint_set_smart, get_distances, get_squared_froebenius_norm_line_wise, assign_points_to_clusters
+from qkmeans.core.utils import build_constraint_set_smart, get_distances, get_squared_froebenius_norm_line_wise, assign_points_to_clusters, compute_objective, compute_objective_by_batch
 from qkmeans.core.kmeans import kmeans
 from sklearn.neighbors import KNeighborsClassifier
 from scipy.sparse.linalg import LinearOperator
@@ -131,6 +132,8 @@ def main_kmeans(X, U_init):
                initialization=U_init)
     stop_kmeans = time.process_time()
     kmeans_traintime = stop_kmeans - start_kmeans
+
+    print(objective_values_k[-1])
 
     kmeans_results = {
         "traintime": kmeans_traintime
@@ -607,6 +610,18 @@ def process_palm_on_top_of_kmeans(kmeans_centroids):
 
     return op_centroids
 
+def get_objective_value(X_data, op_centroids, indicator_vector):
+    logger.info("Compute objective")
+    if paraman["--minibatch"]:
+        final_objective_value = compute_objective_by_batch(X_data, op_centroids, indicator_vector, paraman["--minibatch"])
+    else:
+        final_objective_value = compute_objective(X_data, op_centroids, indicator_vector)
+
+    resprinter.add({
+        "final_objective_value": final_objective_value,
+    })
+    return final_objective_value
+
 if __name__ == "__main__":
     logger.info("Command line: " + " ".join(sys.argv))
     log_memory_usage("Memory at startup")
@@ -690,6 +705,9 @@ if __name__ == "__main__":
         else:
             raise NotImplementedError("Unknown method.")
         resprinter.add(dct_nb_param)
+
+        if paraman["--get-objective-value"]:
+            get_objective_value(dataset["x_train"], U_final, indicator_vector_final)
 
         np.save(paraman["--output-file_centroidprinter"], U_final, allow_pickle=True)
 

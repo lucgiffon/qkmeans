@@ -72,7 +72,7 @@ def display_cmd_lines_from_root_name_list(root_names_list, src_results_dir, find
     return cmd_lines
 
 
-def get_dct_result_files_by_root(src_results_dir, old_filename_objective=False):
+def get_dct_result_files_by_root(src_results_dir, old_filename_objective=False, tpl_results=("centroids","results","objective")):
     """
     From a directory with the result of oarjobs give the dictionnary of results file for each experiment. Files are:
 
@@ -147,6 +147,8 @@ def get_dct_result_files_by_root(src_results_dir, old_filename_objective=False):
             used_output_file_end_re = output_file_end_re
 
         for type_file, root_re in used_output_file_end_re.items():
+            if type_file not in tpl_results:
+                continue
             forged_re_compiled = re.compile(r"{}".format(root_name) + root_re)
             try:
                 dct_files[type_file] = list(filter(forged_re_compiled.match, lst_str_filenames))[0]
