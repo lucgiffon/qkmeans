@@ -67,9 +67,9 @@ if __name__ == "__main__":
 
     tasks = [
         "nystrom-sampled-error-reconstruction",
-        "test-ami",
-        "train-ami",
-        "1nn-kmean-accuracy",
+        # "test-ami",
+        # "train-ami",
+        # "1nn-kmean-accuracy",
         "nystrom-svm-accuracy",
         "nb-param",
     ]
@@ -129,10 +129,10 @@ if __name__ == "__main__":
     }
 
     dct_name_legend = {
-        "nystrom-sampled-error-reconstruction-uniform": "Uniform",
+        "nystrom-sampled-error-reconstruction-uniform": "Uniform sampling",
         "nystrom-sampled-error-reconstruction-uop": "Fast-Nys",
         "nystrom-sampled-error-reconstruction-uop-kmeans": "K Fast-Kys",
-        "nystrom-svm-accuracy-uniform": "Uniform",
+        "nystrom-svm-accuracy-uniform": "Uniform sampling",
         "nystrom-svm-accuracy-uop": "Fast-Nys",
         "nystrom-svm-accuracy-uop-kmeans": "K Fast-Kys",
     }
@@ -142,19 +142,32 @@ if __name__ == "__main__":
         "uniform_sampling": (255, 0, 0)  # ref
     }
 
+    dct_legend_color = {
+        "QK-means sparsity 2": "dodgerblue",
+        "QK-means sparsity 3": "blue",
+        "QK-means sparsity 5": "purple",
+        "Uniform sampling": "gray",
+        "Fast-Nys": "orange",
+        "K Fast-Kys": "olive"
+
+    }
+
     datasets = set(df_results["dataset"].values)
     sparsity_values = set(df_results["sparsity-factor"].values)
     sparsity_values.remove("None")
 
     nb_iter_palm = set(df_results["nb-iteration-palm"].values)
     # hierarchical_values = set(df_results["hierarchical-init"])
-    init_schemes = set(df_results["initialization"].values)
+
 
     df_histo = df_results[df_results["nb-iteration-palm"] == max(nb_iter_palm)]
+    df_histo = df_histo[df_histo["initialization"] == "kmeans++"]
+
+    df_histo = df_histo[df_histo["dataset"]== "Coverage Type"]
 
     i=0
     for data in datasets:
-        if i == 2: exit()
+        # if i == 2: exit()
         i += 1
 
         df_data = df_histo[df_histo["dataset"] == data]
@@ -163,10 +176,10 @@ if __name__ == "__main__":
 
         for task in tasks:
 
-
+            init_schemes = set(df_data["initialization"].values)
             for init in init_schemes:
                 dct_sparsity_figure = defaultdict(lambda: go.Figure())
-                title_fig_sparsity_figures = "{} {} sparsity {} {}"
+                title_fig_sparsity_figures = "{} {} {}"
 
                 df_init = df_data[df_data["initialization"] == init]
 
@@ -182,7 +195,10 @@ if __name__ == "__main__":
                         task_values_mean = [df_sparsity[df_sparsity["nb-cluster"] == nb_cluster][task].mean() for nb_cluster in nb_clusters]
                         task_values_std = [df_sparsity[df_sparsity["nb-cluster"] == nb_cluster][task].std() for nb_cluster in nb_clusters]
 
-                        title_figure = title_fig_sparsity_figures.format(data, task, int(sparsity_value), init)
+                        title_figure = title_fig_sparsity_figures.format(data, task, init)
+
+                        trace_name = "QK-means sparsity {}".format(int(sparsity_value))
+
                         dct_sparsity_figure[title_figure].add_trace(go.Bar(
                             x=nb_clusters,
                             y=task_values_mean,
@@ -191,8 +207,9 @@ if __name__ == "__main__":
                                 array=task_values_std,
                                 visible=True
                             ),
-                            marker_color='green',
-                            name='QKmeans',
+                            marker_color=dct_legend_color[trace_name],
+                            hovertext=trace_name,
+                            name=trace_name,
                             # marker_color='indianred'
                         ))
 
@@ -222,29 +239,29 @@ if __name__ == "__main__":
                 ##################
                 # KMEANS  + PALM #
                 ##################
-                df_kmeans_palm = df_init[df_init["model"] == "Kmeans + Palm"]
-
-                for hierarchical_value in [True]:
-                    df_hierarchical = df_kmeans_palm[df_kmeans_palm["hierarchical-inside"] == hierarchical_value]
-                    for sparsity_value in sparsity_values:
-                        df_sparsity = df_hierarchical[df_hierarchical["sparsity-factor"] == sparsity_value]
-
-                        task_values_mean = [df_sparsity[df_sparsity["nb-cluster"] == nb_cluster][task].mean() for nb_cluster in nb_clusters]
-                        task_values_std = [df_sparsity[df_sparsity["nb-cluster"] == nb_cluster][task].std() for nb_cluster in nb_clusters]
-
-                        title_figure = title_fig_sparsity_figures.format(data, task, int(sparsity_value), init)
-                        dct_sparsity_figure[title_figure].add_trace(go.Bar(
-                            x=nb_clusters,
-                            y=task_values_mean,
-                            error_y=dict(
-                                type='data',  # value of error bar given in data coordinates
-                                array=task_values_std,
-                                visible=True
-                            ),
-                            marker_color='blue',
-                            name='Kmeans + PALM',
-                            # marker_color='indianred'
-                        ))
+                # df_kmeans_palm = df_init[df_init["model"] == "Kmeans + Palm"]
+                #
+                # for hierarchical_value in [True]:
+                #     df_hierarchical = df_kmeans_palm[df_kmeans_palm["hierarchical-inside"] == hierarchical_value]
+                #     for sparsity_value in sparsity_values:
+                #         df_sparsity = df_hierarchical[df_hierarchical["sparsity-factor"] == sparsity_value]
+                #
+                #         task_values_mean = [df_sparsity[df_sparsity["nb-cluster"] == nb_cluster][task].mean() for nb_cluster in nb_clusters]
+                #         task_values_std = [df_sparsity[df_sparsity["nb-cluster"] == nb_cluster][task].std() for nb_cluster in nb_clusters]
+                #
+                #         title_figure = title_fig_sparsity_figures.format(data, task, int(sparsity_value), init)
+                #         dct_sparsity_figure[title_figure].add_trace(go.Bar(
+                #             x=nb_clusters,
+                #             y=task_values_mean,
+                #             error_y=dict(
+                #                 type='data',  # value of error bar given in data coordinates
+                #                 array=task_values_std,
+                #                 visible=True
+                #             ),
+                #             marker_color='blue',
+                #             name='Kmeans + PALM',
+                #             # marker_color='indianred'
+                #         ))
 
 
                 #####################
@@ -264,6 +281,7 @@ if __name__ == "__main__":
                                     visible=True
                                 ),
                                 name=dct_name_legend[str_other_nystrom],
+                                marker_color=dct_legend_color[dct_name_legend[str_other_nystrom]]
                             ))
 
                     if "nystrom-svm-accuracy" == task:
@@ -279,6 +297,7 @@ if __name__ == "__main__":
                                     visible=True
                                 ),
                                 name=dct_name_legend[str_other_nystrom],
+                                marker_color=dct_legend_color[dct_name_legend[str_other_nystrom]]
                             ))
 
                 for title_figure, fig in dct_sparsity_figure.items():
@@ -293,8 +312,10 @@ if __name__ == "__main__":
                                           size=18,
                                           color="black"
                                       ),
+                                      legend_orientation="h",
                                       # showlegend=False,
                                       legend=dict(
+                                          x=0, y=-0.3,
                                           traceorder="normal",
                                           font=dict(
                                               family="sans-serif",

@@ -419,6 +419,8 @@ class ParameterManagerEfficientNystrom(dict):
         elif self["--million-blobs"] is not None:
             self["--minibatch"] = 1000
             return million_blobs_dataset(int(self["--million-blobs"]))
+        elif self["--coil20"] is not None:
+            return coil20_dataset(int(self["--coil20"]))
         else:
             raise NotImplementedError("Unknown dataset.")
 

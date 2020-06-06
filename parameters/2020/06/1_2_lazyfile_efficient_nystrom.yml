@@ -1,0 +1,33 @@
+all:
+  qmeans_small_dataset:
+#  qmeans_big_dataset:
+
+base:
+  seed: {"--seed": "range(5)"}
+  nystrom: {"--nystrom": ["5000"]}
+  verbose: ["-vv"]
+  standardize: ["--standardize-std"]
+
+cluster_log2search:
+  nb_landmarks: {"--nb-landmarks": ["8", "16", "32", "64", "128", "256", "512"]}
+
+cluster_log2search_small:
+  nb_landmarks: {"--nb-landmarks": ["8", "16", "32", "64"]}
+
+small_datasets:
+  base:
+  cluster_log2search_small:
+#  dataset: ["--breast-cancer", "--plants", "--mnist", "--fashion-mnist"]
+#  dataset: ["--mnist"]
+  dataset: ["--coil20 32"]
+
+big_datasets:
+  base:
+  cluster_log2search:
+  dataset: ["--kddcup99", "--kddcup04", "--census", "--covtype", "--caltech256 32"]
+
+qmeans_small_dataset:
+  small_datasets:
+
+qmeans_big_dataset:
+  big_datasets:

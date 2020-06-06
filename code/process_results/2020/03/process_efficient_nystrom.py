@@ -52,6 +52,8 @@ if __name__ == "__main__":
     # suf_path = "2019/10/5_6_new_expes"
     suf_path = "2020/01/0_0_efficient_nystrom_bis_bis"
     input_dir = results_dir / suf_path
+    suf_path_coil = "2020/06/1_2_efficient_nystrom_coil20"
+    input_dir_coil = results_dir / suf_path_coil
 
     output_dir = "/home/luc/PycharmProjects/qalm_qmeans/results/processed/"
     output_dir = pathlib.Path(output_dir) / suf_path
@@ -60,13 +62,15 @@ if __name__ == "__main__":
     not_processed_csv = output_dir / "notprocessed.csv"
     processed_csv = output_dir / "processed.csv"
 
-    if not not_processed_csv.exists():
-        df_results = get_df(input_dir)
-        df_results = df_results[np.logical_not(df_results["failure"])]
+    # if not not_processed_csv.exists():
+    df_results = get_df(input_dir)
+    df_results_coil = get_df(input_dir_coil)
+    df_results = pd.concat([df_results, df_results_coil])
+    df_results = df_results[np.logical_not(df_results["failure"])]
 
-        df_results.to_csv(not_processed_csv)
-    else:
-        df_results = pd.read_csv(not_processed_csv)
+    df_results.to_csv(not_processed_csv)
+    # else:
+    #     df_results = pd.read_csv(not_processed_csv)
 
     dct_results = defaultdict(list)
 
@@ -99,6 +103,8 @@ if __name__ == "__main__":
             dct_results["dataset"].append("Million blobs {}".format(row["--milion-blobs"]))
         elif row["--plants"]:
             dct_results["dataset"].append("Plants")
+        elif row["--coil20"] != 'None':
+            dct_results["dataset"].append("Coil20 {}".format(int(row["--coil20"])))
         else:
             raise ValueError("Unknown dataset")
 
