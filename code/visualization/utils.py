@@ -114,6 +114,8 @@ def get_dct_result_files_by_root(src_results_dir, old_filename_objective=False, 
     for pth_file in files:
         if pth_file.suffix != '.stdout':
             continue
+        # if "_results.csv" not in pth_file.name:
+        #     continue
 
         count_total += 1
 

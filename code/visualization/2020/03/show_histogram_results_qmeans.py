@@ -44,15 +44,21 @@ def get_df(path):
     df_results = build_df(src_result_dir, dct_output_files_by_root, col_to_delete)
     return df_results
 
+def get_df_from_path(path):
+    input_path = results_dir / path / "processed.csv"
+    df_results = pd.read_csv(input_path)
+    df_results = df_results.fillna("None")
+    return df_results
 
 if __name__ == "__main__":
     results_dir = pathlib.Path("/home/luc/PycharmProjects/qalm_qmeans/results/processed")
 
-    suf_path = "2020/03/6_7_qmeans_all"
-    input_dir = results_dir / suf_path
-    processed_csv = input_dir / "processed.csv"
-    df_results = pd.read_csv(processed_csv)
-    df_results = df_results.fillna("None")
+    suf_path = "2020/06/7_8_qmeans_more_iter"
+    suf_path_small = "2020/06/7_8_qmeans_more_iter_small_datasets"
+    df_results_big = get_df_from_path(suf_path)
+    df_results_small = get_df_from_path(suf_path_small)
+    df_results_small = df_results_small.loc[~df_results_small["dataset"].isin(["Caltech256 32", "Kddcup99", "Coverage Type"])]
+    df_results = pd.concat([df_results_small, df_results_big])
 
     suf_path_efficient = "2020/01/0_0_efficient_nystrom_bis_bis"
     input_dir_efficient = results_dir / suf_path_efficient
@@ -163,7 +169,7 @@ if __name__ == "__main__":
     df_histo = df_results[df_results["nb-iteration-palm"] == max(nb_iter_palm)]
     df_histo = df_histo[df_histo["initialization"] == "kmeans++"]
 
-    df_histo = df_histo[df_histo["dataset"]== "Coverage Type"]
+    # df_histo = df_histo[df_histo["dataset"]== "Coverage Type"]
 
     i=0
     for data in datasets:
@@ -300,10 +306,29 @@ if __name__ == "__main__":
                                 marker_color=dct_legend_color[dct_name_legend[str_other_nystrom]]
                             ))
 
+
+
                 for title_figure, fig in dct_sparsity_figure.items():
+                    if "nystrom" in title_figure:
+                        x_axis_title = "# Landmarks"
+                    else:
+                        x_axis_title = "# Cluster"
+
+                    if task == "nb-param":
+                        showlegend = True
+                        x_legend = 0.01
+                        y_legend = 1
+                    else:
+                        showlegend = False
+                        x_legend = 0
+                        y_legend = -0.3
                     fig.update_layout(barmode='group',
-                                      title=title_figure,
-                                      xaxis_title="# Cluster",
+                                      width=1000,
+                                      height=350,
+                                      autosize=False,
+                                      margin=dict(l=20, r=20, t=20, b=20),
+                                      # title=title_figure,
+                                      xaxis_title=x_axis_title,
                                       yaxis_title=y_axis_label_by_task[task],
                                       yaxis_type=y_axis_scale_by_task[task],
                                       xaxis={'type': 'category'},
@@ -313,9 +338,9 @@ if __name__ == "__main__":
                                           color="black"
                                       ),
                                       legend_orientation="h",
-                                      # showlegend=False,
+                                      showlegend=showlegend,
                                       legend=dict(
-                                          x=0, y=-0.3,
+                                          x=x_legend, y=y_legend,
                                           traceorder="normal",
                                           font=dict(
                                               family="sans-serif",

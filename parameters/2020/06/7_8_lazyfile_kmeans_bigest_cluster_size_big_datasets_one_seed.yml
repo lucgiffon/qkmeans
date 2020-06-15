@@ -1,0 +1,85 @@
+all:
+#  kmeans_small_dataset:
+  kmeans_big_dataset:
+#  kmeans_palm_small_dataset:
+#  kmeans_palm_big_dataset:
+#  qmeans_small_dataset:
+#  qmeans_big_dataset:
+
+base:
+  seed: {"--seed": ["1"]}
+  verbose: ["-v"]
+  nystrom: {"--nystrom": ["5000"]}
+  assignation: {"--assignation-time": ["5000"]}
+  batch_assignation: {"--batch-assignation-time": ["5000"]}
+  1nn: ["--1-nn"]
+  obj_value: ["--get-objective-value"]
+  no_1nn_baselines: ["--no-1nn-baselines"]
+  ami: {"--ami": ["5000"]}
+  initialisation: {--initialization: ["uniform_sampling", "kmeans++"]}
+  iterations: {--nb-iteration: ["50"]}
+
+cluster_log2search:
+#  nb_clusters: {"--nb-cluster": ["8", "16", "32", "64", "128", "256"]}
+  nb_clusters: {"--nb-cluster": ["256"]}
+
+cluster_log2search_small:
+#  nb_clusters: {"--nb-cluster": ["8", "16", "32", "64"]}
+  nb_clusters: {"--nb-cluster": ["64"]}
+
+mnibatch_size:
+  minibatch: {"--minibatch": ["1000"]}
+
+palm_param:
+  sparsity_factor: {"--sparsity-factor": ["2", "3", "5"]}
+  nb_iteration_palm: {"--nb-iteration-palm": [50, 100, 200, 300]}
+
+kmeans:
+  qmeans: ["kmeans"]
+
+kmeans_palm:
+  qmeans: ["kmeans"]
+  palm: ["palm"]
+  palm_param:
+  hierarchical: ["--hierarchical"]
+
+qmeans:
+  qmeans: ["qmeans"]
+  palm_param:
+  hierarchical_init: ["--hierarchical-init"]
+
+small_datasets:
+  base:
+  cluster_log2search_small:
+  dataset: ["--breast-cancer", "--mnist", "--fashion-mnist", "--coil20 32"]
+
+big_datasets:
+  base:
+  cluster_log2search:
+  mnibatch_size:
+#  dataset: ["--kddcup99", "--kddcup04", "--covtype", "--caltech256 32"]
+  dataset: ["--kddcup99",  "--covtype", "--caltech256 32"]
+
+kmeans_small_dataset:
+  kmeans:
+  small_datasets:
+
+kmeans_big_dataset:
+  kmeans:
+  big_datasets:
+
+kmeans_palm_small_dataset:
+  kmeans_palm:
+  small_datasets:
+
+kmeans_palm_big_dataset:
+  kmeans_palm:
+  big_datasets:
+
+qmeans_small_dataset:
+  qmeans:
+  small_datasets:
+
+qmeans_big_dataset:
+  qmeans:
+  big_datasets:

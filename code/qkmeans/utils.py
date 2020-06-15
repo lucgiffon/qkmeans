@@ -651,7 +651,7 @@ def download_data(url, directory, name=None):
 
 class DataGenerator(keras.utils.Sequence):
     'Generates data for Keras'
-    def __init__(self, examples, labels=None, batch_size=32, shuffle=True, to_categorical=False, return_indexes=False):
+    def __init__(self, examples, labels=None, process_all_data=True, batch_size=32, shuffle=True, to_categorical=False, return_indexes=False):
         'Initialization'
         self.batch_size = batch_size
         self.labels = labels
@@ -664,11 +664,15 @@ class DataGenerator(keras.utils.Sequence):
         if (self.to_categorical and not self.labels):
             raise AssertionError("Can't use 'to_categorical' if no labels are provided")
         self.return_indexes = return_indexes
+        self.process_all_data = process_all_data
         self.on_epoch_end()
 
     def __len__(self):
         'Denotes the number of batches per epoch'
-        return int(np.floor(len(self.examples) / self.batch_size))
+        if self.process_all_data:
+            return int(np.ceil(len(self.examples) / self.batch_size))
+        else:
+            return int(np.floor(len(self.examples) / self.batch_size))
 
     def __getitem__(self, index):
         'Generate one batch of data'
@@ -690,11 +694,11 @@ class DataGenerator(keras.utils.Sequence):
     def __data_generation(self, indexes):
         'Generates data containing batch_size samples' # X : (n_samples, *dim, n_channels)
         # Initialization
-        X = np.empty((self.batch_size, *self.dim)).squeeze()
-        if self.batch_size == 1:
+        batch_size = len(indexes)
+        X = np.empty((batch_size, *self.dim)).squeeze()
+        if batch_size == 1:
             X = np.reshape(X, (1, *X.shape))
-        y = np.empty((self.batch_size,), dtype=int)
-
+        y = np.empty((batch_size,), dtype=int)
 
         # Generate data
         for i, idx in enumerate(indexes):

@@ -48,10 +48,17 @@ dataset_dim = {
         "Coil20 32": 32*32
     }
 
+def get_df_function(path):
+    input_dir = results_dir / path
+    df_results = get_df(input_dir)
+    df_results = df_results[np.logical_not(df_results["failure"])]
+    df_results = df_results.assign(results_dir=input_dir)
+    return df_results
+
 if __name__ == "__main__":
     results_dir = pathlib.Path("/home/luc/PycharmProjects/qalm_qmeans/results/")
     # suf_path = "2019/10/5_6_new_expes"
-    suf_path = "2020/03/6_7_qmeans_all"
+    suf_path = "2020/06/7_8_qmeans_more_iter"
     input_dir = results_dir / suf_path
 
     output_dir = "/home/luc/PycharmProjects/qalm_qmeans/results/processed/"
@@ -61,9 +68,19 @@ if __name__ == "__main__":
     not_processed_csv = output_dir / "notprocessed.csv"
     processed_csv = output_dir / "processed.csv"
 
-    if not not_processed_csv.exists():
-        df_results = get_df(input_dir)
-        df_results = df_results[np.logical_not(df_results["failure"])]
+    lst_input_path = [
+        "2020/06/7_8_qmeans_only_big_largest_cluster_size",
+        "2020/06/7_8_qmeans_more_iter_only_covtype",
+        # "2020/06/7_8_qmeans_more_iter_only_covtype_no_npy",
+        # "2020/06/7_8_qmeans_more_iter_other_seeds_no_npy",
+    ]
+
+    if True or not not_processed_csv.exists():
+        # df_results = get_df(input_dir)
+        # df_results = df_results[np.logical_not(df_results["failure"])]
+
+        # df_results = pd.concat(map(get_df_function, lst_input_path))
+        df_results = pd.concat([elm for elm in map(get_df_function, lst_input_path)])
 
         df_results.to_csv(not_processed_csv)
     else:
@@ -81,9 +98,10 @@ if __name__ == "__main__":
 
     for i, row in df_results.iterrows():
         oar_id = int(row["oar_id"].split(".")[-1])
-        if oar_id < 2008758:
-            print("FOUND IT: {}. Skip".format(oar_id))
-            continue
+        # oar_id = int(row["oar_id"].split("_")[0])
+        # if oar_id < 2008758:
+        #     print("FOUND IT: {}. Skip".format(oar_id))
+        #     continue
         if row["--breast-cancer"]:
             dct_results["dataset"].append("Breast Cancer")
         elif row["--caltech256"] != 'None':
@@ -124,6 +142,8 @@ if __name__ == "__main__":
         else:
             raise ValueError("Model not Known")
 
+        dct_results["results_dir"].append(row["results_dir"])
+
         dct_results["delta-treshold"].append(float(row["--delta-threshold"]))
         dct_results["batch-assignation-time-nb-sample"].append(int(row["--batch-assignation-time"]) if row["--batch-assignation-time"] is not None else np.nan)
         dct_results["ami-nb-sample"].append(int(row["--ami"]) if row["--ami"] is not None else np.nan)
@@ -141,8 +161,8 @@ if __name__ == "__main__":
         dct_results["seed"].append(int(row["--seed"]) if row["--seed"] is not None else np.nan)
         dct_results["sparsity-factor"].append(int(row["--sparsity-factor"]) if row["--sparsity-factor"] != 'None' else np.nan)
         
-        dct_results["path-centroids"].append(str((input_dir / row["--output-file_centroidprinter"]).absolute()))
-        dct_results["path-objective"].append(str((input_dir / row["--output-file_objprinter"]).absolute()))
+        dct_results["path-centroids"].append(str((pathlib.Path(row["results_dir"]) / row["--output-file_centroidprinter"]).absolute()))
+        dct_results["path-objective"].append(str((pathlib.Path(row["results_dir"]) / row["--output-file_objprinter"]).absolute()))
         
         dct_results["1nn-ball-tree-accuracy"].append(float(row["1nn_ball_tree_accuracy"]) if row["1nn_ball_tree_accuracy"] != 'None' else np.nan)
         dct_results["1nn-ball-tree-inference-time"].append(float(row["1nn_ball_tree_inference_time"]) if row["1nn_ball_tree_inference_time"] != 'None' else np.nan)
