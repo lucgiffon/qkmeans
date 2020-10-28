@@ -225,6 +225,9 @@ class ParameterManager(dict):
         self["--minibatch"] = int(self["--minibatch"]) if self["--minibatch"] is not None else None
         self["--max-eval-train-size"] = int(self["--max-eval-train-size"]) if self["--max-eval-train-size"] is not None else None
 
+        self["--lambda-l1-proj"] = float(self["--lambda-l1-proj"]) if self["--lambda-l1-proj"] is not None else None
+        self["--epsilon-tol-proj"] = float(self["--epsilon-tol-proj"]) if self["--epsilon-tol-proj"] is not None else None
+
         self.__init_nb_factors()
         self.__init_output_file()
         self.__init_seed()

@@ -4,12 +4,15 @@ simple Kmeans implementation.
 import copy
 
 import numpy as np
-from qkmeans.core.utils import compute_objective, assign_points_to_clusters, get_squared_froebenius_norm_line_wise, update_clusters_with_integrity_check
+from qkmeans.core.utils import compute_objective, assign_points_to_clusters, get_squared_froebenius_norm_line_wise, update_clusters_with_integrity_check, proj_onto_l1_ball
 from qkmeans.utils import logger
 
 
 def kmeans(X_data, K_nb_cluster, nb_iter, initialization,
-           delta_objective_error_threshold=1e-6):
+           delta_objective_error_threshold=1e-6,
+                     proj_l1=False,
+                     _lambda=None,
+                     epsilon=None):
     """
 
     :param X_data: The data matrix of n examples in dimensions d in shape (n, d).
@@ -55,6 +58,12 @@ def kmeans(X_data, K_nb_cluster, nb_iter, initialization,
                                                                             cluster_names_sorted)
 
         U_centroids = U_centroids_hat
+
+        if proj_l1:
+            if _lambda is None or epsilon is None:
+                raise ValueError("epsilon and lambda must be set if proj_l1 is True")
+            for i_centroid, centroid in enumerate(U_centroids):
+                U_centroids[i_centroid, :] = proj_onto_l1_ball(_lambda=_lambda, epsilon_tol=epsilon, vec=centroid)
 
         objective_function[i_iter,] = compute_objective(X_data, U_centroids, indicator_vector)
 

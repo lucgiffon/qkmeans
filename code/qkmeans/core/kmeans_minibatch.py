@@ -15,7 +15,7 @@ import copy
 
 import numpy as np
 from qkmeans.core.utils import compute_objective, assign_points_to_clusters, update_clusters, \
-    get_squared_froebenius_norm_line_wise_batch_by_batch, compute_objective_by_batch
+    get_squared_froebenius_norm_line_wise_batch_by_batch, compute_objective_by_batch, proj_onto_l1_ball
 from qkmeans.utils import logger, DataGenerator
 
 
@@ -24,7 +24,10 @@ def kmeans_minibatch(X_data,
                      nb_iter,
                      initialization,
                      batch_size,
-                     delta_objective_error_threshold=1e-6):
+                     delta_objective_error_threshold=1e-6,
+                     proj_l1=False,
+                     _lambda=None,
+                     epsilon=None):
     """
 
     :param X_data: The data matrix of n examples in dimensions d in shape (n, d).
@@ -77,19 +80,24 @@ def kmeans_minibatch(X_data,
                                                 count_vector,
                                                 indicator_vector)
 
-
             # Update centroid location using the newly
             # assigned data point classes
 
+        if proj_l1:
+            if _lambda is None or epsilon is None:
+                raise ValueError("epsilon and lambda must be set if proj_l1 is True")
+            for i_centroid, centroid in enumerate(U_centroids):
+                U_centroids[i_centroid, :] = proj_onto_l1_ball(_lambda=_lambda, epsilon_tol=epsilon, vec=centroid)
 
         objective_function[i_iter,] = compute_objective_by_batch(X_data, U_centroids, full_indicator_vector, batch_size)
 
         if i_iter >= 1:
-            delta_objective_error = np.abs(objective_function[i_iter] - objective_function[i_iter-1]) / objective_function[i_iter-1] # todo vérifier que l'erreur absolue est plus petite que le threshold plusieurs fois d'affilée
+            delta_objective_error = np.abs(objective_function[i_iter] - objective_function[i_iter-1]) / objective_function[i_iter-1]  # todo vérifier que l'erreur absolue est plus petite que le threshold plusieurs fois d'affilée
 
         i_iter += 1
 
     return objective_function[:i_iter], U_centroids, full_indicator_vector
+
 
 if __name__ == "__main__":
     batch_size = 10000

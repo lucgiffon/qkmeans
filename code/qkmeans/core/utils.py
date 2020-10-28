@@ -399,3 +399,24 @@ def check_cluster_integrity(X_data, X_centroids_hat, K_nb_cluster, counts, indic
 
             indicator_vector[random_index_in_biggest_cluster] = c
 
+
+def proj_onto_l1_ball(_lambda, epsilon_tol, vec):
+    vec_l1 = np.sum(np.abs(vec)) # norm l1
+    if vec_l1 <= _lambda + epsilon_tol:
+        return vec
+    vec_upper = np.max(np.abs(vec)) # norm infinity
+    vec_lower = 0
+    vec_current = vec_l1
+    theta = 0
+    while vec_current > _lambda * (1 + epsilon_tol) or vec_current < _lambda:
+        theta = (vec_upper + vec_lower) / 2
+        vec_current = sum(np.maximum(np.zeros_like(vec), np.abs(vec) - theta))
+        if vec_current <= _lambda:
+            vec_upper = theta
+        else:
+            vec_lower = theta
+
+    vec = np.sign(vec) * np.maximum(np.zeros_like(vec), np.abs(vec) - theta)
+
+    return vec
+
