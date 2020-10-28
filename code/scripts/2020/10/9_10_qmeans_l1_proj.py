@@ -127,7 +127,7 @@ def main_kmeans(X, U_init):
         if paraman["--blobs"] is not None:
             param_lambda = None
         elif paraman["--caltech256"] is not None:
-            param_lambda = 900
+            param_lambda = 868
         elif paraman["--census"]:
             param_lambda = None
         elif paraman["--kddcup04"]:
@@ -139,11 +139,11 @@ def main_kmeans(X, U_init):
         elif paraman["--breast-cancer"]:
             param_lambda = 600
         elif paraman["--covtype"]:
-            param_lambda = 930
+            param_lambda = 964
         elif paraman["--mnist"]:
             param_lambda = 2550
         elif paraman["--fashion-mnist"]:
-            param_lambda = 1560
+            param_lambda = 1485
         elif paraman["--light-blobs"]:
             param_lambda = None
         elif paraman["--lfw"]:
@@ -151,7 +151,7 @@ def main_kmeans(X, U_init):
         elif paraman["--million-blobs"] is not None:
             param_lambda = None
         elif paraman["--coil20"] is not None:
-            param_lambda = 6.5
+            param_lambda = 5.6
         else:
             raise NotImplementedError("Unknown dataset.")
     else:
