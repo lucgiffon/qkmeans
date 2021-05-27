@@ -23,6 +23,11 @@ in each module so that you can inspire yourself from them but they are not guara
 a lot of non-working code but we choose to remain transparent in case it would be of any use to any one. If you
 have any question, please raise an issue.
 
+Reference paper
+---------------
+
+Giffon, L., Emiya, V., Kadri, H., & Ralaivola, L. (2021). QuicK-means: accelerating inference for K-means by learning fast transforms. Machine Learning, 1-25.
+
 Installation
 ------------
 
