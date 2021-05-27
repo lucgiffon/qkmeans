@@ -25,7 +25,6 @@ import pandas as pd
 import zipfile
 
 
-
 def load_kddcup04bio_no_classif():
     data_url = "http://cs.joensuu.fi/sipu/datasets/KDDCUP04Bio.txt"
 
@@ -36,12 +35,14 @@ def load_kddcup04bio_no_classif():
 
     return data.values
 
+
 def load_kddcup04bio():
     input_path = project_dir / "data/raw" / "data_kddcup04" / "bio_train.dat"
     data = pandas.read_csv(input_path, header=None, delim_whitespace=True)
     X = data.values[:, 3:]
     y = data.values[:, 2]
     return X, y
+
 
 def load_kddcup99():
     X, y = fetch_kddcup99(shuffle=True, return_X_y=True)
@@ -54,6 +55,7 @@ def load_kddcup99():
     label_encoder = preprocessing.LabelEncoder()
     y = label_encoder.fit_transform(y.reshape(-1, 1))
     return X, y
+
 
 def load_covtype():
     X, y = fetch_covtype(shuffle=True, return_X_y=True)
@@ -78,11 +80,6 @@ def load_census1990():
 
     return data.values[:, 1:], None # remove the `caseId` attribute
 
-def crop_center(img, bounding):
-    start = tuple(map(lambda a, da: a // 2 - da // 2, img.shape, bounding))
-    end = tuple(map(operator.add, start, bounding))
-    slices = tuple(map(slice, start, end))
-    return img[slices]
 
 def load_caltech(final_size):
     data_url = "http://www.vision.caltech.edu/Image_Datasets/Caltech256/256_ObjectCategories.tar"
@@ -138,6 +135,7 @@ def load_caltech(final_size):
 
     return (X_train, y_train), (X_test, y_test)
 
+
 def load_coil20(final_size):
     data_url = "http://www.cs.columbia.edu/CAVE/databases/SLAM_coil-20_coil-100/coil-20/coil-20-proc.zip"
     regex_file_names = re.compile(r'obj(\d+).+')
@@ -169,6 +167,13 @@ def load_coil20(final_size):
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=42, stratify=y)
 
     return (X_train, y_train), (X_test, y_test)
+
+
+def crop_center(img, bounding):
+    start = tuple(map(lambda a, da: a // 2 - da // 2, img.shape, bounding))
+    end = tuple(map(operator.add, start, bounding))
+    slices = tuple(map(slice, start, end))
+    return img[slices]
 
 
 def load_plants():
@@ -208,6 +213,7 @@ def load_plants():
 
     return arr_lst_plants
 
+
 def generator_blobs_data(data_size, size_batch, nb_features, nb_centers):
     total_nb_chunks = int(data_size // size_batch)
     init_centers = np.random.uniform(-10.0, 10.0, (nb_centers, nb_features))
@@ -215,6 +221,7 @@ def generator_blobs_data(data_size, size_batch, nb_features, nb_centers):
         logger.info("Chunk {}/{}".format(i + 1, total_nb_chunks))
         X, y = make_blobs(size_batch, n_features=nb_features, centers=init_centers, cluster_std=12.)
         yield X, y
+
 
 def generator_data(data_load_func, size_batch=10000):
     X, y = data_load_func()
@@ -232,6 +239,7 @@ def generator_data(data_load_func, size_batch=10000):
             yield X[(i+1)*size_batch: ], None
         else:
             yield X[(i + 1) * size_batch:], y[(i + 1) * size_batch:]
+
 
 def save_memmap_data(output_dirpath, dataname, data_size, nb_features, Xy_gen):
     output_path_obs = project_dir / output_dirpath / (dataname + ".dat")
@@ -252,6 +260,7 @@ def save_memmap_data(output_dirpath, dataname, data_size, nb_features, Xy_gen):
 
     if batch_y is None:
         os.remove(str(output_path_labels))
+
 
 MAP_NAME_DATASET_DD = {
     "kddcup04": lambda p_output_dirpath : save_memmap_data(p_output_dirpath, "kddcup04", 145751, 74, generator_data(load_kddcup04bio)),
