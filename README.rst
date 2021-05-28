@@ -41,6 +41,8 @@ To install the package, simply type:
 
 	make install
 
+Then you should also install Luc Giffon scientific toolbox: https://github.com/lucgiffon/scikit-luc
+
 To verify that everything is working, you can use the test rule from the root directory:
 
 	make test
